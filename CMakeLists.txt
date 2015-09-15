@@ -15,6 +15,8 @@ SET(FULL_SRC
 	read_holding_regs.c
 	write_single_reg.h
 	write_single_reg.c
+	write_multi_regs.h
+	write_multi_regs.c
 )
 
 add_library(modbus-master-full SHARED ${FULL_SRC})

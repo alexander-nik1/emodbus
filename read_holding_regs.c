@@ -22,7 +22,7 @@ int read_holding_regs_make_req(void* _result_req, uint8_t _slave_addr,
 int read_holding_regs_valid_answer(const void* _req, unsigned int _req_size, 
 								   const void* _answer, unsigned int _answer_size) {
     int r;
-    uint16_t quantity;
+    uint16_t quantity, tmp;
 
 	if(_req_size != 6)
 		return -EINVAL;
@@ -30,7 +30,8 @@ int read_holding_regs_valid_answer(const void* _req, unsigned int _req_size,
     if((r = modbus_check_answer(_req, _answer)) != 0)
         return r;
 
-    quantity = SWAP_BYTES(((uint16_t*)_req)[2]);
+    tmp = SWAP_BYTES(((uint16_t*)_req)[2]);
+    quantity = SWAP_BYTES(tmp);
 
     if(_answer_size != (5 + (quantity * 2)))
         return -E2BIG;
@@ -43,7 +44,8 @@ int read_holding_regs_valid_answer(const void* _req, unsigned int _req_size,
 
 uint16_t read_holding_regs_get_reg(const void* _answer, unsigned int _answer_size,
                                    uint16_t _reg_addr) {
-    return SWAP_BYTES(((uint16_t*)(((uint8_t*)_answer) + 3))[_reg_addr]);
+    const uint16_t x = ((uint16_t*)(((uint8_t*)_answer) + 3))[_reg_addr];
+    return SWAP_BYTES(x);
 }
 
 int read_holding_regs_get_regs_n(const void* _answer, unsigned int _answer_size) {
