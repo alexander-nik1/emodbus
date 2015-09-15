@@ -2,6 +2,7 @@
 #include "byte-word.h"
 #include <errno.h>
 #include "common.h"
+#include "read_holding_regs.h"
 
 int read_holding_regs_make_req(void* _result_req, uint8_t _slave_addr, 
 							   uint16_t _starting_address, uint16_t _quantity) {
