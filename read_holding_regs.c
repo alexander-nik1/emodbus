@@ -30,7 +30,7 @@ int read_holding_regs_valid_answer(const void* _req, unsigned int _req_size,
     if((r = modbus_check_answer(_req, _answer)) != 0)
         return r;
 
-    tmp = SWAP_BYTES(((uint16_t*)_req)[2]);
+    tmp = ((uint16_t*)_req)[2];
     quantity = SWAP_BYTES(tmp);
 
     if(_answer_size != (5 + (quantity * 2)))
