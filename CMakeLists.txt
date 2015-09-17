@@ -6,6 +6,14 @@ cmake_minimum_required(VERSION 2.8)
 set( EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin )
 set( LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib )
 
+SET(ADD_SRC
+	add/stream.h
+	add/stream.c
+	add/container_of.h
+	add/crc.h
+	add/crc.c
+)
+
 SET(FULL_SRC
 	modbus-master.h
 	byte-word.h
@@ -19,7 +27,9 @@ SET(FULL_SRC
 	write_multi_regs.c
 	write_mask_reg.h
 	write_mask_reg.c
+	rtu.h
+	rtu.c
 )
 
-add_library(modbus-master-full SHARED ${FULL_SRC})
-add_library(modbus-master-full-static STATIC ${FULL_SRC})
+add_library(modbus-master-full SHARED ${FULL_SRC} ${ADD_SRC})
+add_library(modbus-master-full-static STATIC ${FULL_SRC} ${ADD_SRC})
