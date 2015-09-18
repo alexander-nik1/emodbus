@@ -6,13 +6,7 @@ cmake_minimum_required(VERSION 2.8)
 set( EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin )
 set( LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib )
 
-SET(ADD_SRC
-	add/stream.h
-	add/stream.c
-	add/container_of.h
-	add/crc.h
-	add/crc.c
-)
+aux_source_directory(add ADD_SRC)
 
 SET(FULL_SRC
 	modbus-master.h
@@ -29,6 +23,8 @@ SET(FULL_SRC
 	write_mask_reg.c
 	rtu.h
 	rtu.c
+        sched.h
+        sched.c
 )
 
 add_library(modbus-master-full SHARED ${FULL_SRC} ${ADD_SRC})
