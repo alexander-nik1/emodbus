@@ -7,15 +7,25 @@
 #include "byte-word.h"
 #include "add/crc.h"
 
+//#include <stdio.h>
+
 static void parse_packet(struct modbus_rtu_t* _mbt) {
     const unsigned char* buf = _mbt->rx_buffer;
     const unsigned int size = _mbt->rx_buf_counter;
     if(size >= 4) { // 4 bytes - minimal packet size
         const uint16_t crc1 = crc16(buf, size-2);
         const uint16_t crc2 = MKWORD(buf[size-2], buf[size-1]);
-        if(crc1 == crc2) {
+        if(crc1 == crc2)
             _mbt->modbus_rtu_on_packet(_mbt->user_data, buf, size);
-        }
+//        else {
+//            int i;
+//            printf("Incorrect CRC: calc:0x%04X recv:0x%04X\n", crc1, crc2);
+//            for(i=0; i<size; ++i) {
+//                printf("%02X ", buf[i]);
+//            }
+//            printf("\n");
+//            fflush(stdout);
+//        }
     }
 }
 
@@ -54,7 +64,7 @@ void modbus_rtu_initialize(struct modbus_rtu_t* _mbt) {
     _mbt->tx_pkt_size = 0;
 }
 
-void modbus_rtu_on_symbol_timeout(struct modbus_rtu_t* _mbt) {
+void modbus_rtu_on_char_timeout(struct modbus_rtu_t* _mbt) {
     parse_packet(_mbt);
     _mbt->rx_buf_counter = 0;
 }

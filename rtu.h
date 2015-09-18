@@ -25,10 +25,10 @@ struct modbus_rtu_t {
 
     void* user_data;
 
-    // Calls when, the packet received
+    // modbus_rtu calls this function, when the packet received
     modbus_rtu_on_packet_t modbus_rtu_on_packet;
 
-    // Calls when, the symbol received
+    // modbus_rtu calls this function, when the char received
     modbus_rtu_on_char_t modbus_rtu_on_char;
 
     struct input_stream_t input_stream;
@@ -38,11 +38,13 @@ struct modbus_rtu_t {
 // Call this function before anything else.
 void modbus_rtu_initialize(struct modbus_rtu_t* _mbt);
 
-// User should call this function, when time of last received symbol is expired.
-void modbus_rtu_on_symbol_timeout(struct modbus_rtu_t* _mbt);
+// User should call this function, when time of last received char is expired.
+void modbus_rtu_on_char_timeout(struct modbus_rtu_t* _mbt);
 
-// This functions will send packet.
+// This function will send packet (CRC suffix automatically added).
 int modbus_rtu_send_packet(struct modbus_rtu_t* _mbt, const void* _pkt, unsigned int _size);
+
+// Same as above, but waits for all data has sent.
 int modbus_rtu_send_packet_sync(struct modbus_rtu_t* _mbt, const void* _pkt, unsigned int _size);
 
 #ifdef __cplusplus
