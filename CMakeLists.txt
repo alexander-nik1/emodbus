@@ -23,8 +23,10 @@ SET(FULL_SRC
 	write_mask_reg.c
 	rtu.h
 	rtu.c
-        sched.h
-        sched.c
+	modbus_sched.h
+	modbus_sched.c
+	modbus_proto.h
+	modbus_proto.c
 )
 
 add_library(modbus-master-full SHARED ${FULL_SRC} ${ADD_SRC})

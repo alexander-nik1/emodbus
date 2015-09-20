@@ -4,11 +4,13 @@
 
 #include "add/stream.h"
 
+#include "modbus_proto.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef void (*modbus_rtu_on_packet_t)(void* _user_data, const void* _packet, unsigned int _size);
+//typedef void (*modbus_rtu_on_packet_t)(void* _user_data, const void* _packet, unsigned int _size);
 typedef void (*modbus_rtu_on_char_t)(void* _user_data);
 
 struct modbus_rtu_t {
@@ -25,8 +27,10 @@ struct modbus_rtu_t {
 
     void* user_data;
 
+    struct modbus_protocol_t proto;
+
     // modbus_rtu calls this function, when the packet received
-    modbus_rtu_on_packet_t modbus_rtu_on_packet;
+    //modbus_rtu_on_packet_t modbus_rtu_on_packet;
 
     // modbus_rtu calls this function, when the char received
     modbus_rtu_on_char_t modbus_rtu_on_char;
@@ -42,7 +46,7 @@ void modbus_rtu_initialize(struct modbus_rtu_t* _mbt);
 void modbus_rtu_on_char_timeout(struct modbus_rtu_t* _mbt);
 
 // This function will send packet (CRC suffix automatically added).
-int modbus_rtu_send_packet(struct modbus_rtu_t* _mbt, const void* _pkt, unsigned int _size);
+int modbus_rtu_send_packet(void* _mbt, const void* _pkt, unsigned int _size);
 
 // Same as above, but waits for all data has sent.
 int modbus_rtu_send_packet_sync(struct modbus_rtu_t* _mbt, const void* _pkt, unsigned int _size);

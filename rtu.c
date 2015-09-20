@@ -16,7 +16,7 @@ static void parse_packet(struct modbus_rtu_t* _mbt) {
         const uint16_t crc1 = crc16(buf, size-2);
         const uint16_t crc2 = MKWORD(buf[size-2], buf[size-1]);
         if(crc1 == crc2)
-            _mbt->modbus_rtu_on_packet(_mbt->user_data, buf, size);
+            modbus_proto_recv_packet(&_mbt->proto, buf, size);
 //        else {
 //            int i;
 //            printf("Incorrect CRC: calc:0x%04X recv:0x%04X\n", crc1, crc2);
@@ -62,6 +62,10 @@ void modbus_rtu_initialize(struct modbus_rtu_t* _mbt) {
     _mbt->rx_buf_counter = 0;
     _mbt->tx_buf_counter = 0;
     _mbt->tx_pkt_size = 0;
+
+    // Setup protocol
+    _mbt->proto.modbus_proto_send_packet = modbus_rtu_send_packet;
+    _mbt->proto.send_user_data = _mbt;
 }
 
 void modbus_rtu_on_char_timeout(struct modbus_rtu_t* _mbt) {
@@ -69,14 +73,15 @@ void modbus_rtu_on_char_timeout(struct modbus_rtu_t* _mbt) {
     _mbt->rx_buf_counter = 0;
 }
 
-int modbus_rtu_send_packet(struct modbus_rtu_t* _mbt, const void* _pkt, unsigned int _size) {
-    if((_size + 2) <= _mbt->tx_buf_size) {
+int modbus_rtu_send_packet(void *_mbt, const void* _pkt, unsigned int _size) {
+    struct modbus_rtu_t* mbt = (struct modbus_rtu_t*)_mbt;
+    if((_size + 2) <= mbt->tx_buf_size) {
         const uint16_t crc = crc16(_pkt, _size);
-        memcpy(_mbt->tx_buffer, _pkt, _size);
-        memcpy(_mbt->tx_buffer + _size, &crc, 2);
-        _mbt->tx_pkt_size = _size + 2;
+        memcpy(mbt->tx_buffer, _pkt, _size);
+        memcpy(mbt->tx_buffer + _size, &crc, 2);
+        mbt->tx_pkt_size = _size + 2;
         // write first part
-        _mbt->tx_buf_counter = stream_write(&_mbt->output_stream, _mbt->tx_buffer, _mbt->tx_pkt_size);
+        mbt->tx_buf_counter = stream_write(&mbt->output_stream, mbt->tx_buffer, mbt->tx_pkt_size);
         return 0;
     }
     else
