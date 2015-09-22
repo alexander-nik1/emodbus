@@ -41,6 +41,13 @@ typedef void (*on_modbus_task_response_t)(struct modbus_task_t*,
 
 typedef void (*on_modbus_task_timeout_t)(struct modbus_task_t*);
 
+enum modbus_task_state_t {
+    mt_state_no_task,
+    mt_state_wait_processing,
+    mt_state_sending_req,
+    mt_state_wait_resp
+};
+
 // Одна задача
 struct modbus_task_t {
     const void* request;
@@ -50,6 +57,7 @@ struct modbus_task_t {
     on_modbus_task_timeout_t on_resp_timeout;
     void* user_data;
     struct modbus_scheduler_t* sched;
+    enum modbus_task_state_t state;
     struct task_t task;
 };
 
@@ -68,13 +76,19 @@ struct modbus_scheduler_t {
     struct scheduler_t sched;
 };
 
+void modbus_scheduler_init_task(struct modbus_task_t* _task, void* _user_data,
+                                on_modbus_task_response_t _on_response,
+                                on_modbus_task_timeout_t _on_timeout);
+
 void modbus_scheduler_initialize(struct modbus_scheduler_t* _modbus_sched);
 
-void modbus_scheduler_add_task(struct modbus_scheduler_t* _modbus_sched, struct modbus_task_t* _modbus_task);
+int modbus_scheduler_add_task(struct modbus_scheduler_t* _modbus_sched, struct modbus_task_t* _modbus_task);
 
 int modbus_scheduler_process_one_task(struct modbus_scheduler_t* _modbus_sched);
 
 void modbus_scheduler_wait_timeout(struct modbus_scheduler_t* _modbus_sched);
+
+enum modbus_task_state_t modbus_scheduler_get_state(struct modbus_scheduler_t* _modbus_sched);
 
 #ifdef __cplusplus
 }   // extern "C"
