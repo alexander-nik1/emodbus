@@ -12,6 +12,12 @@ extern "C" {
 int read_holding_regs_make_req(void* _result_req, uint8_t _slave_addr, 
                                uint16_t _starting_address, uint16_t _quantity);
 
+// Get starting address from request
+uint16_t read_holding_regs_get_starting_addr(const void* _req);
+
+// Get quantity from request
+uint16_t read_holding_regs_get_quantity(const void* _req);
+
 // Check and valid answer
 int read_holding_regs_valid_answer(const void* _req, unsigned int _req_size, 
                                    const void* _answer, unsigned int _answer_size);
