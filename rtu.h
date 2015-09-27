@@ -25,12 +25,12 @@ struct modbus_rtu_t {
     unsigned int tx_buf_counter;
     unsigned int tx_pkt_size;
 
+    struct modbus_pdu_t rx_pdu;
+    struct modbus_pdu_t tx_pdu;
+
     void* user_data;
 
     struct modbus_protocol_t proto;
-
-    // modbus_rtu calls this function, when the packet received
-    //modbus_rtu_on_packet_t modbus_rtu_on_packet;
 
     // modbus_rtu calls this function, when the char received
     modbus_rtu_on_char_t modbus_rtu_on_char;
@@ -45,11 +45,14 @@ void modbus_rtu_initialize(struct modbus_rtu_t* _mbt);
 // User should call this function, when time of last received char is expired.
 void modbus_rtu_on_char_timeout(struct modbus_rtu_t* _mbt);
 
-// This function will send packet (CRC suffix automatically added).
-int modbus_rtu_send_packet(void* _mbt, const void* _pkt, unsigned int _size);
+// Send error to high level
+void modbus_rtu_on_error(struct modbus_rtu_t* _mbt,
+                         int _errno);
 
 // Same as above, but waits for all data has sent.
-int modbus_rtu_send_packet_sync(struct modbus_rtu_t* _mbt, const void* _pkt, unsigned int _size);
+int modbus_rtu_send_packet_sync(struct modbus_rtu_t* _mbt,
+                                int _slave_addr,
+                                const struct modbus_const_pdu_t* _pdu);
 
 #ifdef __cplusplus
 }   // extern "C"

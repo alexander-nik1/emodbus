@@ -3,18 +3,25 @@
 #define MODBUS_MASTER_WRITE_MULTIPLE_REGISTER
 
 #include <stdint.h>
+#include "modbus_pdu.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 // Build request
-int write_multi_regs_make_req(void* _result_req, uint8_t _slave_addr,
-                               uint16_t _address, uint16_t _quantity, const void* _data);
+int write_multi_regs_make_req(struct modbus_pdu_t* _result_req,
+                              uint16_t _address,
+                              uint16_t _quantity,
+                              const void* _data);
+
+int write_multi_regs_get_addr(const struct modbus_const_pdu_t* _req);
+
+int write_multi_regs_get_quantity(const struct modbus_const_pdu_t* _req);
 
 // Check and valid answer
-int write_multi_regs_valid_answer(const void* _req, unsigned int _req_size,
-                                   const void* _answer, unsigned int _answer_size);
+int write_multi_regs_valid_answer(const struct modbus_const_pdu_t* _req,
+                                  const struct modbus_const_pdu_t* _ans);
 
 #ifdef __cplusplus
 }   // extern "C"

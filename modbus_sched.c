@@ -4,8 +4,8 @@
 #include <errno.h>
 
 static void on_receive_pkt(void* _user_data,
-                           const void* _pkt,
-                           unsigned int _pkt_size) {
+                           int _slave_addr,
+                           const struct modbus_const_pdu_t* _pkt) {
 
     struct modbus_scheduler_t* sched = (struct modbus_scheduler_t*)_user_data;
     struct modbus_task_t* mt = sched->current_task;
@@ -14,7 +14,7 @@ static void on_receive_pkt(void* _user_data,
         sched->modbus_sched_stop_wait(sched);
         sched->current_task = (struct modbus_task_t*)0;
         mt->state = mt_state_no_task;
-        mt->on_response(mt, _pkt, _pkt_size);
+        mt->on_response(mt, _slave_addr, _pkt);
     }
 }
 
@@ -24,7 +24,7 @@ static void on_task(void *_data) {
     struct modbus_scheduler_t* sched = mt->sched;
     sched->current_task = mt;
     mt->state = mt_state_sending_req;
-    modbus_proto_send_packet(sched->proto, mt->request, mt->req_size);
+    modbus_proto_send_packet(sched->proto, mt->slave_addr, mt->req);
     mt->state = mt_state_wait_resp;
     sched->modbus_sched_start_wait(sched, mt->resp_timeout);
 }
@@ -42,8 +42,8 @@ void modbus_scheduler_init_task(struct modbus_task_t* _task, void *_user_data,
 void modbus_scheduler_initialize(struct modbus_scheduler_t *_modbus_sched) {
     memset(&_modbus_sched->sched, 0, sizeof(struct scheduler_t));
     scheduler_init(&_modbus_sched->sched, _modbus_sched);
-    _modbus_sched->proto->modbus_proto_recv_packet = on_receive_pkt;
-    _modbus_sched->proto->recv_user_data = _modbus_sched;
+    _modbus_sched->proto->recv_packet = on_receive_pkt;
+    _modbus_sched->proto->high_level_context = _modbus_sched;
     _modbus_sched->current_task = (struct modbus_task_t*)0;
 }
 

@@ -27,6 +27,8 @@ SET(FULL_SRC
 	modbus_sched.c
 	modbus_proto.h
 	modbus_proto.c
+	modbus_pdu.h
+	modbus_errno.h
 )
 
 add_library(modbus-master-full SHARED ${FULL_SRC} ${ADD_SRC})

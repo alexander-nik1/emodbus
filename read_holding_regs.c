@@ -4,60 +4,60 @@
 #include "common.h"
 #include "read_holding_regs.h"
 
-int read_holding_regs_make_req(void* _result_req, uint8_t _slave_addr, 
-							   uint16_t _starting_address, uint16_t _quantity) {
-	
+int read_holding_regs_make_req(struct modbus_pdu_t *_result_req,
+                               uint16_t _starting_address, uint16_t _quantity) {
+
 	if( 1 <= _quantity && _quantity <= 125 ) {
-		((uint8_t*)_result_req)[0] = _slave_addr;
-		((uint8_t*)_result_req)[1] = 0x03;
-		((uint16_t*)_result_req)[1] = SWAP_BYTES(_starting_address);
-		((uint16_t*)_result_req)[2] = SWAP_BYTES(_quantity);
-		return 6;
+        ((uint16_t*)_result_req->data)[0] = SWAP_BYTES(_starting_address);
+        ((uint16_t*)_result_req->data)[1] = SWAP_BYTES(_quantity);
+        _result_req->data_size = 4;
+        _result_req->function = 3;
+        return 0;
 	}
 	else {
 		return -EINVAL;
 	}
 }
 
-uint16_t read_holding_regs_get_starting_addr(const void* _req) {
-    const uint16_t t = ((uint16_t*)_req)[1];
+uint16_t read_holding_regs_get_starting_addr(const struct modbus_const_pdu_t *_req) {
+    const uint16_t t = ((uint16_t*)_req->data)[0];
     return SWAP_BYTES(t);
 }
 
-uint16_t read_holding_regs_get_quantity(const void* _req) {
-    const uint16_t t = ((uint16_t*)_req)[2];
+uint16_t read_holding_regs_get_quantity(const struct modbus_const_pdu_t *_req) {
+    const uint16_t t = ((uint16_t*)_req->data)[1];
     return SWAP_BYTES(t);
 }
 
-int read_holding_regs_valid_answer(const void* _req, unsigned int _req_size, 
-								   const void* _answer, unsigned int _answer_size) {
+int read_holding_regs_valid_answer(const struct modbus_const_pdu_t* _req,
+                                   const struct modbus_const_pdu_t* _ans) {
     int r;
     uint16_t quantity, tmp;
 
-	if(_req_size != 6)
+    if(_req->data_size != 4)
 		return -EINVAL;
 
-    if((r = modbus_check_answer(_req, _answer)) != 0)
+    if((r = modbus_check_answer(_req->data, _ans->data)) != 0)
         return r;
 
-    tmp = ((uint16_t*)_req)[2];
+    tmp = ((uint16_t*)_req)[0];
     quantity = SWAP_BYTES(tmp);
 
-    if(_answer_size != (5 + (quantity * 2)))
+    if(_ans->data_size != (7 + (quantity * 2)))
         return -E2BIG;
 
-    if((quantity * 2) != ((uint8_t*)_answer)[2])
+    if((quantity * 2) != ((uint8_t*)_ans->data)[0])
         return -ERANGE;
 
 	return 0;
 }
 
-uint16_t read_holding_regs_get_reg(const void* _answer, unsigned int _answer_size,
+uint16_t read_holding_regs_get_reg(const struct modbus_const_pdu_t *_req,
                                    uint16_t _reg_addr) {
-    const uint16_t x = ((uint16_t*)(((uint8_t*)_answer) + 3))[_reg_addr];
+    const uint16_t x = ((uint16_t*)(((uint8_t*)_req->data) + 1))[_reg_addr];
     return SWAP_BYTES(x);
 }
 
-int read_holding_regs_get_regs_n(const void* _answer, unsigned int _answer_size) {
-    return ((uint8_t*)_answer)[2] >> 1;
+int read_holding_regs_get_regs_n(const struct modbus_const_pdu_t *_req) {
+    return ((uint8_t*)_req->data)[1] >> 1;
 }

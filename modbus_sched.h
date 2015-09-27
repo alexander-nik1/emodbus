@@ -36,8 +36,8 @@ struct modbus_task_t;
 struct modbus_scheduler_t;
 
 typedef void (*on_modbus_task_response_t)(struct modbus_task_t*,
-                                          const void* _pkt,
-                                          unsigned int _pkt_size);
+                                          int _slave_addr,
+                                          const struct modbus_const_pdu_t*);
 
 typedef void (*on_modbus_task_timeout_t)(struct modbus_task_t*);
 
@@ -50,8 +50,8 @@ enum modbus_task_state_t {
 
 // Одна задача
 struct modbus_task_t {
-    const void* request;
-    unsigned int req_size;
+    int slave_addr;
+    struct modbus_const_pdu_t* req;
     unsigned int resp_timeout;
     on_modbus_task_response_t on_response;
     on_modbus_task_timeout_t on_resp_timeout;
