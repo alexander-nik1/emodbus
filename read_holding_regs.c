@@ -4,6 +4,14 @@
 #include "common.h"
 #include "read_holding_regs.h"
 
+/*!
+ * \file
+ * \brief The realization of Read Holding Registers functions.
+ *
+ * Functions for working with Read Holding Registers function.
+ *
+ */
+
 int read_holding_regs_make_req(struct modbus_pdu_t *_result_req,
                                uint16_t _starting_address, uint16_t _quantity) {
 
@@ -52,12 +60,12 @@ int read_holding_regs_valid_answer(const struct modbus_const_pdu_t* _req,
 	return 0;
 }
 
-uint16_t read_holding_regs_get_reg(const struct modbus_const_pdu_t *_req,
-                                   uint16_t _reg_addr) {
-    const uint16_t x = ((uint16_t*)(((uint8_t*)_req->data) + 1))[_reg_addr];
+uint16_t read_holding_regs_get_reg(const struct modbus_const_pdu_t *_ans,
+                                   uint16_t _reg_offset) {
+    const uint16_t x = ((uint16_t*)(((uint8_t*)_ans->data) + 1))[_reg_offset];
     return SWAP_BYTES(x);
 }
 
-int read_holding_regs_get_regs_n(const struct modbus_const_pdu_t *_req) {
-    return ((uint8_t*)_req->data)[1] >> 1;
+int read_holding_regs_get_regs_n(const struct modbus_const_pdu_t *_ans) {
+    return ((uint8_t*)_ans->data)[0] >> 1;
 }

@@ -10,6 +10,25 @@
 
 #include <stdio.h>
 
+/*!
+ * \file
+ * \brief RTU Protocol.
+ *
+ * This file contains an RTU protocol realizations.
+ *
+ */
+
+/**
+ * @brief Print packet contents
+ *
+ * Function will print to given file descriptor
+ * data, pointed by _pkt.
+ *
+ * @param [in] _f File descriptor to write to. (if is zero, then nothing will be printed)
+ * @param [in] _prefix Some prefix to print it before data.
+ * @param [in] _pkt The packet.
+ * @param [in] _size Size of packet in bytes.
+ */
 static void dbg_print_packet(FILE* _f, const char* _prefix, const void* _pkt, unsigned int _size) {
     if(_f) {
         int i;
@@ -22,6 +41,14 @@ static void dbg_print_packet(FILE* _f, const char* _prefix, const void* _pkt, un
     }
 }
 
+/**
+ * @brief Parse packet
+ *
+ * This function checks validity of received packet.
+ * And if it is valid, then sends it to high level.
+ *
+ * @param [in] _mbt RTU context
+ */
 static void parse_packet(struct modbus_rtu_t* _mbt) {
     const unsigned char* buf = _mbt->rx_buffer;
     const unsigned int size = _mbt->rx_buf_counter-2;
@@ -40,6 +67,17 @@ static void parse_packet(struct modbus_rtu_t* _mbt) {
     }
 }
 
+/**
+ * @brief input_stream interface
+ *
+ * This function calls by input_stream, when a new data has been received.
+ *
+ * @param [in] _this Input stream.
+ * @param [in] _data Received data.
+ * @param [in] _size Size of received data.
+ *
+ * @return how much data was received.
+ */
 static int modbus_rtu_on_write(struct input_stream_t* _this, const void* _data, unsigned int _size) {
 
     const unsigned char* data = (unsigned char*)_data;
@@ -55,6 +93,18 @@ static int modbus_rtu_on_write(struct input_stream_t* _this, const void* _data, 
     return _size;
 }
 
+/**
+ * @brief output_stream interface
+ *
+ * This function calls by output_stream, when a some data has beed sent,
+ * and hardware transmitter can send a new part of data.
+ *
+ * @param [in] _this Output stream.
+ * @param [in] _data Place for write data, that will be send.
+ * @param [in] _size Size of place, pointed by _data.
+ *
+ * @return how much data written to _data.
+ */
 static int modbus_rtu_on_read(struct output_stream_t* _this, void* _data, unsigned int _size) {
     struct modbus_rtu_t* mbt = container_of(_this, struct modbus_rtu_t, output_stream);
     if(mbt->tx_buf_counter < mbt->tx_pkt_size) {
@@ -67,7 +117,20 @@ static int modbus_rtu_on_read(struct output_stream_t* _this, void* _data, unsign
     return 0;
 }
 
-// This function will send packet (CRC suffix automatically added).
+//
+
+
+/**
+ * @brief Send a PDU.
+ *
+ * (Protocol interface) This function will send packet (CRC suffix automatically added).
+ *
+ * @param [in] _mbt RTU context
+ * @param [in] _slave_addr Address of slave
+ * @param [in] _pdu PDU, that will be sent.
+ *
+ * @return Zero on success, error on fail.
+ */
 static int modbus_rtu_send_packet(void *_mbt,
                            int _slave_addr,
                            const struct modbus_const_pdu_t *_pdu) {

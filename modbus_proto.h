@@ -8,8 +8,16 @@
 extern "C" {
 #endif
 
-/*
-   ____________
+/*!
+ * \file
+ * \brief The protocol abstractions.
+ *
+ * This file contains an abstractions of modbus protocols
+ * like: RTU, ASCII, TCP and so on.
+ *
+ */
+
+/* ____________
   |            |
   | high level |
   | of modbus  |
@@ -28,45 +36,93 @@ extern "C" {
   | RTU,TCP,  |
   | and so on |
   |___________|
-
 */
 
-
-
+/**
+ * @brief Function type for send one PDU
+ *
+ * This function calls from high level to low level.
+ *
+ * \param[in] _user_data Low level context.
+ * \param[in] _slave_addr Address of modbus device.
+ * \param[in] _pkt PDU, that will be sent to modbus device.
+ * \return Zero on success or error code.
+ */
 typedef int (*modbus_proto_send_packet_t)(void* _user_data,
                                           int _slave_addr,
                                           const struct modbus_const_pdu_t* _pkt);
 
+/**
+ * @brief Function type for receive one PDU
+ *
+ * This function calls from low level to high level.
+ *
+ * \param[in] _user_data High level context.
+ * \param[in] _slave_addr Address of modbus device.
+ * \param[in] _pkt PDU, that was received by low level.
+ */
 typedef void (*modbus_proto_recv_packet_t)(void* _user_data,
                                            int _slave_addr,
                                            const struct modbus_const_pdu_t* _pkt);
 
+/**
+ * @brief Function type for send low-level errors to high level
+ *
+ * This function calls from low level to high level.
+ *
+ * \param[in] _user_data High level context.
+ * \param[in] _errno Number of error (may be error from system's
+ * errno.h or from modbus_errno.h files).
+ */
 typedef void (*modbus_proto_error_t)(void* _user_data, int _errno);
 
-// Interface of modbus protocol
+/**
+ * @brief Interface of modbus protocol
+ *
+ * This interface connects high and low level of modbus.
+ */
 struct modbus_protocol_t {
 
+    /**
+     * @brief This is a pointer to high-level context.
+     */
     void* high_level_context;
+
+    /**
+     * @brief This is a pointer to low level context.
+     */
     void* low_level_context;
 
-    // This function calls from high to low level.
-    // This function calls for send a PDU via this protocol.
+    /**
+     * @brief Send packet to device
+     * This function calls from high to low level.
+     * This function calls for send a PDU via this protocol.
+     */
     modbus_proto_send_packet_t send_packet;
 
-    // This function calls from low to high level.
-    // This function calls by low level when, a new PDU has
-    // received via this protocol.
+    /**
+     * @brief Receive packet from device
+     * This function calls from low to high level.
+     * This function calls by low level when, a new PDU has
+     * received via this protocol.
+     */
     modbus_proto_recv_packet_t recv_packet;
 
-    // This function calls from low to high level.
-    // This function tells about errors.
+    /**
+     * @brief Error on low-level
+     * This function calls from low to high level.
+     * This function tells about errors.
+     */
     modbus_proto_error_t error;
 
-    // This PDU already have a buffer (buffer inside protocol)
-    // and this PDU can be used to store the new request packet, and send it.
-    // In general, you will use protocol's buffer instead another buffer.
-    // It is useful in applications, that have no enough RAM space.
-    // NOTE: In cae of ASCII protocols you should not use this PDU.
+    /**
+     * @brief Transmit PDU (property of protocol)
+     * This PDU already have a buffer (buffer inside protocol)
+     * and this PDU can be used to store the new request packet, and send it.
+     * In general, you will use protocol's buffer instead another buffer.
+     * It is useful in applications, that have no enough RAM space.
+     * NOTE: In cae of ASCII protocols you should NOT use this PDU.
+     */
     struct modbus_pdu_t* tx_pdu;
 /*
     NOTE:
@@ -78,14 +134,48 @@ struct modbus_protocol_t {
 */
 };
 
+/**
+ * @brief Send one PDU
+ *
+ * This function calls from high level to low level.
+ * This function is simple wrapper of call:
+ * _proto->send_packet(...)
+ *
+ * \param[in] _proto Protocol context.
+ * \param[in] _slave_addr Address of modbus device.
+ * \param[in] _pkt PDU, that will be sent to modbus device.
+ * \return Zero on success or error code.
+ */
 int modbus_proto_send_packet(struct modbus_protocol_t* _proto,
                              int _slave_addr,
                              const struct modbus_const_pdu_t* _pkt);
 
+/**
+ * @brief Receive one PDU
+ *
+ * This function calls from low level to high level.
+ * This function is simple wrapper of call:
+ * _proto->recv_packet(...)
+ *
+ * \param[in] _proto Protocol context.
+ * \param[in] _slave_addr Address of modbus device.
+ * \param[in] _pkt PDU, that was received by low level.
+ */
 void modbus_proto_recv_packet(struct modbus_protocol_t* _proto,
                               int _slave_addr,
                               const struct modbus_const_pdu_t* _pkt);
 
+/**
+ * @brief Send low-level errors to high-level
+ *
+ * This function calls from low level to high level.
+ * This function is simple wrapper of call:
+ * _proto->error(...)
+ *
+ * \param[in] _proto Protocol context.
+ * \param[in] _errno Number of error (may be error from system's
+ * errno.h or from modbus_errno.h files).
+ */
 void modbus_proto_error(struct modbus_protocol_t* _proto,
                         int _errno);
 
