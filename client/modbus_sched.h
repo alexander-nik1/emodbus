@@ -2,9 +2,9 @@
 #ifndef MODBUS_MASTER_SCHEDULER_H
 #define MODBUS_MASTER_SCHEDULER_H
 
-#include "add/scheduler.h"
+#include "../base/add/scheduler.h"
 
-#include "modbus_proto.h"
+#include "../base/modbus_proto.h"
 
 #ifdef __cplusplus
 extern "C" {

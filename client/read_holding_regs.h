@@ -11,7 +11,8 @@
  */
 
 #include <stdint.h>
-#include "modbus_pdu.h"
+
+#include "../base/modbus_pdu.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,7 +24,7 @@ extern "C" {
  * This fucntion builds the "Read holding registers" request.
  *
  * \param[out] _result_req Result request.
- * \param[in] _starting_address Starting address oif holding register.
+ * \param[in] _starting_address Starting address of holding register.
  * \param[in] _quantity Number of registers, that will be readed from device.
  */
 int read_holding_regs_make_req(struct modbus_pdu_t* _result_req,
@@ -46,7 +47,7 @@ uint16_t read_holding_regs_get_quantity(const struct modbus_const_pdu_t* _req);
 /**
  * @brief Check and valid answer
  *
- * This function compares request PDU and answer PDU and returns
+ * This function compares request PDU and answer PDU, and returns
  * zero if an answer was a valid.
  *
  * @param[in] _req Request
@@ -74,7 +75,7 @@ uint16_t read_holding_regs_get_reg(const struct modbus_const_pdu_t* _ans,
  * Function returns a registers number from answer
  *
  * @param[in] _ans Answer
- * @return Register number.
+ * @return Registers number.
  */
 int read_holding_regs_get_regs_n(const struct modbus_const_pdu_t* _ans);
 
