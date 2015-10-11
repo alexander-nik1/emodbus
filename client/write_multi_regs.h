@@ -4,10 +4,13 @@
 
 #include <stdint.h>
 #include "../base/modbus_pdu.h"
+#include "client_base.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+extern struct emb_client_function_i write_multi_regs_interface;
 
 // Build request
 int write_multi_regs_make_req(struct modbus_pdu_t* _result_req,

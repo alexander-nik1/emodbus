@@ -69,3 +69,8 @@ uint16_t read_holding_regs_get_reg(const struct modbus_const_pdu_t *_ans,
 int read_holding_regs_get_regs_n(const struct modbus_const_pdu_t *_ans) {
     return ((uint8_t*)_ans->data)[0] >> 1;
 }
+
+struct emb_client_function_i read_holding_regs_interface = {
+    read_holding_regs_valid_answer      // check_answer
+};
+

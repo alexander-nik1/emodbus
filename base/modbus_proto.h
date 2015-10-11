@@ -39,44 +39,6 @@ extern "C" {
 */
 
 /**
- * @brief Function type for send one PDU
- *
- * This function calls from high level to low level.
- *
- * \param[in] _user_data Low level context.
- * \param[in] _slave_addr Address of modbus device.
- * \param[in] _pkt PDU, that will be sent to modbus device.
- * \return Zero on success or error code.
- */
-typedef int (*modbus_proto_send_packet_t)(void* _user_data,
-                                          int _slave_addr,
-                                          const struct modbus_const_pdu_t* _pkt);
-
-/**
- * @brief Function type for receive one PDU
- *
- * This function calls from low level to high level.
- *
- * \param[in] _user_data High level context.
- * \param[in] _slave_addr Address of modbus device.
- * \param[in] _pkt PDU, that was received by low level.
- */
-typedef void (*modbus_proto_recv_packet_t)(void* _user_data,
-                                           int _slave_addr,
-                                           const struct modbus_const_pdu_t* _pkt);
-
-/**
- * @brief Function type for send low-level errors to high level
- *
- * This function calls from low level to high level.
- *
- * \param[in] _user_data High level context.
- * \param[in] _errno Number of error (may be error from system's
- * errno.h or from modbus_errno.h files).
- */
-typedef void (*modbus_proto_error_t)(void* _user_data, int _errno);
-
-/**
  * @brief Interface of modbus protocol
  *
  * This interface connects high and low level of modbus.
@@ -95,25 +57,45 @@ struct modbus_protocol_t {
 
     /**
      * @brief Send packet to device
+     *
      * This function calls from high to low level.
      * This function calls for send a PDU via this protocol.
+     *
+     * \param[in] _user_data Low level context.
+     * \param[in] _slave_addr Address of modbus device.
+     * \param[in] _pkt PDU, that will be sent to modbus device.
+     * \return Zero on success or error code.
      */
-    modbus_proto_send_packet_t send_packet;
+    int (*send_packet)(void* _user_data,
+                       int _slave_addr,
+                       const struct modbus_const_pdu_t* _pkt);
 
     /**
      * @brief Receive packet from device
+     *
      * This function calls from low to high level.
      * This function calls by low level when, a new PDU has
      * received via this protocol.
+     *
+     * \param[in] _user_data High level context.
+     * \param[in] _slave_addr Address of modbus device.
+     * \param[in] _pkt PDU, that was received by low level.
      */
-    modbus_proto_recv_packet_t recv_packet;
+    void (*recv_packet)(void* _user_data,
+                        int _slave_addr,
+                        const struct modbus_const_pdu_t* _pkt);
 
     /**
      * @brief Error on low-level
+     *
      * This function calls from low to high level.
      * This function tells about errors.
+     *
+     * \param[in] _user_data High level context.
+     * \param[in] _errno Number of error (may be error from system's
+     * errno.h or from modbus_errno.h files).
      */
-    modbus_proto_error_t error;
+    void (*error)(void* _user_data, int _errno);
 
     /**
      * @brief Transmit PDU (property of protocol)

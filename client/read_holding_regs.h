@@ -13,10 +13,13 @@
 #include <stdint.h>
 
 #include "../base/modbus_pdu.h"
+#include "client_base.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+extern struct emb_client_function_i read_holding_regs_interface;
 
 /**
  * @brief Build request

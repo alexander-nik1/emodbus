@@ -56,3 +56,7 @@ int write_multi_regs_valid_answer(const struct modbus_const_pdu_t *_req,
 
     return 0;
 }
+
+struct emb_client_function_i write_multi_regs_interface = {
+    write_multi_regs_valid_answer      // check_answer
+};

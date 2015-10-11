@@ -21,9 +21,11 @@ extern "C" {
  * Possible errors
  */
 enum modbus_errno_t {
-    modbus_success,         ///< No error
-    modbus_bad_crc = 1000,  ///< Incorrect CRC in received packet
-    modbus_buffer_overflow  ///< Overflow of buffer.
+    modbus_success,             ///< No error
+    modbus_bad_crc = 1000,      ///< Incorrect CRC in received packet
+    modbus_buffer_overflow,     ///< Overflow of buffer.
+    modbus_resp_without_req,    ///< Was a response, with no previous request
+    modbus_no_such_function,    ///< No such function
 };
 
 #ifdef __cplusplus
