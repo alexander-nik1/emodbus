@@ -20,8 +20,27 @@
  *  Note that the classes
  */
 
+#ifndef NULL
+#define NULL ((void*)0)
+#endif
+
 #include "modbus_pdu.h"
 
-int modbus_check_answer(const struct modbus_const_pdu_t* _req, const struct modbus_const_pdu_t* _answ);
+// A timer interface
+//  _______
+// |       | <--- start
+// | TIMER | <--- sync
+// |_______| ----> event
+//
+
+struct emb_timer_i {
+    void (*start)(void* _user_data, unsigned int _timer_value);
+    void (*join)(void* _user_data);
+    void (*event)(struct emb_timer_i*);
+    void* user_data;
+};
+
+int modbus_check_answer(const struct modbus_const_pdu_t* _req,
+                        const struct modbus_const_pdu_t* _answ);
 
 #endif // MODBUS_MASTER_COMMON_H

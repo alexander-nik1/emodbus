@@ -4,10 +4,13 @@
 #include "../base/modbus_errno.h"
 #include <string.h>
 
-static void emb_cli_send_error(struct emb_client_t* _cli, int _errno) {
-    if(_cli->on_error)
-        _cli->on_error(_cli->user_data, _errno);
-}
+enum {
+    emb_cli_state_default,
+    emb_cli_state_req_sending,
+    emb_cli_state_wait_resp,
+    emb_cli_state_resp_ok,
+    emb_cli_state_resp_fail
+};
 
 static void emb_client_recv_packet(void* _user_data,
                     int _slave_addr,
@@ -19,43 +22,60 @@ static void emb_client_recv_packet(void* _user_data,
     int res;
 
     do {
-        if(!cli->current_pdu) {
-            emb_cli_send_error(cli, modbus_resp_without_req);
+        if(!cli->current_request) {
+            cli->error_code = -modbus_resp_without_req;
+            cli->state = emb_cli_state_resp_fail;
             break;
         }
 
-        func = cli->functions[cli->current_pdu->function];
+        if(cli->curr_req_server_addr != _slave_addr) {
+            cli->error_code = -modbus_resp_wrong_address;
+            cli->state = emb_cli_state_resp_fail;
+            break;
+        }
+
+        func = cli->functions[cli->current_request->function];
 
         if(!func) {
-            emb_cli_send_error(cli, modbus_no_such_function);
+            cli->error_code = -modbus_no_such_function;
+            cli->state = emb_cli_state_resp_fail;
             break;
         }
 
-        if((res = func->check_answer(cli->current_pdu, _pkt))) {
-            emb_cli_send_error(cli, res);
+        if((res = func->check_answer(cli->current_request, _pkt))) {
+            cli->error_code = res;
+            cli->state = emb_cli_state_resp_fail;
             break;
         }
 
-        cli->on_response(cli->user_data, _slave_addr, _pkt);
+        cli->error_code = 0;
+        cli->current_response = _pkt;
+        cli->state = emb_cli_state_resp_ok;
     }
     while(0);
 
-    cli->current_pdu = (struct modbus_const_pdu_t*)0;
+    cli->current_request = NULL;
+    cli->current_response = NULL;
 }
 
 static void emb_client_error(void* _user_data, int _errno) {
 
     struct emb_client_t* cli = (struct emb_client_t*)_user_data;
-    emb_cli_send_error(cli, _errno);
-    cli->current_pdu = (struct modbus_const_pdu_t*)0;
+    cli->error_code = _errno;
+    cli->current_request = NULL;
+    cli->current_response = NULL;
+    if(cli->state == emb_cli_state_wait_resp)
+        cli->state = emb_cli_state_resp_fail;
 }
 
 void emb_client_initialize(struct emb_client_t* _cli) {
     memset(_cli->functions, 0, sizeof(void*)*EMB_CLI_MAX_FUNCTIONS);
-    _cli->current_pdu = (struct modbus_const_pdu_t*)0;
+    _cli->current_request = NULL;
+    _cli->current_response = NULL;
     _cli->protocol->high_level_context = _cli;
     _cli->protocol->recv_packet = emb_client_recv_packet;
     _cli->protocol->error = emb_client_error;
+    _cli->state = emb_cli_state_default;
 }
 
 int emb_client_add_function(struct emb_client_t *_cli,
@@ -71,14 +91,57 @@ int emb_client_add_function(struct emb_client_t *_cli,
 
 int emb_client_remove_function(struct emb_client_t* _cli, uint8_t _fucntion) {
     if(_fucntion < EMB_CLI_MAX_FUNCTIONS) {
-        _cli->functions[_fucntion] = (struct emb_client_function_i*)0;
+        _cli->functions[_fucntion] = NULL;
         return 0;
     }
     else
         return -EINVAL;
 }
 
-int emb_client_send_request(struct emb_client_t* _cli, int _server_addr, const struct modbus_const_pdu_t* _pdu) {
-    _cli->current_pdu = _pdu;
-    return modbus_proto_send_packet(_cli->protocol, _server_addr, _pdu);
+int emb_client_do_request(struct emb_client_t* _cli,
+                            int _server_addr,
+                            unsigned int _timeout,
+                            const struct modbus_const_pdu_t* _request,
+                            const struct modbus_const_pdu_t **_response) {
+
+    int res;
+
+    *_response = NULL;
+
+    if(_cli->state != emb_cli_state_default)
+        return -EBUSY;
+
+    _cli->current_request = _request;
+    _cli->curr_req_server_addr = _server_addr;
+
+    _cli->state = emb_cli_state_req_sending;
+
+    if((res = modbus_proto_send_packet(_cli->protocol, _server_addr, _request)))
+        return res;
+
+    _cli->state = emb_cli_state_wait_resp;
+
+    _cli->resp_timeout_timer.start(_cli->resp_timeout_timer.user_data, _timeout);
+    _cli->resp_timeout_timer.join(_cli->resp_timeout_timer.user_data);
+
+    switch(_cli->state) {
+
+        case emb_cli_state_resp_ok:
+            *_response = _cli->current_response;
+            res = 0;
+
+        case emb_cli_state_resp_fail:
+            res = _cli->error_code;
+
+        case emb_cli_state_wait_resp:
+            res = -modbus_resp_timeout;
+
+        default:
+            res = -1;
+    }
+
+    _cli->state = emb_cli_state_default;
+
+    return res;
 }
+

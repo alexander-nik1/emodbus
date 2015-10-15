@@ -26,6 +26,8 @@ enum modbus_errno_t {
     modbus_buffer_overflow,     ///< Overflow of buffer.
     modbus_resp_without_req,    ///< Was a response, with no previous request
     modbus_no_such_function,    ///< No such function
+    modbus_resp_wrong_address,  ///< Server returns incorrect address about itself
+    modbus_resp_timeout,        ///< Timeout of response waiting
 };
 
 #ifdef __cplusplus
