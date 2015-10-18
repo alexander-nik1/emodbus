@@ -54,8 +54,7 @@ static void emb_client_recv_packet(void* _user_data,
     }
     while(0);
 
-    cli->current_request = NULL;
-    cli->current_response = NULL;
+    cli->resp_timeout_mutex.unlock(cli->resp_timeout_mutex.user_data);
 }
 
 static void emb_client_error(void* _user_data, int _errno) {
@@ -66,6 +65,7 @@ static void emb_client_error(void* _user_data, int _errno) {
     cli->current_response = NULL;
     if(cli->state == emb_cli_state_wait_resp)
         cli->state = emb_cli_state_resp_fail;
+    cli->resp_timeout_mutex.unlock(cli->resp_timeout_mutex.user_data);
 }
 
 void emb_client_initialize(struct emb_client_t* _cli) {
@@ -121,8 +121,7 @@ int emb_client_do_request(struct emb_client_t* _cli,
 
     _cli->state = emb_cli_state_wait_resp;
 
-    _cli->resp_timeout_timer.start(_cli->resp_timeout_timer.user_data, _timeout);
-    _cli->resp_timeout_timer.join(_cli->resp_timeout_timer.user_data);
+    _cli->resp_timeout_mutex.lock_timeout(_cli->resp_timeout_mutex.user_data, _timeout);
 
     switch(_cli->state) {
 

@@ -35,7 +35,7 @@ struct emb_client_t {
 
     int state;
 
-    struct emb_timer_i resp_timeout_timer;
+    struct emb_timed_mutex_i resp_timeout_mutex;
 
     void *user_data;
 };
