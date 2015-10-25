@@ -123,14 +123,14 @@ struct emb_protocol_t {
  * This function is simple wrapper of call:
  * _proto->send_packet(...)
  *
- * \param[in] _proto Protocol context.
- * \param[in] _slave_addr Address of modbus device.
- * \param[in] _pkt PDU, that will be sent to modbus device.
+ * \param[in] _proto_ Protocol context.
+ * \param[in] _slave_addr_ Address of modbus device.
+ * \param[in] _pkt_ PDU, that will be sent to modbus device.
  * \return Zero on success or error code.
  */
-int emb_proto_send_packet(struct emb_protocol_t* _proto,
-                          int _slave_addr,
-                          emb_const_pdu_t *_pkt);
+
+#define emb_proto_send_packet(_proto_, _slave_addr_, _pkt_) \
+    (_proto_)->send_packet((_proto_)->low_level_context, _slave_addr_, _pkt_)
 
 /**
  * @brief Receive one PDU
@@ -139,13 +139,13 @@ int emb_proto_send_packet(struct emb_protocol_t* _proto,
  * This function is simple wrapper of call:
  * _proto->recv_packet(...)
  *
- * \param[in] _proto Protocol context.
- * \param[in] _slave_addr Address of modbus device.
- * \param[in] _pkt PDU, that was received by low level.
+ * \param[in] _proto_ Protocol context.
+ * \param[in] _slave_addr_ Address of modbus device.
+ * \param[in] _pkt_ PDU, that was received by low level.
  */
-void emb_proto_recv_packet(struct emb_protocol_t* _proto,
-                           int _slave_addr,
-                           emb_const_pdu_t* _pkt);
+
+#define emb_proto_recv_packet(_proto_, _slave_addr_, _pkt_) \
+    (_proto_)->recv_packet((_proto_)->high_level_context, _slave_addr_, _pkt_)
 
 /**
  * @brief Send low-level errors to high-level
@@ -154,12 +154,14 @@ void emb_proto_recv_packet(struct emb_protocol_t* _proto,
  * This function is simple wrapper of call:
  * _proto->error(...)
  *
- * \param[in] _proto Protocol context.
- * \param[in] _errno Number of error (may be error from system's
+ * \param[in] _proto_ Protocol context.
+ * \param[in] _errno_ Number of error (may be error from system's
  * errno.h or from modbus_errno.h files).
  */
-void emb_proto_error(struct emb_protocol_t* _proto,
-                     int _errno);
+
+#define emb_proto_error(_proto_, _errno_)   \
+    if((_proto_)->error)   \
+        (_proto_)->error((_proto_)->high_level_context, (_errno_))
 
 #ifdef __cplusplus
 }   // extern "C"
