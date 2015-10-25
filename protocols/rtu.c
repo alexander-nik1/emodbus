@@ -133,7 +133,7 @@ static int modbus_rtu_on_read(struct output_stream_t* _this, void* _data, unsign
  */
 static int modbus_rtu_send_packet(void *_mbt,
                            int _slave_addr,
-                           const struct modbus_const_pdu_t *_pdu) {
+                           emb_const_pdu_t *_pdu) {
 
     struct modbus_rtu_t* mbt = (struct modbus_rtu_t*)_mbt;
 
@@ -192,7 +192,7 @@ void modbus_rtu_on_error(struct modbus_rtu_t* _mbt,
 
 int modbus_rtu_send_packet_sync(struct modbus_rtu_t* _mbt,
                                 int _slave_addr,
-                                const struct modbus_const_pdu_t *_pdu) {
+                                emb_const_pdu_t *_pdu) {
     int r;
     if((r = modbus_rtu_send_packet(_mbt, _slave_addr, _pdu)) == 0) {
         while(_mbt->tx_buf_counter < _mbt->tx_pkt_size) {

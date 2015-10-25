@@ -5,7 +5,7 @@
 
 static void on_receive_pkt(void* _user_data,
                            int _slave_addr,
-                           const struct modbus_const_pdu_t* _pkt) {
+                           emb_const_pdu_t* _pkt) {
 
     struct modbus_scheduler_t* sched = (struct modbus_scheduler_t*)_user_data;
     struct modbus_task_t* mt = sched->current_task;

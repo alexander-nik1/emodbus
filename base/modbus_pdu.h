@@ -17,11 +17,13 @@
  * @detailed You should use this object, where imply change data of this PDU
  *
  */
-struct modbus_pdu_t {
+struct _emb_pdu_t {
     int function;   ///< Function of this PDU
     int data_size;  ///< Size of data of this PDU
     void* data;     ///< Data of this PDU
 };
+
+typedef struct _emb_pdu_t emb_pdu_t;
 
 /**
  * @brief This structure describes one PDU (const version)
@@ -30,16 +32,18 @@ struct modbus_pdu_t {
  * to change any data in this structure
  *
  */
-struct modbus_const_pdu_t {
+struct _emb_const_pdu_t {
     int function;       ///< Function of this PDU
     int data_size;      ///< Size of data of this PDU
     const void* data;   ///< Data of this PDU
 };
 
+typedef const struct _emb_const_pdu_t emb_const_pdu_t;
+
 /**
  * @brief This macros gives you modbus_const_pdu_t* pointer from modbus_pdu_t*
  *
  */
-#define MB_CONST_PDU(_pdu_) ((struct modbus_const_pdu_t*)(_pdu_))
+#define MB_CONST_PDU(_pdu_) ((emb_const_pdu_t*)(_pdu_))
 
 #endif // MODBUS_PROTOCOL_DATA_UNIT_H

@@ -13,8 +13,8 @@ extern "C" {
 #endif
 
 struct emb_client_function_i {
-    int (*check_answer)(const struct modbus_const_pdu_t* _req,
-                        const struct modbus_const_pdu_t* _ans);
+    int (*check_answer)(emb_const_pdu_t* _req,
+                        emb_const_pdu_t* _ans);
 };
 
 enum { EMB_CLI_MAX_FUNCTIONS = 25 };
@@ -25,11 +25,11 @@ struct emb_client_t {
 
     const struct emb_client_function_i* functions[EMB_CLI_MAX_FUNCTIONS];
 
-    const struct modbus_const_pdu_t* current_request;
+    emb_const_pdu_t* current_request;
 
     int curr_req_server_addr;
 
-    const struct modbus_const_pdu_t* current_response;
+    emb_const_pdu_t* current_response;
 
     int error_code;
 
@@ -55,8 +55,8 @@ int emb_client_remove_function(struct emb_client_t* _cli,
 int emb_client_do_request(struct emb_client_t* _cli,
                           int _server_addr,
                           unsigned int _timeout,
-                          const struct modbus_const_pdu_t* _request,
-                          const struct modbus_const_pdu_t** _response);
+                          emb_const_pdu_t* _request,
+                          emb_const_pdu_t** _response);
 
 #ifdef __cplusplus
 }   // extern "C"

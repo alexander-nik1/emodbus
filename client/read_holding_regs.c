@@ -12,7 +12,7 @@
  *
  */
 
-int read_holding_regs_make_req(struct modbus_pdu_t *_result_req,
+int read_holding_regs_make_req(emb_pdu_t *_result_req,
                                uint16_t _starting_address, uint16_t _quantity) {
 
 	if( 1 <= _quantity && _quantity <= 125 ) {
@@ -27,18 +27,18 @@ int read_holding_regs_make_req(struct modbus_pdu_t *_result_req,
 	}
 }
 
-uint16_t read_holding_regs_get_starting_addr(const struct modbus_const_pdu_t *_req) {
+uint16_t read_holding_regs_get_starting_addr(emb_const_pdu_t *_req) {
     const uint16_t t = ((uint16_t*)_req->data)[0];
     return SWAP_BYTES(t);
 }
 
-uint16_t read_holding_regs_get_quantity(const struct modbus_const_pdu_t *_req) {
+uint16_t read_holding_regs_get_quantity(emb_const_pdu_t *_req) {
     const uint16_t t = ((uint16_t*)_req->data)[1];
     return SWAP_BYTES(t);
 }
 
-int read_holding_regs_valid_answer(const struct modbus_const_pdu_t* _req,
-                                   const struct modbus_const_pdu_t* _ans) {
+int read_holding_regs_valid_answer(emb_const_pdu_t* _req,
+                                   emb_const_pdu_t* _ans) {
     int r;
     uint16_t quantity, tmp;
 
@@ -60,13 +60,13 @@ int read_holding_regs_valid_answer(const struct modbus_const_pdu_t* _req,
 	return 0;
 }
 
-uint16_t read_holding_regs_get_reg(const struct modbus_const_pdu_t *_ans,
+uint16_t read_holding_regs_get_reg(emb_const_pdu_t *_ans,
                                    uint16_t _reg_offset) {
     const uint16_t x = ((uint16_t*)(((uint8_t*)_ans->data) + 1))[_reg_offset];
     return SWAP_BYTES(x);
 }
 
-int read_holding_regs_get_regs_n(const struct modbus_const_pdu_t *_ans) {
+int read_holding_regs_get_regs_n(emb_const_pdu_t *_ans) {
     return ((uint8_t*)_ans->data)[0] >> 1;
 }
 

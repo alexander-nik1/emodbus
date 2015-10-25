@@ -14,7 +14,7 @@ enum {
 
 static void emb_client_recv_packet(void* _user_data,
                     int _slave_addr,
-                    const struct modbus_const_pdu_t* _pkt) {
+                    emb_const_pdu_t* _pkt) {
 
     struct emb_client_t* cli = (struct emb_client_t*)_user_data;
 
@@ -106,8 +106,8 @@ int emb_client_remove_function(struct emb_client_t* _cli, uint8_t _fucntion) {
 int emb_client_do_request(struct emb_client_t* _cli,
                             int _server_addr,
                             unsigned int _timeout,
-                            const struct modbus_const_pdu_t* _request,
-                            const struct modbus_const_pdu_t**_response) {
+                            emb_const_pdu_t* _request,
+                            emb_const_pdu_t**_response) {
     int res = 0;
 
     *_response = NULL;

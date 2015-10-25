@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-int modbus_check_answer(const struct modbus_const_pdu_t* _req,
-                        const struct modbus_const_pdu_t* _answ) {
+int modbus_check_answer(emb_const_pdu_t* _req,
+                        emb_const_pdu_t* _answ) {
 
     // Check function
     if(_req->function != _answ->function) {

@@ -12,7 +12,7 @@
 
 int modbus_proto_send_packet(struct modbus_protocol_t* _proto,
                              int _slave_addr,
-                             const struct modbus_const_pdu_t *_pkt) {
+                             emb_const_pdu_t *_pkt) {
     return _proto->send_packet(_proto->low_level_context,
                                             _slave_addr,
                                             _pkt);
@@ -20,7 +20,7 @@ int modbus_proto_send_packet(struct modbus_protocol_t* _proto,
 
 void modbus_proto_recv_packet(struct modbus_protocol_t* _proto,
                               int _slave_addr,
-                              const struct modbus_const_pdu_t *_pkt) {
+                              emb_const_pdu_t *_pkt) {
     _proto->recv_packet(_proto->high_level_context,
                                      _slave_addr,
                                      _pkt);

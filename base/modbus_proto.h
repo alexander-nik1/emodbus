@@ -68,7 +68,7 @@ struct modbus_protocol_t {
      */
     int (*send_packet)(void* _user_data,
                        int _slave_addr,
-                       const struct modbus_const_pdu_t* _pkt);
+                       emb_const_pdu_t* _pkt);
 
     /**
      * @brief Receive packet from device
@@ -83,7 +83,7 @@ struct modbus_protocol_t {
      */
     void (*recv_packet)(void* _user_data,
                         int _slave_addr,
-                        const struct modbus_const_pdu_t* _pkt);
+                        emb_const_pdu_t* _pkt);
 
     /**
      * @brief Error on low-level
@@ -105,7 +105,7 @@ struct modbus_protocol_t {
      * It is useful in applications, that have no enough RAM space.
      * NOTE: In cae of ASCII protocols you should NOT use this PDU.
      */
-    struct modbus_pdu_t* tx_pdu;
+    emb_pdu_t* tx_pdu;
 /*
     NOTE:
         [high_level_context, recv_packet, error] variables
@@ -130,7 +130,7 @@ struct modbus_protocol_t {
  */
 int modbus_proto_send_packet(struct modbus_protocol_t* _proto,
                              int _slave_addr,
-                             const struct modbus_const_pdu_t* _pkt);
+                             emb_const_pdu_t *_pkt);
 
 /**
  * @brief Receive one PDU
@@ -145,7 +145,7 @@ int modbus_proto_send_packet(struct modbus_protocol_t* _proto,
  */
 void modbus_proto_recv_packet(struct modbus_protocol_t* _proto,
                               int _slave_addr,
-                              const struct modbus_const_pdu_t* _pkt);
+                              emb_const_pdu_t* _pkt);
 
 /**
  * @brief Send low-level errors to high-level

@@ -118,8 +118,8 @@ public:
 
     int do_request(int _server_addr,
                    unsigned int _timeout,
-                   const struct modbus_const_pdu_t* _request,
-                   const struct modbus_const_pdu_t **_response) {
+                   emb_const_pdu_t* _request,
+                   emb_const_pdu_t **_response) {
 
         return emb_client_do_request(&client, _server_addr, _timeout, _request, _response);
     }
@@ -148,11 +148,11 @@ public:
 
 } mb_client;
 
-class pdu_t : public modbus_pdu_t {
+class pdu_t : public emb_pdu_t {
 public:
     pdu_t() {
         buffer.resize(128);
-        modbus_pdu_t::data = &buffer[0];
+        emb_pdu_t::data = &buffer[0];
     }
 private:
     std::vector<char> buffer;
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     sleep(1);
 
     pdu_t req;
-    const struct modbus_const_pdu_t* ans;
+    emb_const_pdu_t* ans;
 
     read_holding_regs_make_req(&req, 0x0000, 0x0008);
 

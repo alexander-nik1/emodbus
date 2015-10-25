@@ -51,8 +51,8 @@ struct emb_timed_mutex_i {
     void* user_data;
 };
 
-int modbus_check_answer(const struct modbus_const_pdu_t* _req,
-                        const struct modbus_const_pdu_t* _answ);
+int modbus_check_answer(emb_const_pdu_t *_req,
+                        emb_const_pdu_t *_answ);
 
 #ifdef __cplusplus
 }
