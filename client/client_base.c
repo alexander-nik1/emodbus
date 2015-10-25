@@ -72,10 +72,15 @@ void emb_client_initialize(struct emb_client_t* _cli) {
     memset(_cli->functions, 0, sizeof(void*)*EMB_CLI_MAX_FUNCTIONS);
     _cli->current_request = NULL;
     _cli->current_response = NULL;
-    _cli->protocol->high_level_context = _cli;
-    _cli->protocol->recv_packet = emb_client_recv_packet;
-    _cli->protocol->error = emb_client_error;
     _cli->state = emb_cli_state_default;
+}
+
+void emb_client_set_proto(struct emb_client_t* _cli,
+                          struct modbus_protocol_t* _proto) {
+    _cli->protocol = _proto;
+    _proto->high_level_context = _cli;
+    _proto->recv_packet = emb_client_recv_packet;
+    _proto->error = emb_client_error;
 }
 
 int emb_client_add_function(struct emb_client_t *_cli,
@@ -102,9 +107,8 @@ int emb_client_do_request(struct emb_client_t* _cli,
                             int _server_addr,
                             unsigned int _timeout,
                             const struct modbus_const_pdu_t* _request,
-                            const struct modbus_const_pdu_t **_response) {
-
-    int res;
+                            const struct modbus_const_pdu_t**_response) {
+    int res = 0;
 
     *_response = NULL;
 
@@ -121,19 +125,23 @@ int emb_client_do_request(struct emb_client_t* _cli,
 
     _cli->state = emb_cli_state_wait_resp;
 
-    _cli->resp_timeout_mutex.lock_timeout(_cli->resp_timeout_mutex.user_data, _timeout);
+    _cli->resp_timeout_mutex.lock_timeout(_cli->resp_timeout_mutex.user_data,
+                                          _timeout);
 
     switch(_cli->state) {
 
         case emb_cli_state_resp_ok:
             *_response = _cli->current_response;
             res = 0;
+            break;
 
         case emb_cli_state_resp_fail:
             res = _cli->error_code;
+            break;
 
         case emb_cli_state_wait_resp:
             res = -modbus_resp_timeout;
+            break;
 
         default:
             res = -1;

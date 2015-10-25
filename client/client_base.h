@@ -42,6 +42,9 @@ struct emb_client_t {
 
 void emb_client_initialize(struct emb_client_t* _cli);
 
+void emb_client_set_proto(struct emb_client_t* _cli,
+                          struct modbus_protocol_t* _proto);
+
 int emb_client_add_function(struct emb_client_t* _cli,
                             uint8_t _fucntion,
                             const struct emb_client_function_i* _func_i);
