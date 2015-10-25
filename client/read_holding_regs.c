@@ -45,13 +45,13 @@ int read_holding_regs_valid_answer(const struct modbus_const_pdu_t* _req,
     if(_req->data_size != 4)
 		return -EINVAL;
 
-    if((r = modbus_check_answer(_req->data, _ans->data)) != 0)
+    if((r = modbus_check_answer(_req, _ans)) != 0)
         return r;
 
-    tmp = ((uint16_t*)_req)[0];
+    tmp = ((uint16_t*)_req->data)[1];
     quantity = SWAP_BYTES(tmp);
 
-    if(_ans->data_size != (7 + (quantity * 2)))
+    if(_ans->data_size != (1 + (quantity * 2)))
         return -E2BIG;
 
     if((quantity * 2) != ((uint8_t*)_ans->data)[0])
