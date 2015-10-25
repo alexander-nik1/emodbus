@@ -57,7 +57,7 @@ static void parse_packet(struct modbus_rtu_t* _mbt) {
         const uint16_t crc2 = MKWORD(buf[size], buf[size+1]);
         if(crc1 == crc2) {
             _mbt->rx_pdu.function = buf[1];
-            _mbt->rx_pdu.data_size = size;
+            _mbt->rx_pdu.data_size = size - 2;
             modbus_proto_recv_packet(&_mbt->proto, (int)buf[0], MB_CONST_PDU(&_mbt->rx_pdu));
         }
         else {
