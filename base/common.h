@@ -26,6 +26,11 @@
 
 #include "modbus_pdu.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 // A timer interface
 //  _______
 // |       | <--- start
@@ -48,5 +53,9 @@ struct emb_timed_mutex_i {
 
 int modbus_check_answer(const struct modbus_const_pdu_t* _req,
                         const struct modbus_const_pdu_t* _answ);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // MODBUS_MASTER_COMMON_H
