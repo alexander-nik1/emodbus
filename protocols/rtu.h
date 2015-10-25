@@ -64,7 +64,7 @@ struct modbus_rtu_t {
     void* user_data;
 
     ///< Protocol (abstract connector to high level)
-    struct modbus_protocol_t proto;
+    struct emb_protocol_t proto;
 
     /// (RTU Interface) This function calls when a new char was received (must be set by user)
     modbus_rtu_on_char_t modbus_rtu_on_char;

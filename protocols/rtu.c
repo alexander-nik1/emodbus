@@ -58,10 +58,10 @@ static void parse_packet(struct modbus_rtu_t* _mbt) {
         if(crc1 == crc2) {
             _mbt->rx_pdu.function = buf[1];
             _mbt->rx_pdu.data_size = size - 2;
-            modbus_proto_recv_packet(&_mbt->proto, (int)buf[0], MB_CONST_PDU(&_mbt->rx_pdu));
+            emb_proto_recv_packet(&_mbt->proto, (int)buf[0], MB_CONST_PDU(&_mbt->rx_pdu));
         }
         else {
-            modbus_proto_error(&_mbt->proto, -modbus_bad_crc);
+            emb_proto_error(&_mbt->proto, -modbus_bad_crc);
         }
         dbg_print_packet(stdout, ">>", buf, _mbt->rx_buf_counter);
     }
@@ -187,7 +187,7 @@ void modbus_rtu_on_char_timeout(struct modbus_rtu_t* _mbt) {
 
 void modbus_rtu_on_error(struct modbus_rtu_t* _mbt,
                          int _errno) {
-    modbus_proto_error(&_mbt->proto, _errno);
+    emb_proto_error(&_mbt->proto, _errno);
 }
 
 int modbus_rtu_send_packet_sync(struct modbus_rtu_t* _mbt,

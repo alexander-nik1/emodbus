@@ -43,7 +43,7 @@ extern "C" {
  *
  * This interface connects high and low level of modbus.
  */
-struct modbus_protocol_t {
+struct emb_protocol_t {
 
     /**
      * @brief This is a pointer to high-level context.
@@ -128,9 +128,9 @@ struct modbus_protocol_t {
  * \param[in] _pkt PDU, that will be sent to modbus device.
  * \return Zero on success or error code.
  */
-int modbus_proto_send_packet(struct modbus_protocol_t* _proto,
-                             int _slave_addr,
-                             emb_const_pdu_t *_pkt);
+int emb_proto_send_packet(struct emb_protocol_t* _proto,
+                          int _slave_addr,
+                          emb_const_pdu_t *_pkt);
 
 /**
  * @brief Receive one PDU
@@ -143,9 +143,9 @@ int modbus_proto_send_packet(struct modbus_protocol_t* _proto,
  * \param[in] _slave_addr Address of modbus device.
  * \param[in] _pkt PDU, that was received by low level.
  */
-void modbus_proto_recv_packet(struct modbus_protocol_t* _proto,
-                              int _slave_addr,
-                              emb_const_pdu_t* _pkt);
+void emb_proto_recv_packet(struct emb_protocol_t* _proto,
+                           int _slave_addr,
+                           emb_const_pdu_t* _pkt);
 
 /**
  * @brief Send low-level errors to high-level
@@ -158,8 +158,8 @@ void modbus_proto_recv_packet(struct modbus_protocol_t* _proto,
  * \param[in] _errno Number of error (may be error from system's
  * errno.h or from modbus_errno.h files).
  */
-void modbus_proto_error(struct modbus_protocol_t* _proto,
-                        int _errno);
+void emb_proto_error(struct emb_protocol_t* _proto,
+                     int _errno);
 
 #ifdef __cplusplus
 }   // extern "C"

@@ -70,7 +70,7 @@ struct modbus_scheduler_t {
     modbus_sched_start_wait_t modbus_sched_start_wait;
     modbus_sched_stop_wait_t modbus_sched_stop_wait;
     void* user_data;
-    struct modbus_protocol_t* proto;
+    struct emb_protocol_t* proto;
 
     struct modbus_task_t* current_task;
     struct scheduler_t sched;

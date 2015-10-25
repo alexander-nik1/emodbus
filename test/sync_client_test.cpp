@@ -57,7 +57,7 @@ public:
         posix_serial_port_close(&posix_serial_port);
     }
 
-    struct modbus_protocol_t* get_proto() {
+    struct emb_protocol_t* get_proto() {
         return &modbus_rtu.proto;
     }
 

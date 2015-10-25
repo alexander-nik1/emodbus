@@ -76,7 +76,7 @@ void emb_client_initialize(struct emb_client_t* _cli) {
 }
 
 void emb_client_set_proto(struct emb_client_t* _cli,
-                          struct modbus_protocol_t* _proto) {
+                          struct emb_protocol_t* _proto) {
     _cli->protocol = _proto;
     _proto->high_level_context = _cli;
     _proto->recv_packet = emb_client_recv_packet;
@@ -120,7 +120,7 @@ int emb_client_do_request(struct emb_client_t* _cli,
 
     _cli->state = emb_cli_state_req_sending;
 
-    if((res = modbus_proto_send_packet(_cli->protocol, _server_addr, _request)))
+    if((res = emb_proto_send_packet(_cli->protocol, _server_addr, _request)))
         return res;
 
     _cli->state = emb_cli_state_wait_resp;

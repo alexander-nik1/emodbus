@@ -24,7 +24,7 @@ static void on_task(void *_data) {
     struct modbus_scheduler_t* sched = mt->sched;
     sched->current_task = mt;
     mt->state = mt_state_sending_req;
-    modbus_proto_send_packet(sched->proto, mt->slave_addr, mt->req);
+    emb_proto_send_packet(sched->proto, mt->slave_addr, mt->req);
     mt->state = mt_state_wait_resp;
     sched->modbus_sched_start_wait(sched, mt->resp_timeout);
 }

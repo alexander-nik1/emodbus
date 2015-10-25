@@ -10,24 +10,24 @@
  * functions see in modbus_proto.h
  */
 
-int modbus_proto_send_packet(struct modbus_protocol_t* _proto,
-                             int _slave_addr,
-                             emb_const_pdu_t *_pkt) {
+int emb_proto_send_packet(struct emb_protocol_t* _proto,
+                          int _slave_addr,
+                          emb_const_pdu_t *_pkt) {
     return _proto->send_packet(_proto->low_level_context,
                                             _slave_addr,
                                             _pkt);
 }
 
-void modbus_proto_recv_packet(struct modbus_protocol_t* _proto,
-                              int _slave_addr,
-                              emb_const_pdu_t *_pkt) {
+void emb_proto_recv_packet(struct emb_protocol_t* _proto,
+                           int _slave_addr,
+                           emb_const_pdu_t *_pkt) {
     _proto->recv_packet(_proto->high_level_context,
                                      _slave_addr,
                                      _pkt);
 }
 
-void modbus_proto_error(struct modbus_protocol_t* _proto,
-                        int _errno) {
+void emb_proto_error(struct emb_protocol_t* _proto,
+                     int _errno) {
     /**
      * Because this function is not obligatory, this pointer can be zero.
      * And we should check it.

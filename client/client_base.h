@@ -21,7 +21,7 @@ enum { EMB_CLI_MAX_FUNCTIONS = 25 };
 
 struct emb_client_t {
 
-    struct modbus_protocol_t* protocol;
+    struct emb_protocol_t* protocol;
 
     const struct emb_client_function_i* functions[EMB_CLI_MAX_FUNCTIONS];
 
@@ -43,7 +43,7 @@ struct emb_client_t {
 void emb_client_initialize(struct emb_client_t* _cli);
 
 void emb_client_set_proto(struct emb_client_t* _cli,
-                          struct modbus_protocol_t* _proto);
+                          struct emb_protocol_t* _proto);
 
 int emb_client_add_function(struct emb_client_t* _cli,
                             uint8_t _fucntion,
