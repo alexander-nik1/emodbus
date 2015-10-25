@@ -19,6 +19,8 @@ add_library(emodbus-client-base SHARED ${EMODBUS_CLIENT_BASE_SRC})
 
 add_library(emodbus-client-base-static STATIC ${EMODBUS_CLIENT_BASE_SRC})
 
+target_link_libraries(emodbus-client-base emodbus-base)
+
 # ===================================================
 # client scheduler 
 
@@ -54,3 +56,15 @@ set(EMODBUS_CLIENT_MASK_WRITE_REG
 add_library(emodbus-client-mask-write-reg SHARED ${EMODBUS_CLIENT_MASK_WRITE_REG})
 
 add_library(emodbus-client-mask-write-reg-static STATIC ${EMODBUS_CLIENT_MASK_WRITE_REG})
+
+# ===================================================
+# client write multiple registers
+
+set(EMODBUS_CLIENT_WRITE_MULTI_REGS
+	write_multi_regs.h
+	write_multi_regs.c
+)
+
+add_library(emodbus-client-write-multi-reg SHARED ${EMODBUS_CLIENT_WRITE_MULTI_REGS})
+
+add_library(emodbus-client-write-multi-reg-static STATIC ${EMODBUS_CLIENT_WRITE_MULTI_REGS})
