@@ -9,6 +9,7 @@
 #include "../client/read_holding_regs.h"
 #include "../client/write_multi_regs.h"
 #include "../base/add/container_of.h"
+#include "../base/modbus_errno.h"
 
 #include "../base/add/stream.h"
 #include "posix-serial-port.h"
@@ -154,6 +155,11 @@ public:
         buffer.resize(128);
         emb_pdu_t::data = &buffer[0];
     }
+
+    operator emb_const_pdu_t* () const {
+        return (emb_const_pdu_t*) (this);
+    }
+
 private:
     std::vector<char> buffer;
 };
@@ -175,11 +181,14 @@ int main(int argc, char* argv[]) {
 
     read_holding_regs_make_req(&req, 0x0000, 0x0008);
 
-    for(int i=0; i<100; ++i) {
-        usleep(1000*100);
-        printf("---------------> do_request()\n");
-        res = mb_client.do_request(16, 3000, MB_CONST_PDU(&req), &ans);
-        printf("---------------> do_request() := %d\n", res);
+    for(int i=0; i<1000; ++i) {
+        usleep(1000*10);
+        //printf("---------------> do_request()\n");
+        res = mb_client.do_request(16, 3000, req, &ans);
+        if(res) {
+            printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
+        }
+        //printf("---------------> do_request() := %d\n", res);
     }
 
     pthread_join(pthr, NULL);
