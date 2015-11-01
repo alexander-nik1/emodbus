@@ -57,8 +57,6 @@ static void emb_client_error(void* _user_data, int _errno) {
 
     struct emb_client_t* cli = (struct emb_client_t*)_user_data;
     cli->error_code = _errno;
-//    cli->current_request = NULL;
-//    cli->current_response = NULL;
     if(cli->state == emb_cli_state_wait_resp)
         cli->resp_state = emb_cli_resp_state_resp_fail;
     cli->resp_timeout_mutex.unlock(cli->resp_timeout_mutex.user_data);
@@ -108,9 +106,8 @@ int emb_client_do_request(struct emb_client_t* _cli,
 
     *_response = NULL;
 
-    if(_cli->state != emb_cli_state_default) {
+    if(_cli->state != emb_cli_state_default)
         return -EBUSY;
-    }
 
     _cli->current_request = _request;
     _cli->curr_req_server_addr = _server_addr;
