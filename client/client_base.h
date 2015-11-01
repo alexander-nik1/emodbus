@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include "../base/modbus_pdu.h"
 #include "../base/modbus_proto.h"
+#include "../base/compat.h"
 #include "modbus_sched.h"
 #include "../base/common.h"
 
@@ -18,6 +19,18 @@ struct emb_client_function_i {
 };
 
 enum { EMB_CLI_MAX_FUNCTIONS = 25 };
+
+enum emb_cli_state_t {
+    emb_cli_state_default,
+    emb_cli_state_req_sending,
+    emb_cli_state_wait_resp
+};
+
+enum emb_cli_resp_state_t {
+    emb_cli_resp_state_no_resp,
+    emb_cli_resp_state_resp_ok,
+    emb_cli_resp_state_resp_fail
+};
 
 struct emb_client_t {
 
@@ -33,7 +46,8 @@ struct emb_client_t {
 
     int error_code;
 
-    int state;
+    enum emb_cli_state_t state;
+    enum emb_cli_resp_state_t resp_state;
 
     struct emb_timed_mutex_i resp_timeout_mutex;
 

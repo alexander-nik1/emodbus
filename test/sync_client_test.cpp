@@ -176,18 +176,24 @@ int main(int argc, char* argv[]) {
 
     sleep(1);
 
-    pdu_t req;
+    pdu_t reqa8, reqd8;
     emb_const_pdu_t* ans;
 
-    read_holding_regs_make_req(&req, 0x0000, 0x0008);
+    read_holding_regs_make_req(&reqa8, 0x0000, 8);
+    read_holding_regs_make_req(&reqd8, 0x0000, 1);
 
-    for(int i=0; i<1000; ++i) {
+    for(int i=0; i<10000; ++i) {
         usleep(1000*10);
         //printf("---------------> do_request()\n");
-        res = mb_client.do_request(16, 3000, req, &ans);
-        if(res) {
+
+        res = mb_client.do_request(16, 3000, reqa8, &ans);
+        if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
-        }
+
+        res = mb_client.do_request(48, 3000, reqd8, &ans);
+        if(res)
+            printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
+
         //printf("---------------> do_request() := %d\n", res);
     }
 
