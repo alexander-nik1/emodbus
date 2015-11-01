@@ -16,6 +16,8 @@
 extern "C" {
 #endif
 
+const char* emb_strerror(int _errno);
+
 /**
  * @brief The modbus_errno_t enum
  * Possible errors
@@ -23,7 +25,7 @@ extern "C" {
 enum modbus_errno_t {
     modbus_success,             ///< No error
     modbus_bad_crc = 1000,      ///< Incorrect CRC in received packet
-    modbus_buffer_overflow,     ///< Overflow of buffer.
+    modbus_buffer_overflow,     ///< Overflow of the buffer
     modbus_resp_without_req,    ///< Was a response, with no previous request
     modbus_no_such_function,    ///< No such function
     modbus_resp_wrong_address,  ///< Server returns incorrect address about itself

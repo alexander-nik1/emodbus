@@ -13,6 +13,7 @@ set(LIB_EMODBUS_BASE_SRC
     common.c
     common.h
     modbus_errno.h
+    modbus_errno.c
     modbus_pdu.h
     modbus_proto.c
     modbus_proto.h
