@@ -4,7 +4,7 @@
 #include <fcntl.h>
 #include <vector>
 
-#include "../client/client_base.h"
+#include "../client/sync_client.h"
 #include "../protocols/rtu.h"
 #include "../client/read_holding_regs.h"
 #include "../client/write_multi_regs.h"
@@ -86,7 +86,7 @@ private:
 
 void* thr_proc(void* p) {
 
-    struct emb_client_t* client = (struct emb_client_t*)p;
+    struct emb_sync_client_t* client = (struct emb_sync_client_t*)p;
 
     struct event_base *base = event_base_new();
 
@@ -94,7 +94,7 @@ void* thr_proc(void* p) {
 
     struct posix_serial_port_t serial_port;
 
-    emb_client_set_proto(client, psp.get_proto());
+    emb_sync_client_set_proto(client, psp.get_proto());
 
     event_base_dispatch(base);
 
@@ -109,9 +109,9 @@ public:
         client.resp_timeout_mutex.lock_timeout = mutex_lock_timeout;
         client.resp_timeout_mutex.unlock = mutex_unlock;
 
-        emb_client_initialize(&client);
-        emb_client_add_function(&client, 0x03, &read_holding_regs_interface);
-        emb_client_add_function(&client, 0x10, &write_multi_regs_interface);
+        emb_sync_client_initialize(&client);
+        emb_sync_client_add_function(&client, 0x03, &read_holding_regs_interface);
+        emb_sync_client_add_function(&client, 0x10, &write_multi_regs_interface);
 
         pthread_mutex_init(&mutex, NULL);
         pthread_mutex_trylock(&mutex);
@@ -122,7 +122,7 @@ public:
                    emb_const_pdu_t* _request,
                    emb_const_pdu_t **_response) {
 
-        return emb_client_do_request(&client, _server_addr, _timeout, _request, _response);
+        return emb_sync_client_do_request(&client, _server_addr, _timeout, _request, _response);
     }
 
 private:
@@ -145,7 +145,7 @@ private:
     pthread_mutex_t mutex;
 
 public:
-    struct emb_client_t client;
+    struct emb_sync_client_t client;
 
 } mb_client;
 
@@ -183,14 +183,15 @@ int main(int argc, char* argv[]) {
     read_holding_regs_make_req(&reqd8, 0x0000, 1);
 
     for(int i=0; i<10000; ++i) {
-        usleep(1000*10);
+        usleep(1000*1);
         //printf("---------------> do_request()\n");
 
-        res = mb_client.do_request(16, 3000, reqa8, &ans);
+        res = mb_client.do_request(16, 300, reqa8, &ans);
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 
-        res = mb_client.do_request(48, 3000, reqd8, &ans);
+        usleep(1000*1);
+        res = mb_client.do_request(48, 300, reqd8, &ans);
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 

@@ -16,11 +16,11 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXSTANDARD}")
 add_executable(sync_client_test ${SYNC_CLI_TEST_SRC})
 
 target_link_libraries(sync_client_test
-emodbus-base
-emodbus-client-base
-emodbus-client-read-holdings
-emodbus-client-write-multi-reg
-emodbus-rtu
-event
-pthread
+    emodbus-base
+    emodbus-sync-client
+    emodbus-client-read-holdings
+    emodbus-client-write-multi-reg
+    emodbus-rtu
+    event
+    pthread
 )
