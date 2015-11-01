@@ -25,16 +25,19 @@ add_library(emodbus-sync-client-static STATIC ${EMODBUS_SYNC_CLIENT_SRC})
 target_link_libraries(emodbus-sync-client emodbus-base)
 
 # ===================================================
-# client scheduler 
+# async client
 
-set(EMODBUS_CLIENT_SCHED_SRC
+set(EMODBUS_ASYNC_CLIENT_SRC
+	client_base.h
 	modbus_sched.h
 	modbus_sched.c
+	async_client.h
+	async_client.c
 )
 
-add_library(emodbus-client-sched SHARED ${EMODBUS_CLIENT_SCHED_SRC})
+add_library(emodbus-async-client SHARED ${EMODBUS_ASYNC_CLIENT_SRC})
 
-add_library(emodbus-client-sched-static STATIC ${EMODBUS_CLIENT_SCHED_SRC})
+add_library(emodbus-async-client-static STATIC ${EMODBUS_ASYNC_CLIENT_SRC})
 
 # ===================================================
 # client read holding regs
