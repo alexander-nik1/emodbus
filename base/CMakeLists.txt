@@ -17,6 +17,7 @@ set(LIB_EMODBUS_BASE_SRC
     modbus_pdu.h
     modbus_proto.c
     modbus_proto.h
+    compat.h
 )
 
 add_library(emodbus-base SHARED ${LIB_EMODBUS_BASE_SRC})
