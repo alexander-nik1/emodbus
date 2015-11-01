@@ -1,6 +1,8 @@
 
 include_directories(../base/)
 
+# ===================================================
+# client full
 
 aux_source_directory(. LIB_EMODBUS_CLIENT_FULL_SRC)
 
@@ -8,18 +10,19 @@ add_library(emodbus-client-full SHARED ${LIB_EMODBUS_CLIENT_FULL_SRC})
 target_link_libraries(emodbus-client-full emodbus-base)
 
 # ===================================================
-# client base
+# sync client
 
-set(EMODBUS_CLIENT_BASE_SRC
+set(EMODBUS_SYNC_CLIENT_SRC
 	client_base.h
-	client_base.c
+	sync_client.h
+	sync_client.c
 )
 
-add_library(emodbus-client-base SHARED ${EMODBUS_CLIENT_BASE_SRC})
+add_library(emodbus-sync-client SHARED ${EMODBUS_SYNC_CLIENT_SRC})
 
-add_library(emodbus-client-base-static STATIC ${EMODBUS_CLIENT_BASE_SRC})
+add_library(emodbus-sync-client-static STATIC ${EMODBUS_SYNC_CLIENT_SRC})
 
-target_link_libraries(emodbus-client-base emodbus-base)
+target_link_libraries(emodbus-sync-client emodbus-base)
 
 # ===================================================
 # client scheduler 
