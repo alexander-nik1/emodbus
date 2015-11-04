@@ -52,7 +52,7 @@ static void dbg_print_packet(FILE* _f, const char* _prefix, const void* _pkt, un
 static void parse_packet(struct modbus_rtu_t* _mbt) {
     const unsigned char* buf = _mbt->rx_buffer;
     const unsigned int size = _mbt->rx_buf_counter-2;
-    if(size >= 4) { // 4 bytes - minimal packet size
+    if(size >= 2) { // 4 bytes - minimal packet size
         const uint16_t crc1 = crc16(buf, size);
         const uint16_t crc2 = MKWORD(buf[size], buf[size+1]);
         if(crc1 == crc2) {
