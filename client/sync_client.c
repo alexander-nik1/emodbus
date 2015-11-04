@@ -5,6 +5,12 @@
 #include <string.h>
 #include <stdio.h>
 
+/*!
+ * \file
+ * \brief Sunchronous client definitions.
+ *
+ */
+
 static void emb_sync_client_recv_packet(void* _user_data,
                     int _slave_addr,
                     emb_const_pdu_t* _pkt) {
@@ -81,29 +87,21 @@ void emb_sync_client_set_proto(struct emb_sync_client_t* _cli,
 int emb_sync_client_add_function(struct emb_sync_client_t *_cli,
                             uint8_t _fucntion,
                             const struct emb_client_function_i* _func_i) {
-
     if(_fucntion >= EMB_CLI_MAX_FUNCTIONS)
         return -EINVAL;
-
     if(_cli->functions[_fucntion])
         return -EBUSY;
-
     _cli->functions[_fucntion] = _func_i;
-
     return 0;
 }
 
 int emb_sync_client_remove_function(struct emb_sync_client_t* _cli,
                                     uint8_t _fucntion) {
-
     if(_fucntion >= EMB_CLI_MAX_FUNCTIONS)
         return -EINVAL;
-
     if(!_cli->functions[_fucntion])
         return -ENXIO;
-
     _cli->functions[_fucntion] = NULL;
-
     return 0;
 }
 
@@ -113,48 +111,35 @@ int emb_sync_client_do_request(struct emb_sync_client_t* _cli,
                             emb_const_pdu_t* _request,
                             emb_const_pdu_t**_response) {
     int res = 0;
-
     *_response = NULL;
-
     if(_cli->state != emb_cli_state_default)
         return -EBUSY;
-
     _cli->current_request = _request;
     _cli->curr_req_server_addr = _server_addr;
-
     _cli->state = emb_cli_state_req_sending;
-
     if((res = emb_proto_send_packet(_cli->protocol, _server_addr, _request))) {
         _cli->state = emb_cli_state_default;
         return res;
     }
-
     _cli->state = emb_cli_state_wait_resp;
     _cli->resp_state = emb_cli_resp_state_no_resp;
-
     _cli->resp_timeout_mutex.lock_timeout(_cli->resp_timeout_mutex.user_data,
                                           _timeout);
     switch(_cli->resp_state) {
-
         case emb_cli_resp_state_resp_ok:
             *_response = _cli->current_response;
             res = 0;
             break;
-
         case emb_cli_resp_state_resp_fail:
             res = _cli->error_code;
             break;
-
         case emb_cli_resp_state_no_resp:
             res = -modbus_resp_timeout;
             break;
-
         default:
             res = -1;
     }
-
     _cli->state = emb_cli_state_default;
-
     return res;
 }
 
