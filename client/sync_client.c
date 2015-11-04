@@ -3,6 +3,7 @@
 #include <errno.h>
 #include "../base/modbus_errno.h"
 #include <string.h>
+#include <stdio.h>
 
 static void emb_sync_client_recv_packet(void* _user_data,
                     int _slave_addr,
@@ -38,6 +39,7 @@ static void emb_sync_client_recv_packet(void* _user_data,
         }
 
         if((res = func->check_answer(cli->current_request, _pkt))) {
+
             cli->error_code = res;
             cli->resp_state = emb_cli_resp_state_resp_fail;
             break;
@@ -79,21 +81,30 @@ void emb_sync_client_set_proto(struct emb_sync_client_t* _cli,
 int emb_sync_client_add_function(struct emb_sync_client_t *_cli,
                             uint8_t _fucntion,
                             const struct emb_client_function_i* _func_i) {
-    if(_fucntion < EMB_CLI_MAX_FUNCTIONS) {
-        _cli->functions[_fucntion] = _func_i;
-        return 0;
-    }
-    else
+
+    if(_fucntion >= EMB_CLI_MAX_FUNCTIONS)
         return -EINVAL;
+
+    if(_cli->functions[_fucntion])
+        return -EBUSY;
+
+    _cli->functions[_fucntion] = _func_i;
+
+    return 0;
 }
 
-int emb_sync_client_remove_function(struct emb_sync_client_t* _cli, uint8_t _fucntion) {
-    if(_fucntion < EMB_CLI_MAX_FUNCTIONS) {
-        _cli->functions[_fucntion] = NULL;
-        return 0;
-    }
-    else
+int emb_sync_client_remove_function(struct emb_sync_client_t* _cli,
+                                    uint8_t _fucntion) {
+
+    if(_fucntion >= EMB_CLI_MAX_FUNCTIONS)
         return -EINVAL;
+
+    if(!_cli->functions[_fucntion])
+        return -ENXIO;
+
+    _cli->functions[_fucntion] = NULL;
+
+    return 0;
 }
 
 int emb_sync_client_do_request(struct emb_sync_client_t* _cli,
