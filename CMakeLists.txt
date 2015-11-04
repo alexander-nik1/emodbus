@@ -95,7 +95,7 @@ INSTALL(PROGRAMS lib/libemodbus-rtu-static.a DESTINATION /usr/lib/ COMPONENT pro
 
 
 set(MAJOR_VERSION "0")
-set(MINOR_VERSION "2")
+set(MINOR_VERSION "1")
 set(PATCH_VERSION "${CURR_DATETIME}")
 
 set(CPACK_GENERATOR "DEB")
