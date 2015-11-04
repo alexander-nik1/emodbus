@@ -10,7 +10,7 @@ int modbus_check_answer(emb_const_pdu_t* _req,
     if(_req->function != _answ->function) {
 
         if(_answ->function & 0x80)   // Error code
-            return -(((uint8_t*)_answ->data)[1] + 1000);
+            return -(((uint8_t*)_answ->data)[0] + 1500);
         else
             return -2;
     }

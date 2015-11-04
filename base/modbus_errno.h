@@ -30,6 +30,21 @@ enum modbus_errno_t {
     modbus_no_such_function,    ///< No such function
     modbus_resp_wrong_address,  ///< Server returns incorrect address about itself
     modbus_resp_timeout,        ///< Timeout of response waiting
+
+    EMB_EXCEPTION_BASE = 1500,
+
+    EMB_EXCEPTION_FUNC = EMB_EXCEPTION_BASE + 0x1,
+    EMB_EXCEPTION_DATA_ADDR,
+    EMB_EXCEPTION_DATA_VALUE,
+    EMB_EXCEPTION_SERV_FAILURE,
+    EMB_EXCEPTION_ACK,
+    EMB_EXCEPTION_SERVER_BUSY,
+
+    EMB_EXCEPTION_MEM_PARITY = EMB_EXCEPTION_BASE + 0x08,
+
+    EMB_EXCEPTION_GATEWAY_PATH = EMB_EXCEPTION_BASE + 0x0A,
+    EMB_EXCEPTION_GATEWAY_NO_RESP,
+
 };
 
 #ifdef __cplusplus

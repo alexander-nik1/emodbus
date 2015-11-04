@@ -176,7 +176,16 @@ int main(int argc, char* argv[]) {
 
     sleep(1);
 
-    pdu_t reqa8, reqd8;
+    pdu_t r;
+    emb_const_pdu_t* ans;
+
+    read_holding_regs_make_req(&r, 0x000100, 8);
+
+    res = mb_client.do_request(16, 1000, r, &ans);
+    if(res)
+        printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
+
+  /*  pdu_t reqa8, reqd8;
     emb_const_pdu_t* ans;
 
     read_holding_regs_make_req(&reqa8, 0x0000, 8);
@@ -196,7 +205,7 @@ int main(int argc, char* argv[]) {
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 
         //printf("---------------> do_request() := %d\n", res);
-    }
+    }*/
 
     pthread_join(pthr, NULL);
 
