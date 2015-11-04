@@ -16,6 +16,18 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Returns an error string
+ *
+ * This function returns pointer to a static string.
+ * Known error codes is in enum modbus_errno_t.
+ * Also if _errno less than 1000, function returns an ontput
+ * of strerror(_errno) function.
+ *
+ * @param [in] _errno error number
+ * @return error string or NULL if _errno is unknown
+ */
+
 const char* emb_strerror(int _errno);
 
 /**
