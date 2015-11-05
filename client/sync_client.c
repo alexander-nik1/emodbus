@@ -11,6 +11,15 @@
  *
  */
 
+/**
+ * @brief Packet receiver
+ *
+ * This function calls when a new packet was received.
+ *
+ * @param [in] _user_data synchronous client context
+ * @param [in] _slave_addr address of server, from which PDU was received
+ * @param [in] _pkt the PDU
+ */
 static void emb_sync_client_recv_packet(void* _user_data,
                     int _slave_addr,
                     emb_const_pdu_t* _pkt) {
@@ -60,6 +69,14 @@ static void emb_sync_client_recv_packet(void* _user_data,
     cli->resp_timeout_mutex.unlock(cli->resp_timeout_mutex.user_data);
 }
 
+/**
+ * @brief Error receiver
+ *
+ * This function calls when, a some error happens in low-level
+ *
+ * @param [in] _user_data synchronous client context
+ * @param [in] _errno error number
+ */
 static void emb_sync_client_error(void* _user_data, int _errno) {
 
     struct emb_sync_client_t* cli = (struct emb_sync_client_t*)_user_data;
