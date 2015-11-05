@@ -50,20 +50,24 @@ static void dbg_print_packet(FILE* _f, const char* _prefix, const void* _pkt, un
  * @param [in] _mbt RTU context
  */
 static void parse_packet(struct modbus_rtu_t* _mbt) {
+    int res;
     const unsigned char* buf = _mbt->rx_buffer;
     const unsigned int size = _mbt->rx_buf_counter-2;
     if(size >= 2) { // 4 bytes - minimal packet size
         const uint16_t crc1 = crc16(buf, size);
         const uint16_t crc2 = MKWORD(buf[size], buf[size+1]);
-        if(crc1 == crc2) {
-            _mbt->rx_pdu.function = buf[1];
-            _mbt->rx_pdu.data_size = size - 2;
-            emb_proto_recv_packet(&_mbt->proto, (int)buf[0], MB_CONST_PDU(&_mbt->rx_pdu));
-        }
-        else {
-            emb_proto_error(&_mbt->proto, -modbus_bad_crc);
-        }
         dbg_print_packet(stdout, ">>", buf, _mbt->rx_buf_counter);
+        if(crc1 != crc2) {
+            emb_proto_error(&_mbt->proto, -modbus_bad_crc);
+            return;
+        }
+        _mbt->rx_pdu.function = buf[1];
+        _mbt->rx_pdu.data_size = size - 2;
+        if((res = emb_check_pdu_for_exception(MB_CONST_PDU(&_mbt->rx_pdu)))) {
+            emb_proto_error(&_mbt->proto, res);
+            return;
+        }
+        emb_proto_recv_packet(&_mbt->proto, (int)buf[0], MB_CONST_PDU(&_mbt->rx_pdu));
     }
 }
 

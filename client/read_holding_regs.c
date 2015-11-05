@@ -45,8 +45,8 @@ int read_holding_regs_valid_answer(emb_const_pdu_t* _req,
     if(_req->data_size != 4)
 		return -EINVAL;
 
-    if((r = modbus_check_answer(_req, _ans)) != 0)
-        return r;
+    if(_ans->function != 3)
+        return -EINVAL;
 
     tmp = ((uint16_t*)_req->data)[1];
     quantity = SWAP_BYTES(tmp);

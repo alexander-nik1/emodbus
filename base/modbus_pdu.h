@@ -2,6 +2,10 @@
 #ifndef MODBUS_PROTOCOL_DATA_UNIT_H
 #define MODBUS_PROTOCOL_DATA_UNIT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*!
  * \file
  * \brief The PDU descriptions.
@@ -45,5 +49,21 @@ typedef const struct _emb_const_pdu_t emb_const_pdu_t;
  *
  */
 #define MB_CONST_PDU(_pdu_) ((emb_const_pdu_t*)(_pdu_))
+
+/**
+ * @brief Check a PDU for modbus-exception
+ *
+ * This function checks a 8-th bit of a function byte, and
+ * if it is 1, then function return a error code from this packet.
+ *
+ * @param _pdu a PDU for check
+ * @return returns zero if this PDU have no exception code,
+ * otherwise it returns a modbus-exception code plus 1500.
+ */
+int emb_check_pdu_for_exception(emb_const_pdu_t *_pdu);
+
+#ifdef __cplusplus
+}   // extern "C"
+#endif
 
 #endif // MODBUS_PROTOCOL_DATA_UNIT_H

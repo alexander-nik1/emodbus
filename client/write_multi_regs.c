@@ -42,8 +42,8 @@ int write_multi_regs_valid_answer(emb_const_pdu_t *_req,
                                   emb_const_pdu_t *_ans) {
     int r;
 
-    if((r = modbus_check_answer(_req, _ans)) != 0)
-        return r;
+    if(_ans->function != 0x10)
+        return -EINVAL;
 
     if(_ans->data_size != 6)
         return -ERANGE;

@@ -15,6 +15,7 @@ set(LIB_EMODBUS_BASE_SRC
     modbus_errno.h
     modbus_errno.c
     modbus_pdu.h
+    modbus_pdu.c
     modbus_proto.c
     modbus_proto.h
     compat.h
