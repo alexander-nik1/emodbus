@@ -20,8 +20,7 @@ int write_single_reg_valid_answer(const void* _req, unsigned int _req_size,
                                    const void* _answer, unsigned int _answer_size) {
     int r;
 
-    if((r = modbus_check_answer(_req, _answer)) != 0)
-        return r;
+    //if(_)
 
     if(_req_size != _answer_size)
         return -1;
