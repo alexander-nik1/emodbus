@@ -119,7 +119,6 @@ void emb_sync_client_set_proto(struct emb_sync_client_t* _cli,
  * be used for send/receive packets.
  *
  * @param [in] _cli a synchronous client context.
- * @param [in] _fucntion the function number.
  * @param [in] _func_i a fucntion interface.
  * @return Zero if success,
  *    the -EINVAL if _fucntion greater a EMB_CLI_MAX_FUNCTIONS number,
@@ -152,11 +151,11 @@ int emb_sync_client_remove_function(struct emb_sync_client_t* _cli,
  * and by timeout.
  *
  * @param [in] _cli a synchronous client context.
- * @param _server_addr a server address to which will send request.
- * @param _timeout timeout of response waiting
+ * @param [in] _server_addr a server address to which will send request.
+ * @param [in] _timeout timeout of response waiting
  * (this value will sent to the timeout mutex)
- * @param _request the request (must be built before this call)
- * @param _response in this variable will be stored a pointer to response
+ * @param [in] _request the request (must be built before this call)
+ * @param [in] _response in this variable will be stored a pointer to response
  * (if transaction successfully finished)
  * @return Zero if success,
  *    the -EBUSY if previous transaction is not finished yet.
