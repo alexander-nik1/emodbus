@@ -29,8 +29,6 @@ target_link_libraries(emodbus-sync-client emodbus-base)
 
 set(EMODBUS_ASYNC_CLIENT_SRC
 	client_base.h
-	modbus_sched.h
-	modbus_sched.c
 	async_client.h
 	async_client.c
 )
