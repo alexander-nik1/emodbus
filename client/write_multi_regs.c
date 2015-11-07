@@ -45,7 +45,7 @@ int write_multi_regs_valid_answer(emb_const_pdu_t *_req,
     if(_ans->function != 0x10)
         return -EINVAL;
 
-    if(_ans->data_size != 6)
+    if(_ans->data_size != 4)
         return -ERANGE;
 
     if(((uint16_t*)_req->data)[0] != ((uint16_t*)_ans->data)[0])
