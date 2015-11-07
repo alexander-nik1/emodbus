@@ -57,6 +57,7 @@ int write_multi_regs_valid_answer(emb_const_pdu_t *_req,
     return 0;
 }
 
-struct emb_client_function_i write_multi_regs_interface = {
+const struct emb_client_function_i write_multi_regs_interface = {
+    0x10,
     write_multi_regs_valid_answer      // check_answer
 };

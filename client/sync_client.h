@@ -126,7 +126,6 @@ void emb_sync_client_set_proto(struct emb_sync_client_t* _cli,
  *    the -EBUSY if this function number was already set.
  */
 int emb_sync_client_add_function(struct emb_sync_client_t* _cli,
-                            uint8_t _fucntion,
                             const struct emb_client_function_i* _func_i);
 
 /**

@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-extern struct emb_client_function_i write_multi_regs_interface;
+extern const struct emb_client_function_i write_multi_regs_interface;
 
 // Build request
 int write_multi_regs_make_req(emb_pdu_t* _result_req,

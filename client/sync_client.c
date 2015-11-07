@@ -102,13 +102,13 @@ void emb_sync_client_set_proto(struct emb_sync_client_t* _cli,
 }
 
 int emb_sync_client_add_function(struct emb_sync_client_t *_cli,
-                            uint8_t _fucntion,
                             const struct emb_client_function_i* _func_i) {
-    if(_fucntion >= EMB_CLI_MAX_FUNCTIONS)
+    const int function = _func_i->function_number;
+    if(function >= EMB_CLI_MAX_FUNCTIONS)
         return -EINVAL;
-    if(_cli->functions[_fucntion])
+    if(_cli->functions[function])
         return -EBUSY;
-    _cli->functions[_fucntion] = _func_i;
+    _cli->functions[function] = _func_i;
     return 0;
 }
 

@@ -10,7 +10,16 @@ extern "C" {
 
 enum { EMB_CLI_MAX_FUNCTIONS = 25 };
 
+/**
+ * @brief The emb_client_function_i struct
+ *
+ * Interface of modbus-client function
+ *
+ */
 struct emb_client_function_i {
+    /// Number of modbus-function
+    const int function_number;
+    /// Validation of received packet with corresponding request.
     int (*check_answer)(emb_const_pdu_t* _req,
                         emb_const_pdu_t* _ans);
 };

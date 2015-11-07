@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-extern struct emb_client_function_i read_holding_regs_interface;
+extern const struct emb_client_function_i read_holding_regs_interface;
 
 /**
  * @brief Build request
