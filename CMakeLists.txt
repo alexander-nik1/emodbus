@@ -39,7 +39,12 @@ set(CPACK_COMPONENTS_GROUPING "IGNORE")
 set(CPACK_BASE_COMPONENTS "dev;base;base-static")
 set(CPACK_SERVER_COMPONENTS "server-libs;server-libs-static;server-full")
 set(CPACK_CLIENT_COMPONENTS "client-libs;client-libs-static;client-full")
-set(CPACK_PROTOCOL_COMPONENTS "protocols;protocols-static")
+
+set(CPACK_PROTO_RTU_COMPONENTS "proto-rtu")
+
+set(CPACK_PROTO_FULL_COMPONENTS "proto-full;proto-static-full")
+
+set(CPACK_PROTOCOL_COMPONENTS "${CPACK_PROTO_RTU_COMPONENTS};${CPACK_PROTO_FULL_COMPONENTS}")
 
 set(CPACK_COMPONENTS_ALL "${CPACK_BASE_COMPONENTS};${CPACK_SERVER_COMPONENTS};${CPACK_CLIENT_COMPONENTS};${CPACK_PROTOCOL_COMPONENTS}")
 
@@ -80,13 +85,17 @@ INSTALL(PROGRAMS lib/libemodbus-client-mask-write-reg-static.a DESTINATION /usr/
 set(CPACK_DEBIAN_CLIENT-FULL_PACKAGE_DEPENDS "emodbus-base")
 INSTALL(PROGRAMS lib/libemodbus-client-full.so DESTINATION /usr/lib/ COMPONENT client-full)
 
-# component protocols
-set(CPACK_DEBIAN_PROTOCOLS_PACKAGE_DEPENDS "emodbus-base")
-INSTALL(PROGRAMS lib/libemodbus-rtu.so DESTINATION /usr/lib/ COMPONENT protocols)
+# component proto-rtu
+set(CPACK_DEBIAN_PROTO-RTU_PACKAGE_DEPENDS "emodbus-base")
+INSTALL(PROGRAMS lib/libemodbus-rtu.so DESTINATION /usr/lib/ COMPONENT proto-rtu)
 
-# component protocols-static
-set(CPACK_DEBIAN_PROTOCOLS-STATIC_PACKAGE_DEPENDS "emodbus-base-static")
-INSTALL(PROGRAMS lib/libemodbus-rtu-static.a DESTINATION /usr/lib/ COMPONENT protocols-static)
+# component proto-full
+set(CPACK_DEBIAN_PROTO-FULL_PACKAGE_DEPENDS "emodbus-base")
+INSTALL(PROGRAMS lib/libemodbus-rtu.so DESTINATION /usr/lib/ COMPONENT proto-full)
+
+# component proto-static-full
+set(CPACK_DEBIAN_PROTO-STATIC-FULL_PACKAGE_DEPENDS "emodbus-base-static")
+INSTALL(PROGRAMS lib/libemodbus-rtu-static.a DESTINATION /usr/lib/ COMPONENT proto-static-full)
 
 
 set(MAJOR_VERSION "0")
