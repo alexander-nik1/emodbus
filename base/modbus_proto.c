@@ -1,5 +1,5 @@
 
-#include "modbus_proto.h"
+#include <emodbus/base/modbus_proto.h>
 
 /*!
  * \file

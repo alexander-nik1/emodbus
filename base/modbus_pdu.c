@@ -1,5 +1,5 @@
 
-#include "modbus_pdu.h"
+#include <emodbus/base/modbus_pdu.h>
 #include <stdint.h>
 
 int emb_check_pdu_for_exception(emb_const_pdu_t *_pdu) {

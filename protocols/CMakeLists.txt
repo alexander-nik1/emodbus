@@ -1,6 +1,5 @@
 
 set(LIB_EMODBUS_RTU
-	rtu.h
 	rtu.c
 )
 

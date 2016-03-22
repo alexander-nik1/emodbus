@@ -1,6 +1,5 @@
 
 set(EMODBUS_SERVER_BASE_SRC
-	server_base.h
 	server_base.c
 )
 

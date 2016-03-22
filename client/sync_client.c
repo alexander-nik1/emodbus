@@ -1,7 +1,7 @@
  
-#include "sync_client.h"
+#include <emodbus/client/sync_client.h>
 #include <errno.h>
-#include "../base/modbus_errno.h"
+#include <emodbus/base/modbus_errno.h>
 #include <string.h>
 #include <stdio.h>
 

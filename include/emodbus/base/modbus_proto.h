@@ -105,7 +105,7 @@ struct emb_protocol_t {
      * It is useful in applications, that have no enough RAM space.
      * NOTE: In cae of ASCII protocols you should NOT use this PDU.
      */
-    emb_pdu_t* tx_pdu;
+//    emb_pdu_t* tx_pdu;
 /*
     NOTE:
         [high_level_context, recv_packet, error] variables

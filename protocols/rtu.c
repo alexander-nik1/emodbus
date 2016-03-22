@@ -1,12 +1,12 @@
 
-#include "rtu.h"
-#include "../base/add/container_of.h"
+#include <emodbus/protocols/rtu.h>
+#include <emodbus/base/add/container_of.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include "../base/byte-word.h"
-#include "../base/add/crc.h"
-#include "../base/modbus_errno.h"
+#include <emodbus/base/byte-word.h>
+#include <emodbus/base/add/crc.h>
+#include <emodbus/base/modbus_errno.h>
 
 #include <stdio.h>
 
@@ -173,7 +173,7 @@ void modbus_rtu_initialize(struct modbus_rtu_t* _mbt) {
     // Setup protocol
     _mbt->proto.send_packet = modbus_rtu_send_packet;
     _mbt->proto.low_level_context = _mbt;
-    _mbt->proto.tx_pdu = &_mbt->tx_pdu;
+    //_mbt->proto.tx_pdu = &_mbt->tx_pdu;
 
     _mbt->rx_pdu.data = _mbt->rx_buffer + 2;  // skip address and function
     _mbt->rx_pdu.data_size = 0;

@@ -1,8 +1,8 @@
  
-#include "byte-word.h"
+#include <emodbus/base/byte-word.h>
 #include <errno.h>
-#include "common.h"
-#include "read_holding_regs.h"
+#include <emodbus/base/common.h>
+#include <emodbus/client/read_holding_regs.h>
 
 /*!
  * \file

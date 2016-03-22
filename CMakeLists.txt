@@ -6,6 +6,12 @@ cmake_minimum_required(VERSION 2.8)
 set( EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin )
 set( LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib )
 
+#aux_source_directory(include HEADERS_SRC)
+
+include_directories(include)
+
+set(HEADERS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 add_subdirectory(base)
 add_subdirectory(client)
 add_subdirectory(server)
@@ -39,18 +45,7 @@ set(CPACK_COMPONENTS_ALL "${CPACK_BASE_COMPONENTS};${CPACK_SERVER_COMPONENTS};${
 
 # component dev
 set(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS "emodbus-client-full, emodbus-server-full")
-INSTALL(FILES base/byte-word.h            DESTINATION /usr/include/emodbus/base      COMPONENT dev)
-INSTALL(FILES base/common.h               DESTINATION /usr/include/emodbus/base      COMPONENT dev)
-INSTALL(FILES base/modbus_errno.h         DESTINATION /usr/include/emodbus/base      COMPONENT dev)
-INSTALL(FILES base/modbus_pdu.h           DESTINATION /usr/include/emodbus/base      COMPONENT dev)
-INSTALL(FILES base/modbus_proto.h         DESTINATION /usr/include/emodbus/base      COMPONENT dev)
-INSTALL(FILES client/modbus_client.h      DESTINATION /usr/include/emodbus/client    COMPONENT dev)
-INSTALL(FILES client/modbus_sched.h       DESTINATION /usr/include/emodbus/client    COMPONENT dev)
-INSTALL(FILES client/read_holding_regs.h  DESTINATION /usr/include/emodbus/client    COMPONENT dev)
-INSTALL(FILES client/write_mask_reg.h     DESTINATION /usr/include/emodbus/client    COMPONENT dev)
-INSTALL(FILES client/write_multi_regs.h   DESTINATION /usr/include/emodbus/client    COMPONENT dev)
-INSTALL(FILES client/write_single_reg.h   DESTINATION /usr/include/emodbus/client    COMPONENT dev)
-INSTALL(FILES protocols/rtu.h             DESTINATION /usr/include/emodbus/protocols COMPONENT dev)
+INSTALL(DIRECTORY include DESTINATION /usr/ COMPONENT dev)
 
 # component base
 set(CPACK_DEBIAN_BASE_PACKAGE_DEPENDS "")

@@ -1,5 +1,5 @@
 
-#include "stream.h"
+#include <emodbus/base/add/stream.h>
 
 int stream_write(struct output_stream_t* _output_stream, const void* _data, unsigned int _size) {
 	struct input_stream_t* is = _output_stream->input_stream;

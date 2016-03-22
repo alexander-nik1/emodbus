@@ -1,5 +1,5 @@
 
-#include "modbus_errno.h"
+#include <emodbus/base/modbus_errno.h>
 #include "string.h"
 
 #include <stdio.h>

@@ -1,8 +1,8 @@
 
-#include "byte-word.h"
+#include <emodbus/base/byte-word.h>
 #include <errno.h>
-#include "common.h"
-#include "write_mask_reg.h"
+#include <emodbus/base/common.h>
+#include <emodbus/client/write_mask_reg.h>
 #include <string.h>
 
 int write_mask_reg_make_req(void* _result_req, uint8_t _slave_addr,

@@ -13,8 +13,6 @@ target_link_libraries(emodbus-client-full emodbus-base)
 # sync client
 
 set(EMODBUS_SYNC_CLIENT_SRC
-	client_base.h
-	sync_client.h
 	sync_client.c
 )
 
@@ -28,8 +26,6 @@ target_link_libraries(emodbus-sync-client emodbus-base)
 # async client
 
 set(EMODBUS_ASYNC_CLIENT_SRC
-	client_base.h
-	async_client.h
 	async_client.c
 )
 
@@ -41,7 +37,6 @@ add_library(emodbus-async-client-static STATIC ${EMODBUS_ASYNC_CLIENT_SRC})
 # client read holding regs
 
 set(EMODBUS_CLIENT_READ_HOLDING_REGS_SRC
-	read_holding_regs.h
 	read_holding_regs.c
 )
 
@@ -53,7 +48,6 @@ add_library(emodbus-client-read-holdings-static STATIC ${EMODBUS_CLIENT_READ_HOL
 # client mask write reg
 
 set(EMODBUS_CLIENT_MASK_WRITE_REG
-	write_mask_reg.h
 	write_mask_reg.c
 )
 
@@ -65,7 +59,6 @@ add_library(emodbus-client-mask-write-reg-static STATIC ${EMODBUS_CLIENT_MASK_WR
 # client write multiple registers
 
 set(EMODBUS_CLIENT_WRITE_MULTI_REGS
-	write_multi_regs.h
 	write_multi_regs.c
 )
 

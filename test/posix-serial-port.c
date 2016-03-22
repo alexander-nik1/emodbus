@@ -1,6 +1,6 @@
 
 #include "posix-serial-port.h"
-#include "../base/add/container_of.h"
+#include <emodbus/base/add/container_of.h>
 #include <errno.h>
 #include <termios.h>
 #include <fcntl.h>

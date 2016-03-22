@@ -1,8 +1,8 @@
 
-#include "byte-word.h"
+#include <emodbus/base/byte-word.h>
 #include <errno.h>
-#include "common.h"
-#include "write_multi_regs.h"
+#include <emodbus/base/common.h>
+#include <emodbus/client/write_multi_regs.h>
 #include <string.h>
 
 int write_multi_regs_make_req(emb_pdu_t *_result_req,

@@ -4,14 +4,14 @@
 #include <fcntl.h>
 #include <vector>
 
-#include "../client/sync_client.h"
-#include "../protocols/rtu.h"
-#include "../client/read_holding_regs.h"
-#include "../client/write_multi_regs.h"
-#include "../base/add/container_of.h"
-#include "../base/modbus_errno.h"
+#include <emodbus/client/sync_client.h>
+#include <emodbus/protocols/rtu.h>
+#include <emodbus/client/read_holding_regs.h>
+#include <emodbus/client/write_multi_regs.h>
+#include <emodbus/base/add/container_of.h>
+#include <emodbus/base/modbus_errno.h>
 
-#include "../base/add/stream.h"
+#include <emodbus/base/add/stream.h>
 #include "posix-serial-port.h"
 
 #include <pthread.h>
