@@ -2,7 +2,7 @@
 #ifndef MODBUS_MASTER_PROTOCOL_H
 #define MODBUS_MASTER_PROTOCOL_H
 
-#include "modbus_pdu.h"
+#include <emodbus/base/modbus_pdu.h>
 
 #ifdef __cplusplus
 extern "C" {

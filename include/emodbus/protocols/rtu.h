@@ -10,9 +10,9 @@
  *
  */
 
-#include "../base/add/stream.h"
+#include <emodbus/base/add/stream.h>
 
-#include "../base/modbus_proto.h"
+#include <emodbus/base/modbus_proto.h>
 
 #ifdef __cplusplus
 extern "C" {

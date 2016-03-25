@@ -2,9 +2,9 @@
 #ifndef MODBUS_ASYNCHRONOUS_CLIENT_H
 #define MODBUS_ASYNCHRONOUS_CLIENT_H
 
-#include "../base/add/scheduler.h"
-#include "../base/modbus_proto.h"
-#include "client_base.h"
+#include <emodbus/base/add/scheduler.h>
+#include <emodbus/base/modbus_proto.h>
+#include <emodbus/client/client_base.h>
 #include <stdint.h>
 
 #ifdef __cplusplus

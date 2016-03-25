@@ -3,8 +3,8 @@
 #define MODBUS_MASTER_WRITE_MULTIPLE_REGISTER
 
 #include <stdint.h>
-#include "../base/modbus_pdu.h"
-#include "client_base.h"
+#include <emodbus/base/modbus_pdu.h>
+#include <emodbus/client/client_base.h>
 
 #ifdef __cplusplus
 extern "C" {

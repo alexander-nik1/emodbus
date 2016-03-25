@@ -12,11 +12,11 @@
  */
 
 #include <stdint.h>
-#include "client_base.h"
-#include "../base/modbus_pdu.h"
-#include "../base/modbus_proto.h"
-#include "../base/compat.h"
-#include "../base/common.h"
+#include <emodbus/client/client_base.h>
+#include <emodbus/base/modbus_pdu.h>
+#include <emodbus/base/modbus_proto.h>
+#include <emodbus/base/compat.h>
+#include <emodbus/base/common.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -2,7 +2,7 @@
 #ifndef THE_MODBUS_CRC_H
 #define THE_MODBUS_CRC_H
 
-#include<stdint.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

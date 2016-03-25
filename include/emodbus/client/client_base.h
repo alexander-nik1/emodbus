@@ -2,7 +2,7 @@
 #ifndef EMODBUS_CLIENT_BASE_H
 #define EMODBUS_CLIENT_BASE_H
 
-#include "../base/modbus_pdu.h"
+#include <emodbus/base/modbus_pdu.h>
 
 #ifdef __cplusplus
 extern "C" {
