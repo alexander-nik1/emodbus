@@ -98,14 +98,13 @@ struct emb_protocol_t {
     void (*error)(void* _user_data, int _errno);
 
     /**
-     * @brief Transmit PDU (property of protocol)
-     * This PDU already have a buffer (buffer inside protocol)
-     * and this PDU can be used to store the new request packet, and send it.
-     * In general, you will use protocol's buffer instead another buffer.
-     * It is useful in applications, that have no enough RAM space.
-     * NOTE: In cae of ASCII protocols you should NOT use this PDU.
+     * @brief Receive PDU.
+     * A newest received PDU will placed in this rx_pdu.
+     * If you want to receive a PDU, you must set this pointer
+     * to a emb_pdu_t object.
+     * If rx_pdu is NULL, then no receiving of data will be perfomed.
      */
-//    emb_pdu_t* tx_pdu;
+     emb_pdu_t* rx_pdu;
 /*
     NOTE:
         [high_level_context, recv_packet, error] variables

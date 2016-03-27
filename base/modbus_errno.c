@@ -15,18 +15,22 @@
 
 const char* emb_strerror(int _errno) {
 
-    if (_errno < modbus_bad_crc) {
+    if(_errno == modbus_success) {
+        static const char* str = "Success";
+        return str;
+    }
+    else if (_errno < modbus_bad_crc) {
         return strerror(_errno);
     }
     else if (modbus_bad_crc <= _errno && _errno < EMB_EXCEPTION_BASE){
         switch(_errno) {
-            EMB_CASE_ERROR_STRING(modbus_success, "Success")
             EMB_CASE_ERROR_STRING(modbus_bad_crc, "Incorrect CRC in received packet")
             EMB_CASE_ERROR_STRING(modbus_buffer_overflow, "Overflow of the buffer")
             EMB_CASE_ERROR_STRING(modbus_resp_without_req, "Was a response, with no previous request")
             EMB_CASE_ERROR_STRING(modbus_no_such_function, "No such function")
             EMB_CASE_ERROR_STRING(modbus_resp_wrong_address, "Server returns incorrect address about itself")
             EMB_CASE_ERROR_STRING(modbus_resp_timeout, "Timeout of response waiting")
+            EMB_CASE_ERROR_STRING(modbus_resp_buffer_ovf, "Response buffer is too short");
             default: return (const char*)0;
         }
     }

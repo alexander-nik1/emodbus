@@ -61,13 +61,24 @@ static void parse_packet(struct modbus_rtu_t* _mbt) {
             emb_proto_error(&_mbt->proto, -modbus_bad_crc);
             return;
         }
-        _mbt->rx_pdu.function = buf[1];
-        _mbt->rx_pdu.data_size = size - 2;
-        if((res = emb_check_pdu_for_exception(MB_CONST_PDU(&_mbt->rx_pdu)))) {
-            emb_proto_error(&_mbt->proto, res);
-            return;
+        emb_pdu_t* const rx_pdu = _mbt->proto.rx_pdu;
+        if(rx_pdu) {
+            const unsigned int data_sz = size - 2;
+            const unsigned int max_sz = rx_pdu->max_size;
+            if(data_sz > max_sz) {
+                emb_proto_error(&_mbt->proto, -modbus_resp_buffer_ovf);
+                return;
+            }
+            rx_pdu->function = buf[1];
+            rx_pdu->data_size = size - 2;
+            memcpy(rx_pdu->data, buf + 2, data_sz);
+
+            if((res = emb_check_pdu_for_exception(MB_CONST_PDU(rx_pdu)))) {
+                emb_proto_error(&_mbt->proto, res);
+                return;
+            }
+            emb_proto_recv_packet(&_mbt->proto, (int)buf[0], MB_CONST_PDU(rx_pdu));
         }
-        emb_proto_recv_packet(&_mbt->proto, (int)buf[0], MB_CONST_PDU(&_mbt->rx_pdu));
     }
 }
 
@@ -147,8 +158,7 @@ static int modbus_rtu_send_packet(void *_mbt,
         uint16_t crc;
         mbt->tx_buffer[0] = _slave_addr;
         mbt->tx_buffer[1] = _pdu->function;
-        if(_pdu != MB_CONST_PDU(&mbt->tx_pdu))
-            memcpy(mbt->tx_buffer + 2, _pdu->data, _pdu->data_size);
+        memcpy(mbt->tx_buffer + 2, _pdu->data, _pdu->data_size);
         crc = crc16(mbt->tx_buffer, sz);
         memcpy(mbt->tx_buffer + sz, &crc, 2);
         mbt->tx_pkt_size = sz + 2;
@@ -173,15 +183,8 @@ void modbus_rtu_initialize(struct modbus_rtu_t* _mbt) {
     // Setup protocol
     _mbt->proto.send_packet = modbus_rtu_send_packet;
     _mbt->proto.low_level_context = _mbt;
-    //_mbt->proto.tx_pdu = &_mbt->tx_pdu;
 
-    _mbt->rx_pdu.data = _mbt->rx_buffer + 2;  // skip address and function
-    _mbt->rx_pdu.data_size = 0;
-    _mbt->rx_pdu.function = 0;
-
-    _mbt->tx_pdu.data = _mbt->tx_buffer + 2;  // skip address and function
-    _mbt->tx_pdu.data_size = 0;
-    _mbt->tx_pdu.function = 0;
+    _mbt->tx_pdu = NULL;
 }
 
 void modbus_rtu_on_char_timeout(struct modbus_rtu_t* _mbt) {
@@ -198,6 +201,7 @@ int modbus_rtu_send_packet_sync(struct modbus_rtu_t* _mbt,
                                 int _slave_addr,
                                 emb_const_pdu_t *_pdu) {
     int r;
+    _mbt->tx_pdu = _pdu;
     if((r = modbus_rtu_send_packet(_mbt, _slave_addr, _pdu)) == 0) {
         while(_mbt->tx_buf_counter < _mbt->tx_pkt_size) {
             const unsigned int remainder = _mbt->tx_pkt_size - _mbt->tx_buf_counter;

@@ -68,9 +68,6 @@ struct emb_sync_client_t {
     /// Internally used. A current server address
     int curr_req_server_addr;
 
-    /// Internally used. A current response
-    emb_const_pdu_t* current_response;
-
     /// Internally used. An error code
     int error_code;
 
@@ -165,7 +162,7 @@ int emb_sync_client_do_request(struct emb_sync_client_t* _cli,
                           int _server_addr,
                           unsigned int _timeout,
                           emb_const_pdu_t* _request,
-                          emb_const_pdu_t** _response);
+                          emb_pdu_t *_response);
 
 #ifdef __cplusplus
 }   // extern "C"

@@ -23,10 +23,8 @@ extern "C" {
  */
 struct _emb_pdu_t {
     int function;   ///< Function of this PDU
-    union {
-        int data_size;  ///< Size of data of this PDU
-        int max_size;   ///< Maximum size (when this PDU is used as receive place)
-    };
+    int data_size;  ///< Size of data of this PDU
+    int max_size;   ///< Maximum size (when this PDU is used as receive place)
     void* data;     ///< Data of this PDU
 };
 
@@ -41,10 +39,8 @@ typedef struct _emb_pdu_t emb_pdu_t;
  */
 struct _emb_const_pdu_t {
     int function;       ///< Function of this PDU
-    union {
-        int data_size;  ///< Size of data of this PDU
-        int max_size;   ///< Maximum size (when this PDU is used as receive place)
-    };
+    int data_size;      ///< Size of data of this PDU
+    int max_size;       ///< Maximum size (when this PDU is used as receive place)
     const void* data;   ///< Data of this PDU
 };
 

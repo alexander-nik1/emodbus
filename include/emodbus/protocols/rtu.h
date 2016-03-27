@@ -55,10 +55,8 @@ struct modbus_rtu_t {
     /// Size of packet for transmitting (internal variable)
     unsigned int tx_pkt_size;
 
-    /// In this PDU stores received packet, and this PDU gets to high level (internal variable)
-    emb_pdu_t rx_pdu;
     /// This PDU contains a packet, that will be sent (internal variable)
-    emb_pdu_t tx_pdu;
+    emb_const_pdu_t* tx_pdu;
 
     /// (RTU Interface) User context (Argument of callback functions) (must be set by user)
     void* user_data;

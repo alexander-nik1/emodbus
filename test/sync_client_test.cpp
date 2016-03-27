@@ -120,7 +120,7 @@ public:
     int do_request(int _server_addr,
                    unsigned int _timeout,
                    emb_const_pdu_t* _request,
-                   emb_const_pdu_t **_response) {
+                   emb_pdu_t *_response) {
 
         return emb_sync_client_do_request(&client, _server_addr, _timeout, _request, _response);
     }
@@ -153,6 +153,7 @@ class pdu_t : public emb_pdu_t {
 public:
     pdu_t() {
         buffer.resize(128);
+        max_size = buffer.size();
         emb_pdu_t::data = &buffer[0];
     }
 
@@ -186,7 +187,7 @@ int main(int argc, char* argv[]) {
         printf("Error: %d \"%s\"\n", res, emb_strerror(-res));*/
 
     pdu_t reqa8, reqd8;
-    emb_const_pdu_t* ans;
+    pdu_t ans;
 
     read_holding_regs_make_req(&reqa8, 0x0000, 8);
     read_holding_regs_make_req(&reqd8, 0x0000, 1);
@@ -199,7 +200,7 @@ int main(int argc, char* argv[]) {
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 
-        usleep(1000*1);
+        usleep(1000*1000);
         res = mb_client.do_request(48, 300, reqd8, &ans);
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));

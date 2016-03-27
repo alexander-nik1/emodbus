@@ -61,7 +61,6 @@ static void emb_sync_client_recv_packet(void* _user_data,
         }
 
         cli->error_code = 0;
-        cli->current_response = _pkt;
         cli->resp_state = emb_cli_resp_state_resp_ok;
     }
     while(0);
@@ -89,7 +88,6 @@ static void emb_sync_client_error(void* _user_data, int _errno) {
 void emb_sync_client_initialize(struct emb_sync_client_t* _cli) {
     memset(_cli->functions, 0, sizeof(void*)*EMB_CLI_MAX_FUNCTIONS);
     _cli->current_request = NULL;
-    _cli->current_response = NULL;
     _cli->state = emb_cli_state_default;
 }
 
@@ -126,14 +124,16 @@ int emb_sync_client_do_request(struct emb_sync_client_t* _cli,
                             int _server_addr,
                             unsigned int _timeout,
                             emb_const_pdu_t* _request,
-                            emb_const_pdu_t**_response) {
+                            emb_pdu_t* _response) {
     int res = 0;
-    *_response = NULL;
+    if(!_request || !_response)
+        return -EINVAL;
     if(_cli->state != emb_cli_state_default)
         return -EBUSY;
     _cli->current_request = _request;
     _cli->curr_req_server_addr = _server_addr;
     _cli->state = emb_cli_state_req_sending;
+    _cli->protocol->rx_pdu = _response;
     if((res = emb_proto_send_packet(_cli->protocol, _server_addr, _request))) {
         _cli->state = emb_cli_state_default;
         return res;
@@ -144,7 +144,6 @@ int emb_sync_client_do_request(struct emb_sync_client_t* _cli,
                                           _timeout);
     switch(_cli->resp_state) {
         case emb_cli_resp_state_resp_ok:
-            *_response = _cli->current_response;
             res = 0;
             break;
         case emb_cli_resp_state_resp_fail:
@@ -156,6 +155,7 @@ int emb_sync_client_do_request(struct emb_sync_client_t* _cli,
         default:
             res = -1;
     }
+    _cli->protocol->rx_pdu = NULL;
     _cli->state = emb_cli_state_default;
     return res;
 }

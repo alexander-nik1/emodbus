@@ -42,6 +42,7 @@ enum modbus_errno_t {
     modbus_no_such_function,    ///< No such function
     modbus_resp_wrong_address,  ///< Server returns incorrect address about itself
     modbus_resp_timeout,        ///< Timeout of response waiting
+    modbus_resp_buffer_ovf,     ///< Response buffer is too short to store all data
 
     EMB_EXCEPTION_BASE = 1500,
 
