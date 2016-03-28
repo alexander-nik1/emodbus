@@ -22,6 +22,19 @@ add_library(emodbus-sync-client-static STATIC ${EMODBUS_SYNC_CLIENT_SRC})
 
 target_link_libraries(emodbus-sync-client emodbus-base)
 
+
+# ===================================================
+# client
+
+set(EMODBUS_CLIENT_SRC
+	client.c
+)
+
+add_library(emodbus-client SHARED ${EMODBUS_CLIENT_SRC})
+
+add_library(emodbus-client-static STATIC ${EMODBUS_CLIENT_SRC})
+
+
 # ===================================================
 # async client
 
