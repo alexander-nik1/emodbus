@@ -46,7 +46,7 @@ public:
 
         char_pause.tv_sec = 0;
       //  enum { pause = 100 };
-        char_pause.tv_usec = 1000 * 1; //(1000 * 1000) / (_baudrate / pause);
+        char_pause.tv_usec = 1000 * 10; //(1000 * 1000) / (_baudrate / pause);
 
         char_timeout_timer = event_new(_base, -1, EV_TIMEOUT/* | EV_PERSIST*/, on_timer, this);
     }
@@ -83,23 +83,6 @@ private:
     struct event *char_timeout_timer;
 };
 
-void* thr_proc(void* p) {
-
-    struct emb_client_t* client = (struct emb_client_t*)p;
-
-    struct event_base *base = event_base_new();
-
-    posix_serial_port_rtu_t psp(base, "/dev/ttyUSB0", 115200);
-
-    struct posix_serial_port_t serial_port;
-
-    emb_client_set_proto(client, psp.get_proto());
-
-    event_base_dispatch(base);
-
-    posix_serial_port_close(&serial_port);
-}
-
 class emodbus_sync_client_t {
 public:
     emodbus_sync_client_t() {
@@ -124,7 +107,6 @@ public:
 
         req.req_pdu = _request;
         req.resp_pdu = _response;
-        req.resp_timeout = _timeout;
         req.procs = &procs;
         req.user_data = this;
 
@@ -148,6 +130,10 @@ public:
         }
     }
 
+    void set_proto(struct emb_protocol_t* _proto) {
+        emb_client_set_proto(&client, _proto);
+    }
+
 private:
 
     static void emb_on_response(struct emb_client_request_t* _req, int _slave_addr) {
@@ -159,6 +145,7 @@ private:
     static void emb_on_error(struct emb_client_request_t* _req, int _errno) {
         emodbus_sync_client_t* _this = (emodbus_sync_client_t*)_req->user_data;
         _this->result = _errno;
+        pthread_mutex_unlock(&_this->mutex);
     }
 
     pthread_mutex_t mutex;
@@ -166,9 +153,9 @@ private:
     struct emb_client_request_t req;
     static struct emb_client_req_procs_t procs;
 
-    int result;
-public:
     struct emb_client_t client;
+
+    int result;
 
 } mb_client;
 
@@ -176,6 +163,90 @@ struct emb_client_req_procs_t emodbus_sync_client_t::procs = {
     emodbus_sync_client_t::emb_on_response,
     emodbus_sync_client_t::emb_on_error
 };
+
+class emodbus_client_t {
+public:
+    emodbus_client_t() {
+
+        client.user_data = this;
+
+        emb_client_init(&client);
+        emb_client_add_function(&client, &read_holding_regs_interface);
+        emb_client_add_function(&client, &write_multi_regs_interface);
+
+        pthread_mutex_init(&mutex, NULL);
+        pthread_mutex_trylock(&mutex);
+    }
+
+    int do_request(int _server_addr,
+                   unsigned int _timeout,
+                   emb_const_pdu_t* _request,
+                   emb_pdu_t *_response) {
+
+        struct timespec expiry_time;
+        int res;
+
+        req.req_pdu = _request;
+        req.resp_pdu = _response;
+        req.procs = &procs;
+        req.user_data = this;
+
+        res = emb_client_do_request(&client, _server_addr, &req);
+
+        return res;
+    }
+
+    void set_proto(struct emb_protocol_t* _proto) {
+        emb_client_set_proto(&client, _proto);
+    }
+
+protected:
+
+    virtual void emb_client_on_response(struct emb_client_request_t* _req, int _slave_addr) { }
+    virtual void emb_client_on_error(struct emb_client_request_t* _req, int _errno) { }
+
+private:
+
+    static void emb_on_response(struct emb_client_request_t* _req, int _slave_addr) {
+        emodbus_client_t* _this = (emodbus_client_t*)_req->user_data;
+        _this->emb_client_on_response(_req, _slave_addr);
+    }
+
+    static void emb_on_error(struct emb_client_request_t* _req, int _errno) {
+        emodbus_client_t* _this = (emodbus_client_t*)_req->user_data;
+        _this->emb_client_on_error(_req, _errno);
+    }
+
+    pthread_mutex_t mutex;
+
+    struct emb_client_request_t req;
+    static struct emb_client_req_procs_t procs;
+
+    struct emb_client_t client;
+};
+
+struct emb_client_req_procs_t emodbus_client_t::procs = {
+    emodbus_client_t::emb_on_response,
+    emodbus_client_t::emb_on_error
+};
+
+
+void* thr_proc(void* p) {
+
+    emodbus_sync_client_t* client = (emodbus_sync_client_t*)p;
+
+    struct event_base *base = event_base_new();
+
+    posix_serial_port_rtu_t psp(base, "/dev/ttyUSB0", 115200);
+
+    struct posix_serial_port_t serial_port;
+
+    client->set_proto(psp.get_proto());
+
+    event_base_dispatch(base);
+
+    posix_serial_port_close(&serial_port);
+}
 
 class pdu_t : public emb_pdu_t {
 public:
@@ -201,7 +272,7 @@ int main(int argc, char* argv[]) {
 
     pthread_t pthr;
 
-    pthread_create(&pthr, NULL, thr_proc, (void*)&mb_client.client);
+    pthread_create(&pthr, NULL, thr_proc, (void*)&mb_client);
 
     sleep(1);
 
@@ -211,20 +282,20 @@ int main(int argc, char* argv[]) {
     read_holding_regs_make_req(&reqa8, 0x0000, 8);
     read_holding_regs_make_req(&reqd8, 0x0000, 1);
 
-    for(int i=0; i<10000; ++i) {
+    for(int i=0; i<100; ++i) {
 
-        res = mb_client.do_request_sync(16, 50, reqa8, &ans);
+        res = mb_client.do_request_sync(16, 100, reqa8, &ans);
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 
         usleep(1000*1);
 
-        res = mb_client.do_request_sync(48, 300, reqd8, &ans);
+        res = mb_client.do_request_sync(48, 100, reqd8, &ans);
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 
 
-        usleep(1000*300);
+        usleep(1000*10);
         //printf("---------------> do_request() := %d\n", res);
     }
 

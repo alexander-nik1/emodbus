@@ -5,6 +5,12 @@
 #include <errno.h>
 #include <stdio.h>
 
+/*!
+ * \file
+ * \brief Realisation of modbus client (master) side.
+ *
+ */
+
 #define CLIENT_REQ_ON_ERROR(_req_, _errno_)        \
     if((_req_->procs) && (_req_->procs->on_error)) \
         _req_->procs->on_error(_req_, _errno_)
