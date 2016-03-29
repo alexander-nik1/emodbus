@@ -5,6 +5,8 @@
 #include <vector>
 #include <errno.h>
 
+#include <emodbus/emodbus.hpp>
+
 #include <emodbus/client/client.h>
 #include <emodbus/protocols/rtu.h>
 #include <emodbus/client/read_holding_regs.h>
@@ -83,153 +85,37 @@ private:
     struct event *char_timeout_timer;
 };
 
-class emodbus_sync_client_t {
+class emodbus_sync_client_t : public emb::sync_client_t {
 public:
     emodbus_sync_client_t() {
-
-        client.user_data = this;
-
-        emb_client_init(&client);
-        emb_client_add_function(&client, &read_holding_regs_interface);
-        emb_client_add_function(&client, &write_multi_regs_interface);
-
         pthread_mutex_init(&mutex, NULL);
         pthread_mutex_trylock(&mutex);
     }
 
-    int do_request_sync(int _server_addr,
-                        unsigned int _timeout,
-                        emb_const_pdu_t* _request,
-                        emb_pdu_t *_response) {
+private:
 
+    int emb_client_start_wait(unsigned int _timeout) {
         struct timespec expiry_time;
         int res;
-
-        req.req_pdu = _request;
-        req.resp_pdu = _response;
-        req.procs = &procs;
-        req.user_data = this;
-
-        if((res = emb_client_do_request(&client, _server_addr, &req)) != 0) {
-            return res;
-        }
-
         timespec_get_clock_realtime(&expiry_time);
         timespec_add_ms(&expiry_time, _timeout);
         res = pthread_mutex_timedlock(&mutex, &expiry_time);
 
-        if(!res) {
-            return result;
-        }
-        else if(res == ETIMEDOUT) {
-            emb_client_wait_timeout(&client);
-            return -modbus_resp_timeout;
+        if(res == ETIMEDOUT) {
+            return 1;
         }
         else {
             return res;
         }
     }
 
-    void set_proto(struct emb_protocol_t* _proto) {
-        emb_client_set_proto(&client, _proto);
-    }
-
-private:
-
-    static void emb_on_response(struct emb_client_request_t* _req, int _slave_addr) {
-        emodbus_sync_client_t* _this = (emodbus_sync_client_t*)_req->user_data;
-        _this->result = 0;
-        pthread_mutex_unlock(&_this->mutex);
-    }
-
-    static void emb_on_error(struct emb_client_request_t* _req, int _errno) {
-        emodbus_sync_client_t* _this = (emodbus_sync_client_t*)_req->user_data;
-        _this->result = _errno;
-        pthread_mutex_unlock(&_this->mutex);
+    void emb_client_stop_wait() {
+        pthread_mutex_unlock(&mutex);
     }
 
     pthread_mutex_t mutex;
-
-    struct emb_client_request_t req;
-    static struct emb_client_req_procs_t procs;
-
-    struct emb_client_t client;
-
-    int result;
 
 } mb_client;
-
-struct emb_client_req_procs_t emodbus_sync_client_t::procs = {
-    emodbus_sync_client_t::emb_on_response,
-    emodbus_sync_client_t::emb_on_error
-};
-
-class emodbus_client_t {
-public:
-    emodbus_client_t() {
-
-        client.user_data = this;
-
-        emb_client_init(&client);
-        emb_client_add_function(&client, &read_holding_regs_interface);
-        emb_client_add_function(&client, &write_multi_regs_interface);
-
-        pthread_mutex_init(&mutex, NULL);
-        pthread_mutex_trylock(&mutex);
-    }
-
-    int do_request(int _server_addr,
-                   unsigned int _timeout,
-                   emb_const_pdu_t* _request,
-                   emb_pdu_t *_response) {
-
-        struct timespec expiry_time;
-        int res;
-
-        req.req_pdu = _request;
-        req.resp_pdu = _response;
-        req.procs = &procs;
-        req.user_data = this;
-
-        res = emb_client_do_request(&client, _server_addr, &req);
-
-        return res;
-    }
-
-    void set_proto(struct emb_protocol_t* _proto) {
-        emb_client_set_proto(&client, _proto);
-    }
-
-protected:
-
-    virtual void emb_client_on_response(struct emb_client_request_t* _req, int _slave_addr) { }
-    virtual void emb_client_on_error(struct emb_client_request_t* _req, int _errno) { }
-
-private:
-
-    static void emb_on_response(struct emb_client_request_t* _req, int _slave_addr) {
-        emodbus_client_t* _this = (emodbus_client_t*)_req->user_data;
-        _this->emb_client_on_response(_req, _slave_addr);
-    }
-
-    static void emb_on_error(struct emb_client_request_t* _req, int _errno) {
-        emodbus_client_t* _this = (emodbus_client_t*)_req->user_data;
-        _this->emb_client_on_error(_req, _errno);
-    }
-
-    pthread_mutex_t mutex;
-
-    struct emb_client_request_t req;
-    static struct emb_client_req_procs_t procs;
-
-    struct emb_client_t client;
-};
-
-struct emb_client_req_procs_t emodbus_client_t::procs = {
-    emodbus_client_t::emb_on_response,
-    emodbus_client_t::emb_on_error
-};
-
 
 void* thr_proc(void* p) {
 
@@ -248,22 +134,6 @@ void* thr_proc(void* p) {
     posix_serial_port_close(&serial_port);
 }
 
-class pdu_t : public emb_pdu_t {
-public:
-    pdu_t() {
-        buffer.resize(128);
-        max_size = buffer.size();
-        emb_pdu_t::data = &buffer[0];
-    }
-
-    operator emb_const_pdu_t* () const {
-        return (emb_const_pdu_t*) (this);
-    }
-
-private:
-    std::vector<char> buffer;
-};
-
 int main(int argc, char* argv[]) {
 
     int res;
@@ -276,21 +146,21 @@ int main(int argc, char* argv[]) {
 
     sleep(1);
 
-    pdu_t reqa8, reqd8;
-    pdu_t ans;
+    emb::pdu_t reqa8(128), reqd8(128);
+    emb::pdu_t ans(128);
 
     read_holding_regs_make_req(&reqa8, 0x0000, 8);
     read_holding_regs_make_req(&reqd8, 0x0000, 1);
 
     for(int i=0; i<100; ++i) {
 
-        res = mb_client.do_request_sync(16, 100, reqa8, &ans);
+        res = mb_client.do_request(16, 100, reqa8, &ans);
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 
         usleep(1000*1);
 
-        res = mb_client.do_request_sync(48, 100, reqd8, &ans);
+        res = mb_client.do_request(48, 100, reqd8, &ans);
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 

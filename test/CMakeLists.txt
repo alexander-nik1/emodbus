@@ -21,6 +21,7 @@ target_link_libraries(sync_client_test
     emodbus-client-read-holdings
     emodbus-client-write-multi-reg
     emodbus-rtu
+    emodbus-full-cpp
     event
     pthread
 )

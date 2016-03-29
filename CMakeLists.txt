@@ -19,6 +19,8 @@ add_subdirectory(protocols)
 
 add_subdirectory(test)
 
+add_subdirectory(cpp)
+
 # ==========================================================================================
 # DEB packages generation
 
