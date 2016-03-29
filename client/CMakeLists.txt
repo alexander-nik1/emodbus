@@ -10,20 +10,6 @@ add_library(emodbus-client-full SHARED ${LIB_EMODBUS_CLIENT_FULL_SRC})
 target_link_libraries(emodbus-client-full emodbus-base)
 
 # ===================================================
-# sync client
-
-set(EMODBUS_SYNC_CLIENT_SRC
-	sync_client.c
-)
-
-add_library(emodbus-sync-client SHARED ${EMODBUS_SYNC_CLIENT_SRC})
-
-add_library(emodbus-sync-client-static STATIC ${EMODBUS_SYNC_CLIENT_SRC})
-
-target_link_libraries(emodbus-sync-client emodbus-base)
-
-
-# ===================================================
 # client
 
 set(EMODBUS_CLIENT_SRC
@@ -33,18 +19,6 @@ set(EMODBUS_CLIENT_SRC
 add_library(emodbus-client SHARED ${EMODBUS_CLIENT_SRC})
 
 add_library(emodbus-client-static STATIC ${EMODBUS_CLIENT_SRC})
-
-
-# ===================================================
-# async client
-
-set(EMODBUS_ASYNC_CLIENT_SRC
-	async_client.c
-)
-
-add_library(emodbus-async-client SHARED ${EMODBUS_ASYNC_CLIENT_SRC})
-
-add_library(emodbus-async-client-static STATIC ${EMODBUS_ASYNC_CLIENT_SRC})
 
 # ===================================================
 # client read holding regs

@@ -2,7 +2,6 @@
 set(LIB_EMODBUS_BASE_SRC
     add/crc.c
     add/list.c
-    add/scheduler.c
     add/stream.c
     common.c
     modbus_errno.c
