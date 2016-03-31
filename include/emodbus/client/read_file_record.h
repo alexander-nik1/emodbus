@@ -39,7 +39,9 @@ emb_read_file_subansw_t* emb_read_file_first_subanswer(emb_const_pdu_t* _answer)
 emb_read_file_subansw_t* emb_read_file_next_subanswer(emb_const_pdu_t* _answer,
                                                       emb_read_file_subansw_t* _subanswer);
 
-int emb_read_file_subanswer_data(emb_read_file_subansw_t* _subanswer,
+uint16_t emb_read_file_subanswer_quantity(emb_read_file_subansw_t* _subanswer);
+
+uint16_t emb_read_file_subanswer_data(emb_read_file_subansw_t* _subanswer,
                                  uint16_t _offset);
 
 #ifdef __cplusplus

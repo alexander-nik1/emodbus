@@ -74,7 +74,7 @@ emb_read_file_subansw_t* emb_read_file_first_subanswer(emb_const_pdu_t* _answer)
 }
 
 emb_read_file_subansw_t* emb_read_file_next_subanswer(emb_const_pdu_t* _answer,
-                                          emb_read_file_subansw_t* _subanswer) {
+                                                      emb_read_file_subansw_t* _subanswer) {
 
     emb_read_file_subansw_t* sa;
 
@@ -82,20 +82,18 @@ emb_read_file_subansw_t* emb_read_file_next_subanswer(emb_const_pdu_t* _answer,
 
     unsigned int offs_to_next, end_of_answer;
 
-    if(_answer->data_size != answer_size) {
+    if(_answer->data_size != answer_size)
         return NULL;
-    }
 
     if(!_subanswer) {
         sa = (emb_read_file_subansw_t*)(((uint8_t*)_answer->data)+1);
     }
     else {
-
         sa = (emb_read_file_subansw_t*)(((uint8_t*)_subanswer) + _subanswer->length + 1);
     }
 
     offs_to_next = (((unsigned int)sa) + sa->length + 1);
-    end_of_answer = (((unsigned int)_answer) +  answer_size);
+    end_of_answer = (((unsigned int)_answer->data) +  answer_size);
 
     if(offs_to_next > end_of_answer)
         return NULL;
@@ -123,11 +121,18 @@ emb_read_file_subansw_t* emb_read_file_find_subanswer(emb_const_pdu_t* _answer,
     return sa;
 }
 
-int emb_read_file_subanswer_data(emb_read_file_subansw_t* _subanswer,
+uint16_t emb_read_file_subanswer_quantity(emb_read_file_subansw_t* _subanswer) {
+    return (uint16_t)(_subanswer->length >> 1);
+}
+
+uint16_t emb_read_file_subanswer_data(emb_read_file_subansw_t* _subanswer,
                                  uint16_t _offset) {
 
+    uint16_t x;
     if(_offset > (_subanswer->length >> 1))
         return -1;
 
-    return _subanswer->data[_offset];
+    x = _subanswer->data[_offset];
+
+    return SWAP_BYTES(x);
 }
