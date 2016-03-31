@@ -41,6 +41,7 @@ int emb_read_hold_regs_calc_answer_data_size(uint16_t _quantity);
  * \param[out] _result_req Result request.
  * \param[in] _starting_address Starting address of holding register.
  * \param[in] _quantity Number of registers, that will be readed from device.
+ * @return Zero if a request is ready, otherwise error code.
  */
 int emb_read_hold_regs_make_req(emb_pdu_t* _result_req,
                                 uint16_t _starting_address, uint16_t _quantity);
