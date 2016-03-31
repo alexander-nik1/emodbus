@@ -72,11 +72,6 @@ static void parse_packet(struct modbus_rtu_t* _mbt) {
             rx_pdu->function = buf[1];
             rx_pdu->data_size = size - 2;
             memcpy(rx_pdu->data, buf + 2, data_sz);
-
-            if((res = emb_check_pdu_for_exception(MB_CONST_PDU(rx_pdu)))) {
-                emb_proto_error(&_mbt->proto, res);
-                return;
-            }
             emb_proto_recv_packet(&_mbt->proto, (int)buf[0], MB_CONST_PDU(rx_pdu));
         }
     }
