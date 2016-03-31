@@ -70,7 +70,7 @@ int emb_write_regs_get_req_data(emb_const_pdu_t* _req, uint16_t _offset) {
         const uint16_t x = data_addr[_offset];
         return SWAP_BYTES(x);
     }
-    return 0xDEAD;
+    return -1;
 }
 
 uint16_t emb_write_regs_get_answer_address(emb_const_pdu_t* _answer) {
