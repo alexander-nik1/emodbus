@@ -65,7 +65,7 @@ protected:
     virtual int emb_client_start_wait(unsigned int _timeout) = 0;
     virtual void emb_client_stop_wait() = 0;
 
-private:
+protected:
 
     static void emb_on_response(struct emb_client_request_t* _req, int _slave_addr);
 

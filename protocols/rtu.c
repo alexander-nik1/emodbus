@@ -1,5 +1,7 @@
 
 #include <emodbus/protocols/rtu.h>
+#include <emodbus/base/modbus_proto.h>
+#include <emodbus/base/common.h>
 #include <emodbus/base/add/container_of.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -7,8 +9,6 @@
 #include <emodbus/base/byte-word.h>
 #include <emodbus/base/add/crc.h>
 #include <emodbus/base/modbus_errno.h>
-
-#include <stdio.h>
 
 /*!
  * \file
@@ -18,28 +18,6 @@
  *
  */
 
-/**
- * @brief Print packet contents
- *
- * Function will print to given file descriptor
- * data, pointed by _pkt.
- *
- * @param [in] _f File descriptor to write to. (if is zero, then nothing will be printed)
- * @param [in] _prefix Some prefix to print it before data.
- * @param [in] _pkt The packet.
- * @param [in] _size Size of packet in bytes.
- */
-static void dbg_print_packet(FILE* _f, const char* _prefix, const void* _pkt, unsigned int _size) {
-    if(_f) {
-        int i;
-        fprintf(_f, "%s", _prefix);
-        for(i=0; i<_size; ++i) {
-            fprintf(_f, "%02X ", ((uint8_t*)_pkt)[i]);
-        }
-        fprintf(_f, "\n");
-        fflush(_f);
-    }
-}
 
 /**
  * @brief Parse packet
@@ -56,7 +34,10 @@ static void parse_packet(struct modbus_rtu_t* _mbt) {
     if(size >= 2) { // 4 bytes - minimal packet size
         const uint16_t crc1 = crc16(buf, size);
         const uint16_t crc2 = MKWORD(buf[size], buf[size+1]);
-        dbg_print_packet(stdout, ">>", buf, _mbt->rx_buf_counter);
+#if EMODBUS_PACKETS_DUMPING
+        if(_mbt->proto.flags & EMB_PROTO_FLAG_DUMD_PAKETS)
+            dbg_print_packet(">>", buf, _mbt->rx_buf_counter);
+#endif // EMODBUS_PACKETS_DUMPING
         if(crc1 != crc2) {
             emb_proto_error(&_mbt->proto, -modbus_bad_crc);
             return;
@@ -161,7 +142,10 @@ static int modbus_rtu_send_packet(void *_mbt,
         mbt->tx_buf_counter = stream_write(&mbt->output_stream,
                                            mbt->tx_buffer,
                                            mbt->tx_pkt_size);
-        dbg_print_packet(stdout, "<<", mbt->tx_buffer, mbt->tx_pkt_size);
+#if EMODBUS_PACKETS_DUMPING
+        if(mbt->proto.flags & EMB_PROTO_FLAG_DUMD_PAKETS)
+            dbg_print_packet("<<", mbt->tx_buffer, mbt->tx_pkt_size);
+#endif // EMODBUS_PACKETS_DUMPING
         return 0;
     }
     else

@@ -8,6 +8,7 @@
 #include <emodbus/emodbus.hpp>
 
 #include <emodbus/client/client.h>
+#include <emodbus/base/common.h>
 #include <emodbus/protocols/rtu.h>
 #include <emodbus/client/read_holding_regs.h>
 #include <emodbus/client/write_multi_regs.h>
@@ -129,6 +130,10 @@ void* thr_proc(void* p) {
 
     client->set_proto(psp.get_proto());
 
+    emb_debug_output = stdout;
+
+    psp.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
+
     event_base_dispatch(base);
 
     posix_serial_port_close(&serial_port);
@@ -154,10 +159,7 @@ int main(int argc, char* argv[]) {
 
     d8_rhr.build_req(0xFFE0, 3);
 
-
-
     emb_read_hold_regs_make_req(&reqa8, 0x0000, 8);
-    //emb_read_hold_regs_make_req(&reqd8, 0x0000, 1);
 
     for(int i=0; i<100; ++i) {
 

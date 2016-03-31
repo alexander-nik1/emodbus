@@ -10,6 +10,8 @@ set( LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib )
 
 include_directories(include)
 
+add_definitions(-DEMODBUS_PACKETS_DUMPING=1)
+
 set(HEADERS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_subdirectory(base)

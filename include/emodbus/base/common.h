@@ -25,18 +25,19 @@
 #endif
 
 #include "modbus_pdu.h"
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#if EMODBUS_PACKETS_DUMPING
 
-// A timer interface
-//  _______
-// |       | <--- start
-// | TIMER | <--- sync
-// |_______| ----> event
-//
+extern FILE* emb_debug_output;
+
+void dbg_print_packet(const char* _prefix, const void* _pkt, unsigned int _size);
+
+#endif // EMODBUS_PACKETS_DUMPING
 
 #ifdef __cplusplus
 }

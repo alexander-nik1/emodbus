@@ -38,6 +38,13 @@ extern "C" {
   |___________|
 */
 
+#if EMODBUS_PACKETS_DUMPING
+
+/// Flag, that enables a dumping all packets into a dbg_print_packet function.
+#define EMB_PROTO_FLAG_DUMD_PAKETS (1 << 0)
+
+#endif // EMODBUS_PACKETS_DUMPING
+
 /**
  * @brief Interface of modbus protocol
  *
@@ -105,6 +112,12 @@ struct emb_protocol_t {
      * If rx_pdu is NULL, then no receiving of data will be perfomed.
      */
      emb_pdu_t* rx_pdu;
+
+     /**
+      * @brief Some flags for low level
+      */
+     int flags;
+
 /*
     NOTE:
         [high_level_context, recv_packet, error] variables
