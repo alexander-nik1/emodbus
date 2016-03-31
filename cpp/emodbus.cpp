@@ -40,9 +40,9 @@ pdu_t::operator emb_const_pdu_t* () const {
 // read_hold_regs_t
 
 
-read_hold_regs_t::read_hold_regs_t() { }
+read_regs_t::read_regs_t() { }
 
-void read_hold_regs_t::build_req(uint16_t _starting_address, uint16_t _quantity) {
+void read_regs_t::build_req(uint16_t _starting_address, uint16_t _quantity) {
     int res;
 
     req.resize(emb_read_hold_regs_calc_req_data_size());
@@ -52,19 +52,19 @@ void read_hold_regs_t::build_req(uint16_t _starting_address, uint16_t _quantity)
         throw res;
 }
 
-uint16_t read_hold_regs_t::get_req_starting_addr() const {
+uint16_t read_regs_t::get_req_starting_addr() const {
     return emb_read_hold_regs_get_starting_addr(req);
 }
 
-uint16_t read_hold_regs_t::get_req_quantity() const {
+uint16_t read_regs_t::get_req_quantity() const {
     return emb_read_hold_regs_get_quantity(req);
 }
 
-uint16_t read_hold_regs_t::get_answer_reg(uint16_t _offset) const {
+uint16_t read_regs_t::get_answer_reg(uint16_t _offset) const {
     return emb_read_hold_regs_get_reg(ans, _offset);
 }
 
-uint16_t read_hold_regs_t::get_answer_quantity() const {
+uint16_t read_regs_t::get_answer_quantity() const {
     return emb_read_hold_regs_get_regs_n(ans);
 }
 
@@ -94,8 +94,44 @@ uint16_t write_reg_t::get_answer_address() const {
     return emb_write_reg_get_address(ans);
 }
 
-uint16_t write_reg_t::get_answer_valuek() const {
+uint16_t write_reg_t::get_answer_value() const {
     return emb_write_reg_get_value(ans);
+}
+
+// *******************************************************************************
+// write_regs_t
+
+write_regs_t::write_regs_t() { }
+
+void write_regs_t::build_req(uint16_t _address, uint16_t _quantity,
+                             const uint16_t* _data) {
+
+    int res;
+    req.resize(emb_write_regs_calc_req_data_size(_quantity));
+    ans.resize(emb_write_regs_calc_answer_data_size());
+
+    if((res = emb_write_regs_make_req(req, _address, _quantity, _data)))
+        throw res;
+}
+
+uint16_t write_regs_t::get_req_address() const {
+    return emb_write_regs_get_req_address(req);
+}
+
+uint16_t write_regs_t::get_req_quantity() const {
+    return emb_write_regs_get_req_quantity(req);
+}
+
+uint16_t write_regs_t::get_req_data(uint16_t _offset) const {
+    return emb_write_regs_get_req_data(req, _offset);
+}
+
+uint16_t write_regs_t::get_answer_address() const {
+    return emb_write_regs_get_answer_address(ans);
+}
+
+uint16_t write_regs_t::get_answer_quantity() const {
+    return emb_write_regs_get_answer_quantity(ans);
 }
 
 // *******************************************************************************

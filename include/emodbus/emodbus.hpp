@@ -29,9 +29,9 @@ private:
 // *******************************************************************************
 // read_hold_regs_t
 
-class read_hold_regs_t {
+class read_regs_t {
 public:
-    read_hold_regs_t();
+    read_regs_t();
 
     void build_req(uint16_t _starting_address, uint16_t _quantity);
 
@@ -56,7 +56,26 @@ public:
     uint16_t get_req_value() const;
 
     uint16_t get_answer_address() const;
-    uint16_t get_answer_valuek() const;
+    uint16_t get_answer_value() const;
+
+    pdu_t req, ans;
+};
+
+// *******************************************************************************
+// write_regs_t
+
+class write_regs_t {
+public:
+    write_regs_t();
+
+    void build_req(uint16_t _address, uint16_t _quantity, const uint16_t* _data);
+
+    uint16_t get_req_address() const;
+    uint16_t get_req_quantity() const;
+    uint16_t get_req_data(uint16_t _offset) const;
+
+    uint16_t get_answer_address() const;
+    uint16_t get_answer_quantity() const;
 
     pdu_t req, ans;
 };
