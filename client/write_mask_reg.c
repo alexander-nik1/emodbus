@@ -41,13 +41,16 @@ int emb_write_mask_reg_make_req(emb_pdu_t* _result_req,
 }
 
 uint16_t emb_write_mask_reg_get_address(emb_const_pdu_t* _pdu) {
-    return ((uint16_t*)_pdu->data)[0];
+    const uint16_t x = ((uint16_t*)_pdu->data)[0];
+    return SWAP_BYTES(x);
 }
 
 uint16_t emb_write_mask_reg_get_and_mask(emb_const_pdu_t* _pdu) {
-    return ((uint16_t*)_pdu->data)[1];
+    const uint16_t x = ((uint16_t*)_pdu->data)[1];
+    return SWAP_BYTES(x);
 }
 
 uint16_t emb_write_mask_reg_get_or_mask(emb_const_pdu_t* _pdu) {
-    return ((uint16_t*)_pdu->data)[2];
+    const uint16_t x = ((uint16_t*)_pdu->data)[2];
+    return SWAP_BYTES(x);
 }
