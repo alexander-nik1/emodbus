@@ -44,6 +44,24 @@ public:
 };
 
 // *******************************************************************************
+// write_reg_t
+
+class write_reg_t {
+public:
+    write_reg_t();
+
+    void build_req(uint16_t _address, uint16_t _value);
+
+    uint16_t get_req_address() const;
+    uint16_t get_req_value() const;
+
+    uint16_t get_answer_address() const;
+    uint16_t get_answer_valuek() const;
+
+    pdu_t req, ans;
+};
+
+// *******************************************************************************
 // write_mask_reg_t
 
 class write_mask_reg_t {

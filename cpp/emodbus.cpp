@@ -3,6 +3,7 @@
 #include <emodbus/base/modbus_errno.h>
 #include <emodbus/client/read_holding_regs.h>
 #include <emodbus/client/write_mask_reg.h>
+#include <emodbus/client/write_single_reg.h>
 #include <emodbus/client/write_multi_regs.h>
 
 namespace emb {
@@ -65,6 +66,36 @@ uint16_t read_hold_regs_t::get_answer_reg(uint16_t _offset) const {
 
 uint16_t read_hold_regs_t::get_answer_quantity() const {
     return emb_read_hold_regs_get_regs_n(ans);
+}
+
+// *******************************************************************************
+// write_reg_t
+
+write_reg_t::write_reg_t() { }
+
+void write_reg_t::build_req(uint16_t _address, uint16_t _value) {
+    int res;
+    req.resize(emb_write_reg_calc_req_data_size());
+    ans.resize(emb_write_reg_calc_answer_data_size());
+
+    if((res = emb_write_reg_make_req(req, _address, _value)))
+        throw res;
+}
+
+uint16_t write_reg_t::get_req_address() const {
+    return emb_write_reg_get_address(req);
+}
+
+uint16_t write_reg_t::get_req_value() const {
+    return emb_write_reg_get_value(req);
+}
+
+uint16_t write_reg_t::get_answer_address() const {
+    return emb_write_reg_get_address(ans);
+}
+
+uint16_t write_reg_t::get_answer_valuek() const {
+    return emb_write_reg_get_value(ans);
 }
 
 // *******************************************************************************

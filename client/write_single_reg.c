@@ -5,25 +5,43 @@
 #include <emodbus/client/write_single_reg.h>
 #include <string.h>
 
-int write_single_reg_make_req(void* _result_req, uint8_t _slave_addr,
-                               uint16_t _address, uint16_t _value) {
+/*!
+ * \file
+ * \brief The definition of a "Write Single Register" functions.
+ *
+ * Functions for working with "Write Single Register" function.
+ *
+ */
 
-    ((uint8_t*)_result_req)[0] = _slave_addr;
-    ((uint8_t*)_result_req)[1] = 0x06;
-    ((uint16_t*)_result_req)[1] = SWAP_BYTES(_address);
-    ((uint16_t*)_result_req)[2] = SWAP_BYTES(_value);
-
-    return 6;
+int emb_write_reg_calc_req_data_size() {
+    return 4;
 }
 
-int write_single_reg_valid_answer(const void* _req, unsigned int _req_size,
-                                   const void* _answer, unsigned int _answer_size) {
-    int r;
+int emb_write_reg_calc_answer_data_size() {
+    return 4;
+}
 
-    //if(_)
+int emb_write_reg_make_req(emb_pdu_t* _result_req,
+                           uint16_t _address,
+                           uint16_t _value) {
 
-    if(_req_size != _answer_size)
-        return -1;
+    if(_result_req->max_size < emb_write_reg_calc_req_data_size()) {
+        return -ENOMEM;
+    }
 
-    return memcmp(_req, _answer, _req_size-2);
+    _result_req->data_size = 4;
+    _result_req->function = 0x06;
+
+    ((uint16_t*)_result_req->data)[0] = SWAP_BYTES(_address);
+    ((uint16_t*)_result_req->data)[1] = SWAP_BYTES(_value);
+
+    return 0;
+}
+
+uint16_t emb_write_reg_get_address(emb_const_pdu_t* _pdu) {
+    return ((uint16_t*)_pdu->data)[0];
+}
+
+uint16_t emb_write_reg_get_value(emb_const_pdu_t* _pdu) {
+    return ((uint16_t*)_pdu->data)[1];
 }
