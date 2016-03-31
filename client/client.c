@@ -39,7 +39,7 @@ static void emb_client_on_receive_pkt(void* _user_data,
             break;
         }
 
-        if((res = emb_check_pdu_for_exception(req->req_pdu))) {
+        if((res = emb_check_pdu_for_exception(_pkt))) {
             CLIENT_REQ_ON_ERROR(req, res);
             break;
         }
