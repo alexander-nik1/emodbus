@@ -9,14 +9,21 @@ namespace emb {
 // *******************************************************************************
 // pdu_t
 
+pdu_t::pdu_t() {
+    emb_pdu_t::max_size = 0;
+    emb_pdu_t::data_size = 0;
+}
+
 pdu_t::pdu_t(unsigned int _sz) {
     resize(_sz);
 }
 
 void pdu_t::resize(unsigned int _size) {
-    buffer.resize(_size);
-    emb_pdu_t::max_size = buffer.size();
-    emb_pdu_t::data = &buffer[0];
+    if(buffer.size() < _size) {
+        buffer.resize(_size);
+        emb_pdu_t::max_size = buffer.size();
+        emb_pdu_t::data = &buffer[0];
+    }
 }
 
 pdu_t::operator emb_pdu_t* () {
@@ -28,6 +35,38 @@ pdu_t::operator emb_const_pdu_t* () const {
 }
 
 // *******************************************************************************
+// read_hold_regs_t
+
+
+read_hold_regs_t::read_hold_regs_t() { }
+
+void read_hold_regs_t::build_req(uint16_t _starting_address, uint16_t _quantity) {
+    int res;
+
+    req.resize(emb_read_hold_regs_calc_req_data_size());
+    ans.resize(emb_read_hold_regs_calc_answer_data_size(_quantity));
+
+    if((res = emb_read_hold_regs_make_req(req, _starting_address, _quantity)))
+        throw res;
+}
+
+uint16_t read_hold_regs_t::get_req_starting_addr() const {
+    return emb_read_hold_regs_get_starting_addr(req);
+}
+
+uint16_t read_hold_regs_t::get_req_quantity() const {
+    return emb_read_hold_regs_get_quantity(req);
+}
+
+uint16_t read_hold_regs_t::get_answer_reg(uint16_t _offset) const {
+    return emb_read_hold_regs_get_reg(ans, _offset);
+}
+
+uint16_t read_hold_regs_t::get_answer_quantity() const {
+    return emb_read_hold_regs_get_regs_n(ans);
+}
+
+// *******************************************************************************
 // sync_client_t
 
 sync_client_t::sync_client_t() {
@@ -35,8 +74,6 @@ sync_client_t::sync_client_t() {
     client.user_data = this;
 
     emb_client_init(&client);
-    emb_client_add_function(&client, &read_holding_regs_interface);
-    emb_client_add_function(&client, &write_multi_regs_interface);
 }
 
 int sync_client_t::do_request(int _server_addr,
@@ -91,4 +128,4 @@ struct emb_client_req_procs_t sync_client_t::procs = {
 };
 
 
-}; // namespace emb
+} // namespace emb

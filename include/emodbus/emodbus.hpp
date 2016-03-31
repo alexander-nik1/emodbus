@@ -7,8 +7,13 @@
 
 namespace emb {
 
+// *******************************************************************************
+// pdu_t
+
 class pdu_t : public emb_pdu_t {
 public:
+    pdu_t();
+
     pdu_t(unsigned int _sz);
 
     void resize(unsigned int _size);
@@ -21,7 +26,28 @@ private:
     std::vector<char> buffer;
 };
 
+// *******************************************************************************
+// read_hold_regs_t
 
+class read_hold_regs_t {
+public:
+    read_hold_regs_t();
+
+    void build_req(uint16_t _starting_address, uint16_t _quantity);
+
+    uint16_t get_req_starting_addr() const;
+
+    uint16_t get_req_quantity() const;
+
+    uint16_t get_answer_reg(uint16_t _offset) const;
+
+    uint16_t get_answer_quantity() const;
+
+    pdu_t req, ans;
+};
+
+// *******************************************************************************
+// sync_client_t
 
 class sync_client_t {
 public:

@@ -146,11 +146,18 @@ int main(int argc, char* argv[]) {
 
     sleep(1);
 
-    emb::pdu_t reqa8(128), reqd8(128);
-    emb::pdu_t ans(128);
+    emb::pdu_t reqa8(emb_read_hold_regs_calc_req_data_size());
 
-    read_holding_regs_make_req(&reqa8, 0x0000, 8);
-    read_holding_regs_make_req(&reqd8, 0x0000, 1);
+    emb::pdu_t ans(emb_read_hold_regs_calc_answer_data_size(8));
+
+    emb::read_hold_regs_t d8_rhr;
+
+    d8_rhr.build_req(0xFFE0, 3);
+
+
+
+    emb_read_hold_regs_make_req(&reqa8, 0x0000, 8);
+    //emb_read_hold_regs_make_req(&reqd8, 0x0000, 1);
 
     for(int i=0; i<100; ++i) {
 
@@ -160,7 +167,7 @@ int main(int argc, char* argv[]) {
 
         usleep(1000*1);
 
-        res = mb_client.do_request(48, 100, reqd8, &ans);
+        res = mb_client.do_request(48, 100, d8_rhr.req, d8_rhr.ans);
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 
