@@ -10,10 +10,16 @@
 #include <emodbus/client/client.h>
 #include <emodbus/base/common.h>
 #include <emodbus/protocols/rtu.h>
-#include <emodbus/client/read_holding_regs.h>
-#include <emodbus/client/write_multi_regs.h>
 #include <emodbus/base/add/container_of.h>
 #include <emodbus/base/modbus_errno.h>
+
+
+#include <emodbus/client/read_holding_regs.h>
+#include <emodbus/client/write_mask_reg.h>
+#include <emodbus/client/write_multi_regs.h>
+#include <emodbus/client/write_single_reg.h>
+#include <emodbus/client/read_file_record.h>
+
 
 #include <emodbus/base/add/stream.h>
 #include "posix-serial-port.h"
@@ -151,28 +157,36 @@ int main(int argc, char* argv[]) {
 
     sleep(1);
 
-    emb::pdu_t reqa8(emb_read_hold_regs_calc_req_data_size());
+    emb_read_file_req_t reqs[2];
 
-    emb::pdu_t ans(emb_read_hold_regs_calc_answer_data_size(8));
+    reqs[0].file_number = 0;
+    reqs[0].record_number = 0x0000;
+    reqs[0].record_length = 0x0011;
 
-    emb::read_hold_regs_t d8_rhr;
+    reqs[1].file_number = 0;
+    reqs[1].record_number = 0x0022;
+    reqs[1].record_length = 0x0011;
 
-    d8_rhr.build_req(0xFFE0, 3);
+    emb::pdu_t req(emb_read_file_calc_req_data_size(2));
 
-    emb_read_hold_regs_make_req(&reqa8, 0x0000, 8);
+    emb::pdu_t ans(emb_read_file_calc_answer_data_size(reqs, 2));
 
-    for(int i=0; i<100; ++i) {
+  //  d8_rhr.build_req(0xFFE0, 3);
 
-        res = mb_client.do_request(16, 100, reqa8, &ans);
+    //emb_write_mask_reg_make_req(reqa8, 0x0002, 0x0000, 0x0000);
+
+    //wr.build_req(0x0050, 8, data_to_write);
+    emb_read_file_make_req(req, reqs, 2);
+
+    for(int i=0; i<10; ++i) {
+
+        res = mb_client.do_request(16, 100, req, ans);
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 
-        usleep(1000*1);
+        emb_read_file_subansw_t* sa = emb_read_file_first_subanswer(ans);
 
-        res = mb_client.do_request(48, 100, d8_rhr.req, d8_rhr.ans);
-        if(res)
-            printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
-
+        printf("sa = 0x%02X\n", emb_read_file_subanswer_data(sa, 0));
 
         usleep(1000*10);
         //printf("---------------> do_request() := %d\n", res);
