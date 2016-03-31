@@ -12,8 +12,25 @@
  *
  */
 
-int read_holding_regs_make_req(emb_pdu_t *_result_req,
+int emb_read_hold_regs_calc_req_data_size() {
+    return 4;
+}
+
+int emb_read_hold_regs_calc_answer_data_size(uint16_t _quantity) {
+    if( 1 <= _quantity && _quantity <= 125 ) {
+        return 1+_quantity*2;
+    }
+    else {
+        return -EINVAL;
+    }
+}
+
+int emb_read_hold_regs_make_req(emb_pdu_t *_result_req,
                                uint16_t _starting_address, uint16_t _quantity) {
+
+    if(_result_req->max_size < emb_read_hold_regs_calc_req_data_size()) {
+        return -ENOMEM;
+    }
 
 	if( 1 <= _quantity && _quantity <= 125 ) {
         ((uint16_t*)_result_req->data)[0] = SWAP_BYTES(_starting_address);
@@ -27,51 +44,22 @@ int read_holding_regs_make_req(emb_pdu_t *_result_req,
 	}
 }
 
-uint16_t read_holding_regs_get_starting_addr(emb_const_pdu_t *_req) {
+uint16_t emb_read_hold_regs_get_starting_addr(emb_const_pdu_t *_req) {
     const uint16_t t = ((uint16_t*)_req->data)[0];
     return SWAP_BYTES(t);
 }
 
-uint16_t read_holding_regs_get_quantity(emb_const_pdu_t *_req) {
+uint16_t emb_read_hold_regs_get_quantity(emb_const_pdu_t *_req) {
     const uint16_t t = ((uint16_t*)_req->data)[1];
     return SWAP_BYTES(t);
 }
 
-int read_holding_regs_valid_answer(emb_const_pdu_t* _req,
-                                   emb_const_pdu_t* _ans) {
-    int r;
-    uint16_t quantity, tmp;
-
-    if(_req->data_size != 4)
-		return -EINVAL;
-
-    if(_ans->function != 3)
-        return -EINVAL;
-
-    tmp = ((uint16_t*)_req->data)[1];
-    quantity = SWAP_BYTES(tmp);
-
-    if(_ans->data_size != (1 + (quantity * 2)))
-        return -E2BIG;
-
-    if((quantity * 2) != ((uint8_t*)_ans->data)[0])
-        return -ERANGE;
-
-	return 0;
-}
-
-uint16_t read_holding_regs_get_reg(emb_const_pdu_t *_ans,
+uint16_t emb_read_hold_regs_get_reg(emb_const_pdu_t *_answer,
                                    uint16_t _reg_offset) {
-    const uint16_t x = ((uint16_t*)(((uint8_t*)_ans->data) + 1))[_reg_offset];
+    const uint16_t x = ((uint16_t*)(((uint8_t*)_answer->data) + 1))[_reg_offset];
     return SWAP_BYTES(x);
 }
 
-int read_holding_regs_get_regs_n(emb_const_pdu_t *_ans) {
-    return ((uint8_t*)_ans->data)[0] >> 1;
+int emb_read_hold_regs_get_regs_n(emb_const_pdu_t *_answer) {
+    return ((uint8_t*)_answer->data)[0] >> 1;
 }
-
-const struct emb_client_function_i read_holding_regs_interface = {
-    0x03,
-    read_holding_regs_valid_answer      // check_answer
-};
-

@@ -38,9 +38,6 @@ extern "C" {
 // |_______| ----> event
 //
 
-//int modbus_check_answer(emb_const_pdu_t *_req,
-//                        emb_const_pdu_t *_answ);
-
 #ifdef __cplusplus
 }
 #endif

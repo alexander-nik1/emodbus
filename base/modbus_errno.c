@@ -29,6 +29,7 @@ const char* emb_strerror(int _errno) {
             EMB_CASE_ERROR_STRING(modbus_resp_without_req, "Was a response, with no previous request")
             EMB_CASE_ERROR_STRING(modbus_no_such_function, "No such function")
             EMB_CASE_ERROR_STRING(modbus_resp_wrong_address, "Server returns incorrect address about itself")
+            EMB_CASE_ERROR_STRING(modbus_resp_wrong_func, "Server returns incorrect function number")
             EMB_CASE_ERROR_STRING(modbus_resp_timeout, "Timeout of response waiting")
             EMB_CASE_ERROR_STRING(modbus_resp_buffer_ovf, "Response buffer is too short");
             default: return (const char*)0;

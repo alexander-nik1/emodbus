@@ -41,6 +41,7 @@ enum modbus_errno_t {
     modbus_resp_without_req,    ///< Was a response, with no previous request
     modbus_no_such_function,    ///< No such function
     modbus_resp_wrong_address,  ///< Server returns incorrect address about itself
+    modbus_resp_wrong_func,     ///< Server returns incorrect function number
     modbus_resp_timeout,        ///< Timeout of response waiting
     modbus_resp_buffer_ovf,     ///< Response buffer is too short to store all data
 

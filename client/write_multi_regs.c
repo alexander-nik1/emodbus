@@ -37,27 +37,3 @@ int write_multi_regs_get_quantity(emb_const_pdu_t* _req) {
     const uint16_t v = ((uint16_t*)_req->data)[1];
     return SWAP_BYTES(v);
 }
-
-int write_multi_regs_valid_answer(emb_const_pdu_t *_req,
-                                  emb_const_pdu_t *_ans) {
-    int r;
-
-    if(_ans->function != 0x10)
-        return -EINVAL;
-
-    if(_ans->data_size != 4)
-        return -ERANGE;
-
-    if(((uint16_t*)_req->data)[0] != ((uint16_t*)_ans->data)[0])
-        return -ERANGE;
-
-    if(((uint16_t*)_req->data)[1] != ((uint16_t*)_ans->data)[1])
-        return -ERANGE;
-
-    return 0;
-}
-
-const struct emb_client_function_i write_multi_regs_interface = {
-    0x10,
-    write_multi_regs_valid_answer      // check_answer
-};

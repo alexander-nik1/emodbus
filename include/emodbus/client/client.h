@@ -67,8 +67,6 @@ struct emb_client_request_t {
  */
 struct emb_client_t {
 
-    const struct emb_client_function_i* functions[EMB_CLI_MAX_FUNCTIONS];
-
     /// Low level context
     struct emb_protocol_t* proto;
 
@@ -129,38 +127,6 @@ int emb_client_do_request(struct emb_client_t* _cli,
  */
 void emb_client_set_proto(struct emb_client_t* _cli,
                           struct emb_protocol_t* _proto);
-
-/**
- * @brief Add a modbus-function to this client.
- *
- * This function adds a one function to this client.
- * After this call, an added modbus-function can
- * be used for send/receive packets.
- *
- * @param [in] _cli a synchronous client context.
- * @param [in] _func_i a fucntion interface.
- * @return Zero if success,
- *    the -EINVAL if _fucntion greater a EMB_CLI_MAX_FUNCTIONS number,
- *    the -EBUSY if this function number was already set.
- */
-int emb_client_add_function(struct emb_client_t* _cli,
-                            const struct emb_client_function_i* _func_i);
-
-/**
- * @brief Removes a modbus-function from this client.
- *
- * After this call, a removed modbus-function can not
- * be used for send/receive packets.
- *
- * @param [in] _cli a synchronous client context.
- * @param [in] _fucntion the function number to be removed.
- * @return Zero if success,
- *    the -EINVAL if _fucntion greater a EMB_CLI_MAX_FUNCTIONS number,
- *    the -ENXIO if this function number was already removed or was not set.
- */
-int emb_client_remove_function(struct emb_client_t* _cli,
-                               uint8_t _fucntion);
-
 
 #ifdef __cplusplus
 }   // extern "C"

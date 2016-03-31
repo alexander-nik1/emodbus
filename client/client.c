@@ -15,7 +15,6 @@
     if((_req_->procs) && (_req_->procs->on_error)) \
         _req_->procs->on_error(_req_, _errno_)
 
-
 static void emb_client_on_receive_pkt(void* _user_data,
                            int _slave_addr,
                            emb_const_pdu_t* _pkt) {
@@ -40,15 +39,8 @@ static void emb_client_on_receive_pkt(void* _user_data,
             break;
         }
 
-        func = cli->functions[req->req_pdu->function];
-
-        if(!func) {
-            CLIENT_REQ_ON_ERROR(req, -modbus_no_such_function);
-            break;
-        }
-
-        if((res = func->check_answer(req->req_pdu, _pkt))) {
-            CLIENT_REQ_ON_ERROR(req, res);
+        if(req->req_pdu->function != _pkt->function) {
+            CLIENT_REQ_ON_ERROR(req, -modbus_resp_wrong_func);
             break;
         }
 
@@ -106,25 +98,4 @@ void emb_client_set_proto(struct emb_client_t* _cli,
         _proto->recv_packet = emb_client_on_receive_pkt;
         _proto->error = emb_client_on_error;
     }
-}
-
-int emb_client_add_function(struct emb_client_t *_cli,
-                            const struct emb_client_function_i* _func_i) {
-    const int function = _func_i->function_number;
-    if(function >= EMB_CLI_MAX_FUNCTIONS)
-        return -EINVAL;
-    if(_cli->functions[function])
-        return -EBUSY;
-    _cli->functions[function] = _func_i;
-    return 0;
-}
-
-int emb_client_remove_function(struct emb_client_t* _cli,
-                                    uint8_t _fucntion) {
-    if(_fucntion >= EMB_CLI_MAX_FUNCTIONS)
-        return -EINVAL;
-    if(!_cli->functions[_fucntion])
-        return -ENXIO;
-    _cli->functions[_fucntion] = NULL;
-    return 0;
 }
