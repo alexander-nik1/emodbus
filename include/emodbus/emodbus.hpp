@@ -4,6 +4,7 @@
 
 #include <emodbus/client/client.h>
 #include <vector>
+#include <emodbus/client/read_file_record.h>
 
 namespace emb {
 
@@ -101,6 +102,29 @@ public:
 
     pdu_t req, ans;
 };
+
+// *******************************************************************************
+// read_file_record_t
+
+class read_file_record_t {
+public:
+    read_file_record_t();
+
+    typedef emb_read_file_req_t sub_req_t;
+
+    void build_req(const sub_req_t* _reqs, int _reqs_number);
+
+    uint16_t get_req_address() const;
+    uint16_t get_req_and_mask() const;
+    uint16_t get_req_or_mask() const;
+
+    uint16_t get_answer_address() const;
+    uint16_t get_answer_and_mask() const;
+    uint16_t get_answer_or_mask() const;
+
+    pdu_t req, ans;
+};
+
 
 // *******************************************************************************
 // sync_client_t

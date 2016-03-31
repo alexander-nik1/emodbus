@@ -17,9 +17,11 @@ add_executable(sync_client_test ${SYNC_CLI_TEST_SRC})
 
 target_link_libraries(sync_client_test
     emodbus-base
-    emodbus-client
-    emodbus-client-read-holdings
-    emodbus-client-write-multi-reg
+    emodbus-client-full
+#    emodbus-client
+#    emodbus-client-read-holdings
+#    emodbus-client-write-multi-reg
+#    emodbus-client-read-file-record
     emodbus-rtu
     emodbus-full-cpp
     event

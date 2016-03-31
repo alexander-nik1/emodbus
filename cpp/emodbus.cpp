@@ -5,6 +5,7 @@
 #include <emodbus/client/write_mask_reg.h>
 #include <emodbus/client/write_single_reg.h>
 #include <emodbus/client/write_multi_regs.h>
+#include <emodbus/client/read_file_record.h>
 
 namespace emb {
 

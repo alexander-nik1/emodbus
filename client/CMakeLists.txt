@@ -52,3 +52,36 @@ set(EMODBUS_CLIENT_WRITE_MULTI_REGS
 add_library(emodbus-client-write-multi-reg SHARED ${EMODBUS_CLIENT_WRITE_MULTI_REGS})
 
 add_library(emodbus-client-write-multi-reg-static STATIC ${EMODBUS_CLIENT_WRITE_MULTI_REGS})
+
+# ===================================================
+# client read file record
+
+set(EMODBUS_CLIENT_READ_FILE_RECORD
+	read_file_record.c
+)
+
+add_library(emodbus-client-read-file-record SHARED ${EMODBUS_CLIENT_READ_FILE_RECORD})
+
+add_library(emodbus-client-read-file-record-static STATIC ${EMODBUS_CLIENT_READ_FILE_RECORD})
+
+# ===================================================
+# client write file record
+
+set(EMODBUS_CLIENT_WRITE_FILE_RECORD
+	write_file_record.c
+)
+
+add_library(emodbus-client-write-file-record SHARED ${EMODBUS_CLIENT_WRITE_FILE_RECORD})
+
+add_library(emodbus-client-write-file-record-static STATIC ${EMODBUS_CLIENT_WRITE_FILE_RECORD})
+
+# ===================================================
+# client read FIFO
+
+set(EMODBUS_CLIENT_READ_FIFO
+	read_fifo.c
+)
+
+add_library(emodbus-client-read-fifo SHARED ${EMODBUS_CLIENT_READ_FIFO})
+
+add_library(emodbus-client-read-fifo-static STATIC ${EMODBUS_CLIENT_READ_FIFO})
