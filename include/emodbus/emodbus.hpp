@@ -36,12 +36,31 @@ public:
     void build_req(uint16_t _starting_address, uint16_t _quantity);
 
     uint16_t get_req_starting_addr() const;
-
     uint16_t get_req_quantity() const;
-
     uint16_t get_answer_reg(uint16_t _offset) const;
-
     uint16_t get_answer_quantity() const;
+
+    pdu_t req, ans;
+};
+
+// *******************************************************************************
+// write_mask_reg_t
+
+class write_mask_reg_t {
+public:
+    write_mask_reg_t();
+
+    void build_req(uint16_t _address,
+                   uint16_t _and_mask,
+                   uint16_t _or_mask);
+
+    uint16_t get_req_address() const;
+    uint16_t get_req_and_mask() const;
+    uint16_t get_req_or_mask() const;
+
+    uint16_t get_answer_address() const;
+    uint16_t get_answer_and_mask() const;
+    uint16_t get_answer_or_mask() const;
 
     pdu_t req, ans;
 };
