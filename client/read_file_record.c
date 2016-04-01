@@ -62,13 +62,21 @@ int emb_read_file_make_req(emb_pdu_t* _result_req,
 
     for(i=0; i<_sub_resuests_number; ++i) {
 
+        uint16_t tmp;
+
         if(_sub_resuests[i].record_number > 0x270F)
             return -EINVAL;
 
         reqs[i].ref_type = 6;
-        reqs[i].file_number = SWAP_BYTES(_sub_resuests[i].file_number);
-        reqs[i].record_number = SWAP_BYTES(_sub_resuests[i].record_number);
-        reqs[i].record_length = SWAP_BYTES(_sub_resuests[i].record_length);
+
+        tmp = _sub_resuests[i].file_number;
+        reqs[i].file_number = SWAP_BYTES(tmp);
+
+        tmp = _sub_resuests[i].record_number;
+        reqs[i].record_number = SWAP_BYTES(tmp);
+
+        tmp = _sub_resuests[i].record_length;
+        reqs[i].record_length = SWAP_BYTES(tmp);
     }
 
     return 0;
