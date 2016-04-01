@@ -6,6 +6,8 @@
 #include <emodbus/client/write_single_reg.h>
 #include <emodbus/client/write_multi_regs.h>
 #include <emodbus/client/read_file_record.h>
+#include <emodbus/client/write_file_record.h>
+#include <emodbus/client/read_fifo.h>
 
 namespace emb {
 
@@ -175,6 +177,27 @@ uint16_t write_mask_reg_t::write_mask_reg_t::get_answer_or_mask() const {
     return emb_write_mask_reg_get_or_mask(ans);
 }
 
+// *******************************************************************************
+// read_fifo_t
+
+read_fifo_t::read_fifo_t() { }
+
+void read_fifo_t::build_req(uint16_t _starting_address) {
+    int res;
+    req.resize(emb_read_fifo_calc_req_data_size());
+    ans.resize(emb_read_fifo_calc_answer_data_size());
+
+    if((res = emb_read_fifo_make_req(req, _starting_address)))
+        throw res;
+}
+
+uint16_t read_fifo_t::get_answer_regs_count() const {
+    return emb_read_fifo_regs_count(ans);
+}
+
+uint16_t read_fifo_t::get_answer_data(uint16_t _offset) const {
+    return emb_read_fifo_get_data(ans, _offset);
+}
 
 // *******************************************************************************
 // sync_client_t
