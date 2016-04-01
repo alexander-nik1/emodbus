@@ -28,7 +28,7 @@ int emb_read_hold_regs_calc_req_data_size();
 
 /**
  * @brief Calculate the answer size
- * @param _quantity The quantity of registers
+ * @param[in] _quantity The quantity of registers
  * @return The size of answer's data size
  */
 int emb_read_hold_regs_calc_answer_data_size(uint16_t _quantity);
