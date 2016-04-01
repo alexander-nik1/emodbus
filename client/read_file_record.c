@@ -4,6 +4,15 @@
 #include <stdlib.h>
 #include <emodbus/base/byte-word.h>
 
+/*!
+ * \file
+ * \brief Definition of Read File Record functions.
+ *
+ * Functions for working with Read File Record function.
+ *
+ */
+
+
 struct sub_req_t {
     uint8_t ref_type;
     uint16_t file_number;
@@ -67,10 +76,6 @@ int emb_read_file_make_req(emb_pdu_t* _result_req,
 
 int emb_read_file_get_answer_length(emb_const_pdu_t* _answer) {
     return ((uint8_t*)_answer->data)[0];
-}
-
-emb_read_file_subansw_t* emb_read_file_first_subanswer(emb_const_pdu_t* _answer) {
-    return emb_read_file_next_subanswer(_answer, NULL);
 }
 
 emb_read_file_subansw_t* emb_read_file_next_subanswer(emb_const_pdu_t* _answer,
