@@ -1,7 +1,7 @@
 
-set(EMODBUS_SERVER_BASE_SRC
-	server_base.c
+set(EMODBUS_SERVER_SRC
+    server.c
 )
 
-add_library(emodbus-server-base SHARED ${EMODBUS_SERVER_BASE_SRC})
-add_library(emodbus-server-base-static STATIC ${EMODBUS_SERVER_BASE_SRC})
+add_library(emodbus-server SHARED ${EMODBUS_SERVER_SRC})
+add_library(emodbus-server-static STATIC ${EMODBUS_SERVER_SRC})
