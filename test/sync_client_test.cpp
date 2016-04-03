@@ -19,7 +19,8 @@
 #include <emodbus/client/write_multi_regs.h>
 #include <emodbus/client/write_single_reg.h>
 #include <emodbus/client/read_file_record.h>
-
+#include <emodbus/client/write_file_record.h>
+#include <emodbus/client/read_fifo.h>
 
 #include <emodbus/base/add/stream.h>
 #include "posix-serial-port.h"
@@ -145,9 +146,12 @@ void* thr_proc(void* p) {
     posix_serial_port_close(&serial_port);
 }
 
+void print_all_read_file_answer_data(emb_const_pdu_t* ans);
+void write_and_read_file_record_test();
+
 int main(int argc, char* argv[]) {
 
-    int res;
+    int res,i;
 
     printf("emodbus sync client test\n");
 
@@ -157,42 +161,110 @@ int main(int argc, char* argv[]) {
 
     sleep(1);
 
-    emb_read_file_req_t reqs[2];
 
-    reqs[0].file_number = 0;
-    reqs[0].record_number = 0x0000;
-    reqs[0].record_length = 0x0011;
+    emb::pdu_t req(emb_read_fifo_calc_req_data_size());
 
-    reqs[1].file_number = 0;
-    reqs[1].record_number = 0x0022;
-    reqs[1].record_length = 0x0011;
+    emb::pdu_t ans(emb_read_fifo_calc_answer_data_size());
 
-    emb::pdu_t req(emb_read_file_calc_req_data_size(2));
+    res = emb_read_fifo_make_req(req, 0x0000);
+    printf("emb_read_fifo_make_req = %d\n", res);
 
-    emb::pdu_t ans(emb_read_file_calc_answer_data_size(reqs, 2));
+    for(i=0; i<1000; ++i) {
 
-  //  d8_rhr.build_req(0xFFE0, 3);
-
-    //emb_write_mask_reg_make_req(reqa8, 0x0002, 0x0000, 0x0000);
-
-    //wr.build_req(0x0050, 8, data_to_write);
-    emb_read_file_make_req(req, reqs, 2);
-
-    for(int i=0; i<10; ++i) {
-
-        res = mb_client.do_request(16, 100, req, ans);
+        res = mb_client.do_request(224, 100, req, ans);
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 
-        emb_read_file_subansw_t* sa = emb_read_file_first_subanswer(ans);
+        int q = emb_read_fifo_regs_count(ans);
 
-        printf("sa = 0x%02X\n", emb_read_file_subanswer_data(sa, 0));
+        for(int j=0; j<q; ++j) {
+            printf("%04X ", emb_read_fifo_get_data(ans, j));
+        }
 
-        usleep(1000*10);
+        printf("\n");
+
+        usleep(1000*5000);
         //printf("---------------> do_request() := %d\n", res);
     }
 
     pthread_join(pthr, NULL);
 
     return 0;
+}
+
+void print_all_read_file_answer_data(emb_const_pdu_t* ans) {
+
+    for(emb_read_file_subansw_t* sa = emb_read_file_first_subanswer(ans);
+        sa != NULL; sa = emb_read_file_next_subanswer(ans, sa)) {
+
+        const uint16_t q = emb_read_file_subanswer_quantity(sa);
+
+        printf("Subanswer:(%d): ", q);
+
+        for(int j=0; j<q; ++j) {
+            printf("%04X ", emb_read_file_subanswer_data(sa, j));
+        }
+
+        printf("\n");
+    }
+}
+
+void write_and_read_file_record_test() {
+
+    int res;
+
+    emb_read_file_req_t reqs[1];
+
+    reqs[0].file_number = 0;
+    reqs[0].record_number = 0x0000;
+    reqs[0].record_length = 0x0011;
+
+    enum { wr_sz = 3 };
+
+    emb_write_file_req_t rew[wr_sz];
+
+    const uint16_t dw[wr_sz][3] = {
+        { 0x1111, 0xDEAD, 0xC0FE },
+        { 0x2222, 0xDEAD, 0xC0FE },
+        { 0x3333, 0xDEAD, 0xC0FE }
+    };
+
+    for(int i=0; i<wr_sz; ++i) {
+        rew[i].file_number = 0;
+        rew[i].record_number = i * 4;
+        rew[i].record_length = 3;
+        rew[i].data = dw[i];
+    }
+
+    emb::pdu_t req(emb_read_file_calc_req_data_size(1));
+
+    emb::pdu_t ans(emb_read_file_calc_answer_data_size(reqs, 1));
+
+    emb::pdu_t reqw(emb_write_file_calc_req_data_size(rew, wr_sz));
+
+    emb::pdu_t answ(emb_write_file_calc_answer_data_size(rew, wr_sz));
+
+    printf("size = %d\n", reqw.max_size);
+
+    res = emb_read_file_make_req(req, reqs, 1);
+    printf("emb_read_file_make_req = %d\n", res);
+
+    res = emb_write_file_make_req(reqw, rew, wr_sz);
+    printf("emb_write_file_make_req = %d\n", res);
+
+    for(int i=0; i<10; ++i) {
+
+        res = mb_client.do_request(16, 100, reqw, answ);
+        if(res)
+            printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
+
+        res = mb_client.do_request(16, 100, req, ans);
+        if(res)
+            printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
+
+        print_all_read_file_answer_data(ans);
+
+        usleep(1000*10);
+        //printf("---------------> do_request() := %d\n", res);
+    }
 }
