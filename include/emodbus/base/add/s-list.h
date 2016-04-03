@@ -24,7 +24,7 @@ struct sb_list_head {
 /**
  * @brief sb_list_init
  *
- * Initialise an anchor
+ * Initialize an anchor
  *
  * @param[in] _anchor The anchor
  */
@@ -72,7 +72,7 @@ int sb_list_remove(struct sb_list_head* _anchor,
  *
  * @param[in] _anchor The list anchor
  * @param[in] _elem The element to find
- * @return 1 if element was fount in list, otherwise - zero.
+ * @return 1 if element was found in a list, otherwise - zero.
  */
 int sb_list_has_elem(const struct sb_list_head* _anchor,
                      const struct sb_list_head* _elem);
