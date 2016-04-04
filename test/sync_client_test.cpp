@@ -133,8 +133,6 @@ void* thr_proc(void* p) {
 
     posix_serial_port_rtu_t psp(base, "/dev/ttyUSB0", 115200);
 
-    struct posix_serial_port_t serial_port;
-
     client->set_proto(psp.get_proto());
 
     emb_debug_output = stdout;
@@ -142,8 +140,6 @@ void* thr_proc(void* p) {
     psp.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
 
     event_base_dispatch(base);
-
-    posix_serial_port_close(&serial_port);
 }
 
 void print_all_read_file_answer_data(emb_const_pdu_t* ans);
