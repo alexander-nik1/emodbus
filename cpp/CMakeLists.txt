@@ -2,5 +2,7 @@
 add_library(emodbus-full-cpp emodbus.cpp)
 
 target_link_libraries(emodbus-full-cpp
-    emodbus-client-full
+    emodbus-base-static
+    emodbus-client-full-static
+    emodbus-server-static
 )
