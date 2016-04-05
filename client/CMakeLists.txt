@@ -7,7 +7,8 @@ include_directories(../base/)
 aux_source_directory(. LIB_EMODBUS_CLIENT_FULL_SRC)
 
 add_library(emodbus-client-full SHARED ${LIB_EMODBUS_CLIENT_FULL_SRC})
-target_link_libraries(emodbus-client-full emodbus-base)
+
+add_library(emodbus-client-full-static STATIC ${LIB_EMODBUS_CLIENT_FULL_SRC})
 
 # ===================================================
 # client
