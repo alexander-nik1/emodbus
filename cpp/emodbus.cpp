@@ -9,6 +9,8 @@
 #include <emodbus/client/write_file_record.h>
 #include <emodbus/client/read_fifo.h>
 
+#include <string.h>
+
 namespace emb {
 
 // *******************************************************************************
@@ -204,6 +206,8 @@ uint16_t read_fifo_t::get_answer_data(uint16_t _offset) const {
 
 sync_client_t::sync_client_t() {
 
+    memset(&client, 0, sizeof(struct emb_client_t));
+
     client.user_data = this;
 
     emb_client_init(&client);
@@ -260,5 +264,58 @@ struct emb_client_req_procs_t sync_client_t::procs = {
     sync_client_t::emb_on_error
 };
 
+// *******************************************************************************
+// aync_client_t
+
+aync_client_t::aync_client_t() {
+
+    memset(&client, 0, sizeof(struct emb_client_t));
+
+    client.user_data = this;
+
+    emb_client_init(&client);
+}
+
+int aync_client_t::do_request(int _server_addr,
+                              int _req_id,
+                              emb_const_pdu_t* _request,
+                              emb_pdu_t *_response,
+                              claabacker_t* _callbacker) {
+
+    req.req_pdu = _request;
+    req.resp_pdu = _response;
+    req.procs = &procs;
+    req.user_data = this;
+    curr_callbacker = _callbacker;
+    curr_req_id = _req_id;
+
+    return emb_client_do_request(&client, _server_addr, &req);
+}
+
+void aync_client_t::set_proto(struct emb_protocol_t* _proto) {
+    emb_client_set_proto(&client, _proto);
+}
+
+void aync_client_t::answer_timeout() {
+    emb_client_wait_timeout(&client);
+}
+
+void aync_client_t::emb_on_response(struct emb_client_request_t* _req, int _slave_addr) {
+    aync_client_t* _this = (aync_client_t*)_req->user_data;
+    if(_this->curr_callbacker)
+        _this->curr_callbacker->emb_client_on_response(_req, _this->curr_req_id, _slave_addr);
+}
+
+void aync_client_t::emb_on_error(struct emb_client_request_t* _req, int _errno) {
+    aync_client_t* _this = (aync_client_t*)_req->user_data;
+    if(_this->curr_callbacker)
+        _this->curr_callbacker->emb_client_on_error(_req, _this->curr_req_id, _errno);
+}
+
+
+struct emb_client_req_procs_t aync_client_t::procs = {
+    aync_client_t::emb_on_response,
+    aync_client_t::emb_on_error
+};
 
 } // namespace emb

@@ -179,6 +179,41 @@ protected:
     int result;
 };
 
+// *******************************************************************************
+// aync_client_t
+
+class aync_client_t {
+public:
+    aync_client_t();
+
+    struct claabacker_t {
+        virtual void emb_client_on_response(struct emb_client_request_t* _req, int _req_id, int _slave_addr) =0;
+        virtual void emb_client_on_error(struct emb_client_request_t* _req, int _req_id, int _errno) =0;
+    };
+
+    int do_request(int _server_addr,
+                   int _req_id,
+                   emb_const_pdu_t* _request,
+                   emb_pdu_t *_response,
+                   claabacker_t* _callbacker);
+
+    void set_proto(struct emb_protocol_t* _proto);
+
+    void answer_timeout();
+
+private:
+    static void emb_on_response(struct emb_client_request_t* _req, int _slave_addr);
+
+    static void emb_on_error(struct emb_client_request_t* _req, int _errno);
+
+    struct emb_client_request_t req;
+    struct emb_client_t client;
+    static struct emb_client_req_procs_t procs;
+    claabacker_t* curr_callbacker;
+    int curr_req_id;
+};
+
+
 }; // namespace emb
 
 #endif // EMODBUS_HPP
