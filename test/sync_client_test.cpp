@@ -135,8 +135,6 @@ void* thr_proc(void* p) {
 
     client->set_proto(psp.get_proto());
 
-    emb_debug_output = stdout;
-
     psp.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
 
     event_base_dispatch(base);

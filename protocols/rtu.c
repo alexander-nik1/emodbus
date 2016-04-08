@@ -36,7 +36,8 @@ static void parse_packet(struct modbus_rtu_t* _mbt) {
         const uint16_t crc2 = MKWORD(buf[size], buf[size+1]);
 #if EMODBUS_PACKETS_DUMPING
         if(_mbt->proto.flags & EMB_PROTO_FLAG_DUMD_PAKETS)
-            dbg_print_packet(">>", buf, _mbt->rx_buf_counter);
+            //dbg_print_packet(">>", buf, _mbt->rx_buf_counter);
+            stream_write(&emb_dump_rx, _mbt->rx_buffer, _mbt->rx_buf_counter);
 #endif // EMODBUS_PACKETS_DUMPING
         if(crc1 != crc2) {
             emb_proto_error(&_mbt->proto, -modbus_bad_crc);
@@ -144,7 +145,7 @@ static int modbus_rtu_send_packet(void *_mbt,
                                            mbt->tx_pkt_size);
 #if EMODBUS_PACKETS_DUMPING
         if(mbt->proto.flags & EMB_PROTO_FLAG_DUMD_PAKETS)
-            dbg_print_packet("<<", mbt->tx_buffer, mbt->tx_pkt_size);
+            stream_write(&emb_dump_tx, mbt->tx_buffer, mbt->tx_pkt_size);
 #endif // EMODBUS_PACKETS_DUMPING
         return 0;
     }
