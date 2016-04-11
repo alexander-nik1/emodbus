@@ -16,6 +16,18 @@
 extern "C" {
 #endif
 
+enum modbus_exception_code_t{
+    MBE_ILLEGAL_FUNCTION = 0x01,
+    MBE_ILLEGEL_DATA_ADDR = 0x02,
+    MBE_ILLEGAL_DATA_VALUE = 0x03,
+    MBE_SLAVE_FAILURE = 0x04,
+    MBE_ACK = 0x05,
+    MBE_SLAVE_BUSY = 0x06,
+    MBE_MEMORY_CRC_ERROR = 0x08,
+    MBE_GATEWAY_PATH_UNAVAIL = 0x0A,
+    MBE_GATEWAY_DEVICE_NO_RESP = 0x0B
+};
+
 /**
  * @brief Returns an error string
  *
