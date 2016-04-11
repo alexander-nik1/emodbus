@@ -37,15 +37,15 @@ const char* emb_strerror(int _errno) {
     }
     else if(EMB_EXCEPTION_BASE <= _errno) {
         switch(_errno) {
-            EMB_CASE_ERROR_STRING_MB_CODE(EMB_EXCEPTION_FUNC, "Illegal function")
-            EMB_CASE_ERROR_STRING_MB_CODE(EMB_EXCEPTION_DATA_ADDR, "Illegal data address")
-            EMB_CASE_ERROR_STRING_MB_CODE(EMB_EXCEPTION_DATA_VALUE, "Illegal data value")
-            EMB_CASE_ERROR_STRING_MB_CODE(EMB_EXCEPTION_SERV_FAILURE, "Server device failure")
-            EMB_CASE_ERROR_STRING_MB_CODE(EMB_EXCEPTION_ACK, "Acknowledge")
-            EMB_CASE_ERROR_STRING_MB_CODE(EMB_EXCEPTION_SERVER_BUSY, "Server device busy")
-            EMB_CASE_ERROR_STRING_MB_CODE(EMB_EXCEPTION_MEM_PARITY, "Memory parity error")
-            EMB_CASE_ERROR_STRING_MB_CODE(EMB_EXCEPTION_GATEWAY_PATH, "Gateway path unavailable")
-            EMB_CASE_ERROR_STRING_MB_CODE(EMB_EXCEPTION_GATEWAY_NO_RESP, "Gateway target device failed to respond")
+            EMB_CASE_ERROR_STRING_MB_CODE(EMB_ILLEGAL_FUNCTION, "Illegal function")
+            EMB_CASE_ERROR_STRING_MB_CODE(EMB_ILLEGEL_DATA_ADDR, "Illegal data address")
+            EMB_CASE_ERROR_STRING_MB_CODE(EMB_ILLEGAL_DATA_VALUE, "Illegal data value")
+            EMB_CASE_ERROR_STRING_MB_CODE(EMB_SLAVE_FAILURE, "Server device failure")
+            EMB_CASE_ERROR_STRING_MB_CODE(EMB_ACK, "Acknowledge")
+            EMB_CASE_ERROR_STRING_MB_CODE(EMB_SLAVE_BUSY, "Server device busy")
+            EMB_CASE_ERROR_STRING_MB_CODE(EMB_MEMORY_CRC_ERROR, "Memory parity error")
+            EMB_CASE_ERROR_STRING_MB_CODE(EMB_GATEWAY_PATH_UNAVAIL, "Gateway path unavailable")
+            EMB_CASE_ERROR_STRING_MB_CODE(EMB_GATEWAY_DEVICE_NO_RESP, "Gateway target device failed to respond")
             default: {
                 static const char* str = "Returned unknown modbus error code";
                 return str;
