@@ -93,9 +93,9 @@ private:
     struct event *char_timeout_timer;
 };
 
-class emodbus_sync_client_t : public emb::sync_client_t {
+class emodbus_sserver_t : public emb::sync_client_t {
 public:
-    emodbus_sync_client_t() {
+    emodbus_sserver_t() {
         pthread_mutex_init(&mutex, NULL);
         pthread_mutex_trylock(&mutex);
     }
@@ -123,11 +123,11 @@ private:
 
     pthread_mutex_t mutex;
 
-} mb_client;
+} mb_server;
 
 void* thr_proc(void* p) {
 
-    emodbus_sync_client_t* client = (emodbus_sync_client_t*)p;
+    emodbus_sserver_t* client = (emodbus_sserver_t*)p;
 
     struct event_base *base = event_base_new();
 
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
 
     pthread_t pthr;
 
-    pthread_create(&pthr, NULL, thr_proc, (void*)&mb_client);
+    pthread_create(&pthr, NULL, thr_proc, (void*)&mb_server);
 
     sleep(1);
 
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
 
     for(i=0; i<1000; ++i) {
 
-        res = mb_client.do_request(224, 100, req, ans);
+        res = mb_server.do_request(224, 100, req, ans);
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 
@@ -248,11 +248,11 @@ void write_and_read_file_record_test() {
 
     for(int i=0; i<10; ++i) {
 
-        res = mb_client.do_request(16, 100, reqw, answ);
+        res = mb_server.do_request(16, 100, reqw, answ);
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 
-        res = mb_client.do_request(16, 100, req, ans);
+        res = mb_server.do_request(16, 100, req, ans);
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 

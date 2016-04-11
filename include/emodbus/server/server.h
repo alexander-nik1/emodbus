@@ -11,46 +11,91 @@
 extern "C" {
 #endif
 
-enum emb_server_state_t {
+enum emb_super_server_state_t {
     embs_default,
     embs_got_request,
     embs_processing_request,
     embs_sending_answer
 };
 
-struct emb_srv_function_t {
-
-    uint8_t func_number;
-
-    int (*function)(emb_const_pdu_t* _req, emb_pdu_t* _answer);
-
-    struct sb_list_head list;
+enum emb_super_server_event_t {
+    embsev_request,
+    embsev_error
 };
 
+struct emb_server_t;
+struct emb_super_server_t;
+
+typedef uint8_t (*emb_srv_function_t)(struct emb_super_server_t* _ssrv, struct emb_server_t* _srv);
+
 struct emb_server_t {
+
+    emb_srv_function_t (*get_function)(struct emb_server_t* _srv, uint8_t _func);
+
+//    struct emb_srv_coils_t* (*get_coils)(struct emb_server_t* _srv, uint16_t _begin);
+
+    struct emb_srv_holdings_t* (*get_holdings)(struct emb_server_t* _srv, uint16_t _begin);
+
+//    struct emb_srv_file_t* (*get_file)(struct emb_server_t* _srv, uint16_t _fileno, uint16_t _begin);
+};
+
+struct emb_super_server_t {
 
     /// Low level context
     struct emb_protocol_t* proto;
 
     /// The state of the modbus server
-    enum emb_server_state_t state;
+    enum emb_super_server_state_t state;
 
-    /// Some data for high level
-    void* user_data;
+    struct emb_server_t* (*get_server)(struct emb_super_server_t* _ssrv,
+                                       uint8_t _address);
 
-    struct sb_list_head funcs_anchor;
+    void (*on_event)(struct emb_super_server_t* _ssrv, enum emb_super_server_event_t _event);
 
-    struct sb_list_head list;
+    emb_pdu_t* rx_pdu;
+    emb_pdu_t* tx_pdu;
 };
 
-struct emb_super_server_t {
+void emb_super_server_init(struct emb_super_server_t* _ssrv);
 
-    struct sb_list_head anchor;
-};
+int emb_build_exception_pdu(emb_pdu_t* _result,
+                            uint8_t _func,
+                            uint8_t _errno);
 
-void emb_server_init(struct emb_server_t* _srv);
+void emb_super_server_set_proto(struct emb_super_server_t* _ssrv,
+                                struct emb_protocol_t* _proto);
 
 
+//**********************************************************************
+// Holding registers
+
+uint8_t emb_srv_read_holdings(struct emb_super_server_t* _ssrv,
+                              struct emb_server_t* _srv);
+
+uint8_t emb_srv_write_reg(struct emb_super_server_t* _ssrv,
+                          struct emb_server_t* _srv);
+
+uint8_t emb_srv_write_regs(struct emb_super_server_t* _ssrv,
+                           struct emb_server_t* _srv);
+
+uint8_t emb_srv_mask_reg(struct emb_super_server_t* _ssrv,
+                         struct emb_server_t* _srv);
+
+
+//**********************************************************************
+// File records
+
+uint8_t emb_srv_read_file(struct emb_super_server_t* _ssrv,
+                          struct emb_server_t* _srv);
+
+uint8_t emb_srv_write_file(struct emb_super_server_t* _ssrv,
+                           struct emb_server_t* _srv);
+
+//**********************************************************************
+// FIFOs
+
+uint8_t emb_srv_read_fifo(struct emb_super_server_t* _ssrv,
+                          struct emb_server_t* _srv);
 
 #ifdef __cplusplus
 }   // extern "C"
