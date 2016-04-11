@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <emodbus/base/byte-word.h>
+#include <emodbus/base/calc_pdu_size.h>
 
 /*!
  * \file
@@ -28,7 +29,7 @@ struct emb_read_file_sub_answer_t {
 
 int emb_read_file_calc_req_data_size(int _sub_resuests_number) {
 
-    return 1 + 7 * _sub_resuests_number;
+    return READ_FILE_REQ_SIZE(_sub_resuests_number);
 }
 
 int emb_read_file_calc_answer_data_size(const emb_read_file_req_t* _sub_resuests,
@@ -45,7 +46,7 @@ int emb_read_file_make_req(emb_pdu_t* _result_req,
 
     int i;
 
-    const int req_size = emb_read_file_calc_req_data_size(_sub_resuests_number);
+    const int req_size = READ_FILE_REQ_SIZE(_sub_resuests_number);
 
     struct sub_req_t* reqs;
 

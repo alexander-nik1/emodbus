@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <emodbus/base/common.h>
 #include <emodbus/client/read_holding_regs.h>
+#include <emodbus/base/calc_pdu_size.h>
 
 /*!
  * \file
@@ -13,12 +14,12 @@
  */
 
 int emb_read_hold_regs_calc_req_data_size() {
-    return 4;
+    return READ_HOLDINGS_REQ_SIZE();
 }
 
 int emb_read_hold_regs_calc_answer_data_size(uint16_t _quantity) {
     if( 1 <= _quantity && _quantity <= 125 ) {
-        return 1+_quantity*2;
+        return READ_HOLDINGS_ANS_SIZE(_quantity);
     }
     else {
         return -EINVAL;
