@@ -2,6 +2,8 @@
 #ifndef MODBUS_PROTOCOL_DATA_UNIT_H
 #define MODBUS_PROTOCOL_DATA_UNIT_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -22,10 +24,10 @@ extern "C" {
  *
  */
 struct _emb_pdu_t {
-    int function;   ///< Function of this PDU
-    int data_size;  ///< Size of data of this PDU
-    int max_size;   ///< Maximum size (when this PDU is used as receive place)
-    void* data;     ///< Data of this PDU
+    uint8_t function;   ///< Function of this PDU
+    uint8_t data_size;  ///< Size of data of this PDU
+    uint8_t max_size;   ///< Maximum size (when this PDU is used as receive place)
+    void* data;         ///< Data of this PDU
 };
 
 typedef struct _emb_pdu_t emb_pdu_t;
@@ -38,10 +40,10 @@ typedef struct _emb_pdu_t emb_pdu_t;
  *
  */
 struct _emb_const_pdu_t {
-    int function;       ///< Function of this PDU
-    int data_size;      ///< Size of data of this PDU
-    int max_size;       ///< Maximum size (when this PDU is used as receive place)
-    const void* data;   ///< Data of this PDU
+    uint8_t function;       ///< Function of this PDU
+    uint8_t data_size;      ///< Size of data of this PDU
+    uint8_t max_size;       ///< Maximum size (when this PDU is used as receive place)
+    const void* data;       ///< Data of this PDU
 };
 
 typedef const struct _emb_const_pdu_t emb_const_pdu_t;
