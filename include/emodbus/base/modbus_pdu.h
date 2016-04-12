@@ -16,6 +16,8 @@ extern "C" {
  * And useful macros.
  *
  */
+enum { MAX_PDU_SIZE = 256 };
+enum { MAX_PDU_DATA_SIZE = MAX_PDU_SIZE - (1 + 2) };
 
 /**
  * @brief This structure describes one PDU

@@ -378,6 +378,7 @@ uint8_t server_holdings_t::write_regs(struct emb_srv_holdings_t* _rr,
 // server_t
 
 server_t::server_t(int _address) : address(_address) {
+    memset(&srv, 0, sizeof(struct emb_server_t));
     srv.get_function = get_function;
     srv.get_holdings = get_holdings;
 }
@@ -447,10 +448,13 @@ struct emb_srv_holdings_t* server_t::get_holdings(struct emb_server_t* _srv, uin
 // super_server_t
 
 super_server_t::super_server_t() {
+
+    memset(&ssrv, 0, sizeof(struct emb_super_server_t));
+
     ssrv.get_server = _get_server;
 
-    rx_pdu.resize(128);
-    tx_pdu.resize(128);
+    rx_pdu.resize(MAX_PDU_DATA_SIZE);
+    tx_pdu.resize(MAX_PDU_DATA_SIZE);
 
     ssrv.rx_pdu = &rx_pdu;
     ssrv.tx_pdu = &tx_pdu;

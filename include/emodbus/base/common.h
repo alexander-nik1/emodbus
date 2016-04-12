@@ -37,9 +37,6 @@ extern "C" {
 extern struct output_stream_t emb_dump_rx;
 extern struct output_stream_t emb_dump_tx;
 
-
-void dbg_print_packet(const char* _prefix, const void* _pkt, unsigned int _size);
-
 #endif // EMODBUS_PACKETS_DUMPING
 
 #ifdef __cplusplus
