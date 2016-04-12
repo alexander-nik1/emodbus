@@ -14,7 +14,6 @@
 #include <emodbus/base/add/container_of.h>
 #include <emodbus/base/modbus_errno.h>
 
-
 #include <emodbus/server/server.h>
 #include <emodbus/server/holdings.h>
 

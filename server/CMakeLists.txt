@@ -27,3 +27,33 @@ set(EMODBUS_SERVER_READ_HOLDINGS
 
 add_library(emodbus-server-read-holdings SHARED ${EMODBUS_SERVER_READ_HOLDINGS})
 add_library(emodbus-server-read-holdings-static STATIC ${EMODBUS_SERVER_READ_HOLDINGS})
+
+# ===================================================
+# server-write-reg
+
+set(EMODBUS_SERVER_WRITE_REG
+    write_single_reg.c
+)
+
+add_library(emodbus-server-write-reg SHARED ${EMODBUS_SERVER_WRITE_REG})
+add_library(emodbus-server-write-reg-static STATIC ${EMODBUS_SERVER_WRITE_REG})
+
+# ===================================================
+# server-write-regs
+
+set(EMODBUS_SERVER_WRITE_REGS
+    write_multi_regs.c
+)
+
+add_library(emodbus-server-write-regs SHARED ${EMODBUS_SERVER_WRITE_REGS})
+add_library(emodbus-server-write-regs-static STATIC ${EMODBUS_SERVER_WRITE_REGS})
+
+# ===================================================
+# server-mask-reg
+
+set(EMODBUS_SERVER_MASK_REG
+    write_mask_reg.c
+)
+
+add_library(emodbus-server-mask-reg SHARED ${EMODBUS_SERVER_MASK_REG})
+add_library(emodbus-server-mask-reg-static STATIC ${EMODBUS_SERVER_MASK_REG})
