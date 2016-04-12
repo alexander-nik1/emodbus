@@ -12,8 +12,10 @@ extern "C" {
 #endif
 
 enum emb_super_server_event_t {
-    embsev_request,
-    embsev_error
+    embsev_on_receive_pkt,
+    embsev_no_srv,
+    embsev_mb_exception,
+    embsev_resp_sent
 };
 
 struct emb_server_t;
@@ -43,7 +45,7 @@ struct emb_super_server_t {
     struct emb_server_t* (*get_server)(struct emb_super_server_t* _ssrv,
                                        uint8_t _address);
 
-    void (*on_event)(struct emb_super_server_t* _ssrv, enum emb_super_server_event_t _event);
+    void (*on_event)(struct emb_super_server_t* _ssrv, enum emb_super_server_event_t _event, uint8_t data);
 
     emb_pdu_t* rx_pdu;
     emb_pdu_t* tx_pdu;
