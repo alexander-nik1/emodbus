@@ -1,6 +1,8 @@
 
 #include <emodbus/emodbus.hpp>
+#include <emodbus/base/add/container_of.h>
 #include <emodbus/base/modbus_errno.h>
+
 #include <emodbus/client/read_holding_regs.h>
 #include <emodbus/client/write_mask_reg.h>
 #include <emodbus/client/write_single_reg.h>
@@ -317,5 +319,164 @@ struct emb_client_req_procs_t aync_client_t::procs = {
     aync_client_t::emb_on_response,
     aync_client_t::emb_on_error
 };
+
+// *******************************************************************************
+// server_holdings_t
+
+server_holdings_t::server_holdings_t() {
+    set_funcs();
+}
+
+server_holdings_t::server_holdings_t(uint16_t _start, uint16_t _size) {
+    h.start = _start;
+    h.size = _size;
+    set_funcs();
+}
+
+void server_holdings_t::set_start(uint16_t _start)
+{ h.start = _start; }
+
+void server_holdings_t::set_size(uint16_t _size)
+{ h.size = _size; }
+
+uint8_t server_holdings_t::on_read_regs(emb_const_pdu_t* _req,
+                             uint16_t _offset,
+                             uint16_t _quantity,
+                             uint16_t* _pvalues)
+{ return 0; }
+
+uint8_t server_holdings_t::on_write_regs(emb_const_pdu_t* _req,
+                              uint16_t _offset,
+                              uint16_t _quantity,
+                              const uint16_t* _pvalues)
+{ return 0; }
+
+void server_holdings_t::set_funcs() {
+    h.read_regs = read_regs;
+    h.write_regs = write_regs;
+}
+
+uint8_t server_holdings_t::read_regs(struct emb_srv_holdings_t* _rr,
+                                     emb_const_pdu_t* _req,
+                                     uint16_t _offset,
+                                     uint16_t _quantity,
+                                     uint16_t* _pvalues) {
+    server_holdings_t* _this = container_of(_rr, server_holdings_t, h);
+    return _this->on_read_regs(_req, _offset, _quantity, _pvalues);
+}
+
+uint8_t server_holdings_t::write_regs(struct emb_srv_holdings_t* _rr,
+                                      emb_const_pdu_t* _req,
+                                      uint16_t _offset,
+                                      uint16_t _quantity,
+                                      const uint16_t* _pvalues) {
+    server_holdings_t* _this = container_of(_rr, server_holdings_t, h);
+    return _this->on_write_regs(_req, _offset, _quantity, _pvalues);
+}
+
+// *******************************************************************************
+// server_t
+
+server_t::server_t(int _address) : address(_address) {
+    srv.get_function = get_function;
+    srv.get_holdings = get_holdings;
+}
+
+int server_t::addr() const { return address; }
+
+bool server_t::add_function(uint8_t _func_no, emb_srv_function_t _func) {
+    for(func_iter i=functions.begin(); i != functions.end(); ++i) {
+        if(i->func_no == _func_no)
+            return false;
+    }
+    function_t f = { _func_no, _func };
+    functions.push_back(f);
+    return true;
+}
+
+#define IS_POINT_IN_RANGE(_range_start_, _range_end_, _point_) \
+    (((_range_start_) <= (_point_)) && ((_point_) < (_range_end_)))
+
+static bool emb_is_ranges_cross(uint16_t _start1,
+                         uint16_t _start2,
+                         uint16_t _size1,
+                         uint16_t _size2) {
+
+    const uint16_t end1 = _start1 + _size1;
+    const uint16_t end2 = _start2 + _size2;
+
+    if( IS_POINT_IN_RANGE(_start1, end1, _start2) ||
+        IS_POINT_IN_RANGE(_start1, end1, end2) ||
+        IS_POINT_IN_RANGE(_start2, end2, _start1) ||
+        IS_POINT_IN_RANGE(_start2, end2, end1))
+        return true;
+
+    return false;
+}
+
+bool server_t::add_holdings(server_holdings_t& _holdings) {
+    for(holdnigs_iter i=holdings.begin(); i != holdings.end(); ++i) {
+        if( emb_is_ranges_cross((*i)->h.start, (*i)->h.size, _holdings.h.start, _holdings.h.size) )
+            return false;
+    }
+    holdings.push_back(&_holdings);
+    return true;
+}
+
+emb_srv_function_t server_t::get_function(struct emb_server_t* _srv, uint8_t _func) {
+    server_t* _this = container_of(_srv, server_t, srv);
+    for(func_iter i=_this->functions.begin(); i != _this->functions.end(); ++i) {
+        if(i->func_no == _func)
+            return i->func;
+    }
+    return NULL;
+}
+
+struct emb_srv_holdings_t* server_t::get_holdings(struct emb_server_t* _srv, uint16_t _begin) {
+    server_t* _this = container_of(_srv, server_t, srv);
+    for(holdnigs_iter i=_this->holdings.begin(); i != _this->holdings.end(); ++i) {
+        const uint16_t start = (*i)->h.start;
+        const uint16_t end = start + (*i)->h.size - 1;
+        if((start <= _begin) && (_begin <= end))
+            return &((*i)->h);
+    }
+    return NULL;
+}
+
+// *******************************************************************************
+// super_server_t
+
+super_server_t::super_server_t() {
+    ssrv.get_server = _get_server;
+
+    rx_pdu.resize(128);
+    tx_pdu.resize(128);
+
+    ssrv.rx_pdu = &rx_pdu;
+    ssrv.tx_pdu = &tx_pdu;
+}
+
+void super_server_t::set_proto(struct emb_protocol_t* _proto) {
+    emb_super_server_set_proto(&ssrv, _proto);
+}
+
+bool super_server_t::add_server(server_t& _srv) {
+    for(srv_iter i=servers.begin(); i != servers.end(); ++i) {
+        if((*i)->addr() == _srv.addr())
+            return false;
+    }
+    servers.push_back(&_srv);
+    return true;
+}
+
+struct emb_server_t* super_server_t::_get_server(struct emb_super_server_t* _ssrv,
+                                        uint8_t _address) {
+    super_server_t* _this = container_of(_ssrv, super_server_t, ssrv);
+    for(srv_iter i=_this->servers.begin(); i != _this->servers.end(); ++i) {
+        if((*i)->addr() == _address)
+            return &(*i)->srv;
+    }
+    return NULL;
+}
 
 } // namespace emb

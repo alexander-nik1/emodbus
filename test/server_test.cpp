@@ -89,188 +89,85 @@ private:
     struct event *char_timeout_timer;
 };
 
-class emodbus_server_t;
-
-class server_holdings_t {
-    friend class emodbus_server_t;
+class my_holdings_t : public emb::server_holdings_t {
 public:
+    my_holdings_t() : emb::server_holdings_t(0xFFE0, 0x0020) {
 
-    server_holdings_t() {
-        set_funcs();
     }
 
-    server_holdings_t(uint16_t _start, uint16_t _size) {
-        h.start = _start;
-        h.size = _size;
-        set_funcs();
-    }
-
-    void set_start(uint16_t _start)
-    { h.start = _start; }
-
-    void set_size(uint16_t _size)
-    { h.size = _size; }
-
-    virtual uint8_t on_read_regs(emb_const_pdu_t* _req,
-                                 uint16_t _offset,
-                                 uint16_t _quantity,
-                                 uint16_t* _pvalues)
-    { return 0; }
-
-    virtual uint8_t on_write_regs(emb_const_pdu_t* _req,
-                                  uint16_t _offset,
-                                  uint16_t _quantity,
-                                  const uint16_t* _pvalues)
-    { return 0; }
-
-private:
-
-    void set_funcs() {
-        h.read_regs = read_regs;
-        h.write_regs = write_regs;
-    }
-
-    static uint8_t read_regs(struct emb_srv_holdings_t* _rr,
-                         emb_const_pdu_t* _req,
+    uint8_t on_read_regs(emb_const_pdu_t* _req,
                          uint16_t _offset,
                          uint16_t _quantity,
                          uint16_t* _pvalues) {
-        server_holdings_t* _this = container_of(_rr, server_holdings_t, h);
-        return _this->on_read_regs(_req, _offset, _quantity, _pvalues);
+
+        printf("%s: 0x%04X, 0x%04X\n", __PRETTY_FUNCTION__, _offset, _quantity);
+        return 0;
     }
 
-    static uint8_t write_regs(struct emb_srv_holdings_t* _rr,
-                          emb_const_pdu_t* _req,
+    uint8_t on_write_regs(emb_const_pdu_t* _req,
                           uint16_t _offset,
                           uint16_t _quantity,
                           const uint16_t* _pvalues) {
-        server_holdings_t* _this = container_of(_rr, server_holdings_t, h);
-        return _this->on_write_regs(_req, _offset, _quantity, _pvalues);
+        printf("%s: 0x%04X, 0x%04X\n", __PRETTY_FUNCTION__, _offset, _quantity);
+        return 0;
     }
-
-    struct emb_srv_holdings_t h;
 };
 
-class emodbus_sserver_t;
-
-class emodbus_server_t {
-    friend class emodbus_sserver_t;
-
-public:
-    emodbus_server_t(int _addr) : addr_(_addr) {
-        srv.get_function = get_function;
-        srv.get_holdings = get_holdings;
-    }
-
-    int addr() const { return addr_; }
-
-private:
-    static emb_srv_function_t get_function(struct emb_server_t* _srv, uint8_t _func) {
-        emodbus_server_t* _this = container_of(_srv, emodbus_server_t, srv);
-        for(func_iter i=_this->functions.begin(); i != _this->functions.end(); ++i) {
-            if(i->func_no == _func)
-                return i->func;
+void dbg_print_packet(FILE* _f, const char* _prefix, const void* _pkt, unsigned int _size) {
+    if(_f) {
+        int i;
+        fprintf(_f, "%s", _prefix);
+        for(i=0; i<_size; ++i) {
+            fprintf(_f, "%02X ", ((uint8_t*)_pkt)[i]);
         }
-        return nullptr;
+        fprintf(_f, "\n");
+        fflush(_f);
     }
+}
 
-    static struct emb_srv_holdings_t* get_holdings(struct emb_server_t* _srv, uint16_t _begin) {
-        emodbus_server_t* _this = container_of(_srv, emodbus_server_t, srv);
-        for(holdnigs_iter i=_this->holdings.begin(); i != _this->holdings.end(); ++i) {
-            if((i->h.start <= _begin) && ((i->h.start + i->h.size) < _begin))
-                return &(i->h);
-        }
-        return nullptr;
-    }
+int on_write_rx(struct input_stream_t* _this, const void* _data, unsigned int _size) {
+    dbg_print_packet(stdout, ">>", _data, _size);
+    return _size;
+}
 
-public:
-    struct function_t {
-        uint8_t func_no;
-        emb_srv_function_t func;
-    };
+int on_write_tx(struct input_stream_t* _this, const void* _data, unsigned int _size) {
+    dbg_print_packet(stdout, "<<", _data, _size);
+    return _size;
+}
 
-    typedef std::vector<function_t>::iterator func_iter;
-    std::vector<function_t> functions;
+input_stream_t emb_dumpi_rx = { on_write_rx, 0 };
+input_stream_t emb_dumpi_tx = { on_write_tx, 0 };
 
-    typedef std::list<server_holdings_t>::iterator holdnigs_iter;
-    std::list<server_holdings_t> holdings;
+int main(int argc, char* argv[]) {
 
-private:
-    int addr_;
-    struct emb_server_t srv;
-};
+    printf("emodbus server test\n");
 
-class emodbus_sserver_t {
-public:
-
-    emodbus_sserver_t() {
-        ssrv.get_server = _get_server;
-
-        rx_pdu.resize(128);
-        tx_pdu.resize(128);
-
-        ssrv.rx_pdu = &rx_pdu;
-        ssrv.tx_pdu = &tx_pdu;
-    }
-
-    void set_proto(struct emb_protocol_t* _proto) {
-        emb_super_server_set_proto(&ssrv, _proto);
-    }
-
-private:
-    static struct emb_server_t* _get_server(struct emb_super_server_t* _ssrv,
-                                            uint8_t _address) {
-        emodbus_sserver_t* _this = container_of(_ssrv, emodbus_sserver_t, ssrv);
-        for(srv_iter i=_this->servers.begin(); i != _this->servers.end(); ++i) {
-            if(i->addr() == _address)
-                return &i->srv;
-        }
-        return nullptr;
-    }
-public:
-    typedef std::list<emodbus_server_t>::iterator srv_iter;
-    std::list<emodbus_server_t> servers;
-private:
-    struct emb_super_server_t ssrv;
-    emb::pdu_t rx_pdu,tx_pdu;
-
-} mb_server;
-
-void* thr_proc(void* p) {
-
-    emodbus_sserver_t* server = (emodbus_sserver_t*)p;
+    emb::super_server_t ssrv;
 
     struct event_base *base = event_base_new();
 
     posix_serial_port_rtu_t psp(base, "/dev/ttyUSB0", 115200);
 
-    server->set_proto(psp.get_proto());
+    ssrv.set_proto(psp.get_proto());
 
     psp.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
 
-    event_base_dispatch(base);
-}
-
-void print_all_read_file_answer_data(emb_const_pdu_t* ans);
-void write_and_read_file_record_test();
-
-int main(int argc, char* argv[]) {
-
-    int res,i;
-
-    printf("emodbus sync client test\n");
-
-    pthread_t pthr;
-
-    pthread_create(&pthr, NULL, thr_proc, (void*)&mb_server);
+    stream_connect(&emb_dump_rx, &emb_dumpi_rx);
+    stream_connect(&emb_dump_tx, &emb_dumpi_tx);
 
     sleep(1);
 
-    emodbus_server_t srv1(16);
+    my_holdings_t h;
 
-    mb_server.servers.push_back(srv1);
+    emb::server_t srv1(16);
 
-    pthread_join(pthr, NULL);
+    srv1.add_function(0x03, emb_srv_read_holdings);
+
+    srv1.add_holdings(h);
+
+    ssrv.add_server(srv1);
+
+    event_base_dispatch(base);
 
     return 0;
 }

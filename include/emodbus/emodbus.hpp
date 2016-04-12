@@ -4,8 +4,12 @@
 
 #include <emodbus/client/client.h>
 #include <vector>
+#include <list>
 #include <emodbus/client/read_file_record.h>
 #include <emodbus/client/write_file_record.h>
+
+#include <emodbus/server/server.h>
+#include <emodbus/server/holdings.h>
 
 namespace emb {
 
@@ -213,6 +217,103 @@ private:
     int curr_req_id;
 };
 
+// *******************************************************************************
+// server_holdings_t
+
+class server_t;
+
+class server_holdings_t {
+    friend class server_t;
+public:
+    server_holdings_t();
+    server_holdings_t(uint16_t _start, uint16_t _size);
+
+    void set_start(uint16_t _start);
+    void set_size(uint16_t _size);
+    virtual uint8_t on_read_regs(emb_const_pdu_t* _req,
+                                 uint16_t _offset,
+                                 uint16_t _quantity,
+                                 uint16_t* _pvalues);
+    virtual uint8_t on_write_regs(emb_const_pdu_t* _req,
+                                  uint16_t _offset,
+                                  uint16_t _quantity,
+                                  const uint16_t* _pvalues);
+
+private:
+    void set_funcs();
+    static uint8_t read_regs(struct emb_srv_holdings_t* _rr,
+                             emb_const_pdu_t* _req,
+                             uint16_t _offset,
+                             uint16_t _quantity,
+                             uint16_t* _pvalues);
+    static uint8_t write_regs(struct emb_srv_holdings_t* _rr,
+                              emb_const_pdu_t* _req,
+                              uint16_t _offset,
+                              uint16_t _quantity,
+                              const uint16_t* _pvalues);
+
+    struct emb_srv_holdings_t h;
+};
+
+// *******************************************************************************
+// server_t
+
+class super_server_t;
+
+class server_t {
+    friend class super_server_t;
+
+    struct function_t {
+        uint8_t func_no;
+        emb_srv_function_t func;
+    };
+
+public:
+    server_t(int _address);
+
+    virtual int addr() const;
+
+    bool add_function(uint8_t _func_no, emb_srv_function_t _func);
+
+    bool add_holdings(server_holdings_t& _holdings);
+
+private:
+    static emb_srv_function_t get_function(struct emb_server_t* _srv, uint8_t _func);
+
+    static struct emb_srv_holdings_t* get_holdings(struct emb_server_t* _srv, uint16_t _begin);
+
+    typedef std::vector<function_t>::iterator func_iter;
+    std::vector<function_t> functions;
+
+    typedef std::vector<server_holdings_t*>::iterator holdnigs_iter;
+    std::vector<server_holdings_t*> holdings;
+
+protected:
+    int address;
+
+private:
+    struct emb_server_t srv;
+};
+
+// *******************************************************************************
+// super_server_t
+
+class super_server_t {
+public:
+    super_server_t();
+    void set_proto(struct emb_protocol_t* _proto);
+
+    bool add_server(server_t& _srv);
+
+private:
+    static struct emb_server_t* _get_server(struct emb_super_server_t* _ssrv,
+                                            uint8_t _address);
+    typedef std::vector<server_t*>::iterator srv_iter;
+    std::vector<server_t*> servers;
+
+    struct emb_super_server_t ssrv;
+    emb::pdu_t rx_pdu,tx_pdu;
+};
 
 }; // namespace emb
 

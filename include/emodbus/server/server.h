@@ -11,13 +11,6 @@
 extern "C" {
 #endif
 
-enum emb_super_server_state_t {
-    embs_default,
-    embs_got_request,
-    embs_processing_request,
-    embs_sending_answer
-};
-
 enum emb_super_server_event_t {
     embsev_request,
     embsev_error
@@ -45,7 +38,7 @@ struct emb_super_server_t {
     struct emb_protocol_t* proto;
 
     /// The state of the modbus server
-    enum emb_super_server_state_t state;
+    //enum emb_super_server_state_t state;
 
     struct emb_server_t* (*get_server)(struct emb_super_server_t* _ssrv,
                                        uint8_t _address);

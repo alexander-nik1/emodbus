@@ -25,6 +25,7 @@
 #endif
 
 #include "modbus_pdu.h"
+#include <stdint.h>
 #include <stdio.h>
 
 #ifdef __cplusplus

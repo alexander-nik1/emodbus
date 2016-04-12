@@ -15,9 +15,6 @@ static void emb_super_server_on_receive_req(void* _user_data,
     emb_srv_function_t func;
     uint8_t res;
 
-    if(ssrv->state != embs_default)
-        return;
-
     if(!ssrv->get_server)
         return;
 
@@ -55,7 +52,7 @@ static void emb_super_server_on_error(void* _user_data, int _errno) {
 }
 
 void emb_super_server_init(struct emb_super_server_t* _ssrv) {
-    _ssrv->state = embs_default;
+
 }
 
 void emb_super_server_set_proto(struct emb_super_server_t* _ssrv,
@@ -65,5 +62,6 @@ void emb_super_server_set_proto(struct emb_super_server_t* _ssrv,
         _proto->high_level_context = _ssrv;
         _proto->recv_packet = emb_super_server_on_receive_req;
         _proto->error = emb_super_server_on_error;
+        _proto->rx_pdu = _ssrv->rx_pdu;
     }
 }
