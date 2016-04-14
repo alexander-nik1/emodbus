@@ -27,7 +27,7 @@
  *
  * @param [in] _mbt RTU context
  */
-static void parse_packet(struct modbus_rtu_t* _mbt) {
+static void emb_rtu_parse_packet(struct emb_rtu_t* _mbt) {
     int res;
     const unsigned char* buf = _mbt->rx_buffer;
     const unsigned int size = _mbt->rx_buf_counter-2;
@@ -70,10 +70,10 @@ static void parse_packet(struct modbus_rtu_t* _mbt) {
  *
  * @return how much data was received.
  */
-static int modbus_rtu_on_write(struct input_stream_t* _this, const void* _data, unsigned int _size) {
+static int emb_rtu_on_write(struct input_stream_t* _this, const void* _data, unsigned int _size) {
 
     const unsigned char* data = (unsigned char*)_data;
-    struct modbus_rtu_t* mbt = container_of(_this, struct modbus_rtu_t, input_stream);
+    struct emb_rtu_t* mbt = container_of(_this, struct emb_rtu_t, input_stream);
 
     if((mbt->rx_buf_counter + _size) <= mbt->rx_buf_size) {
         memcpy(mbt->rx_buffer + mbt->rx_buf_counter, _data, _size);
@@ -97,8 +97,8 @@ static int modbus_rtu_on_write(struct input_stream_t* _this, const void* _data, 
  *
  * @return how much data written to _data.
  */
-static int modbus_rtu_on_read(struct output_stream_t* _this, void* _data, unsigned int _size) {
-    struct modbus_rtu_t* mbt = container_of(_this, struct modbus_rtu_t, output_stream);
+static int emb_rtu_on_read(struct output_stream_t* _this, void* _data, unsigned int _size) {
+    struct emb_rtu_t* mbt = container_of(_this, struct emb_rtu_t, output_stream);
     if(mbt->tx_buf_counter < mbt->tx_pkt_size) {
         const unsigned int remainder = mbt->tx_pkt_size - mbt->tx_buf_counter;
         const unsigned int sz = _size > remainder ? remainder : _size;
@@ -123,11 +123,11 @@ static int modbus_rtu_on_read(struct output_stream_t* _this, void* _data, unsign
  *
  * @return Zero on success, error on fail.
  */
-static int modbus_rtu_send_packet(void *_mbt,
+static int emb_rtu_send_packet(void *_mbt,
                            int _slave_addr,
                            emb_const_pdu_t *_pdu) {
 
-    struct modbus_rtu_t* mbt = (struct modbus_rtu_t*)_mbt;
+    struct emb_rtu_t* mbt = (struct emb_rtu_t*)_mbt;
 
     if((_pdu->data_size + 4) <= mbt->tx_buf_size) {
 
@@ -153,36 +153,36 @@ static int modbus_rtu_send_packet(void *_mbt,
         return -modbus_buffer_overflow;
 }
 
-void modbus_rtu_initialize(struct modbus_rtu_t* _mbt) {
-    _mbt->input_stream.on_write = modbus_rtu_on_write;
-    _mbt->output_stream.on_read = modbus_rtu_on_read;
+void emb_rtu_initialize(struct emb_rtu_t* _mbt) {
+    _mbt->input_stream.on_write = emb_rtu_on_write;
+    _mbt->output_stream.on_read = emb_rtu_on_read;
     _mbt->rx_buf_counter = 0;
     _mbt->tx_buf_counter = 0;
     _mbt->tx_pkt_size = 0;
 
     // Setup protocol
-    _mbt->proto.send_packet = modbus_rtu_send_packet;
+    _mbt->proto.send_packet = emb_rtu_send_packet;
     _mbt->proto.low_level_context = _mbt;
 
     _mbt->tx_pdu = NULL;
 }
 
-void modbus_rtu_on_char_timeout(struct modbus_rtu_t* _mbt) {
-    parse_packet(_mbt);
+void emb_rtu_on_char_timeout(struct emb_rtu_t* _mbt) {
+    emb_rtu_parse_packet(_mbt);
     _mbt->rx_buf_counter = 0;
 }
 
-void modbus_rtu_on_error(struct modbus_rtu_t* _mbt,
+void emb_rtu_on_error(struct emb_rtu_t* _mbt,
                          int _errno) {
     emb_proto_error(&_mbt->proto, _errno);
 }
 
-int modbus_rtu_send_packet_sync(struct modbus_rtu_t* _mbt,
+int emb_rtu_send_packet_sync(struct emb_rtu_t* _mbt,
                                 int _slave_addr,
                                 emb_const_pdu_t *_pdu) {
     int r;
     _mbt->tx_pdu = _pdu;
-    if((r = modbus_rtu_send_packet(_mbt, _slave_addr, _pdu)) == 0) {
+    if((r = emb_rtu_send_packet(_mbt, _slave_addr, _pdu)) == 0) {
         while(_mbt->tx_buf_counter < _mbt->tx_pkt_size) {
             const unsigned int remainder = _mbt->tx_pkt_size - _mbt->tx_buf_counter;
             _mbt->tx_buf_counter += stream_write(&_mbt->output_stream, _mbt->tx_buffer, remainder);

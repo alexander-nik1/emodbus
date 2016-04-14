@@ -25,7 +25,7 @@ private:
 
 private:
     struct posix_serial_port_t posix_serial_port;
-    struct modbus_rtu_t modbus_rtu;
+    struct emb_rtu_t modbus_rtu;
     struct timeval char_pause;
     struct event *char_timeout_timer;
 };

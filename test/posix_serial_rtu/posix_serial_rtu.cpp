@@ -18,7 +18,7 @@ posix_serial_rtu_t::posix_serial_rtu_t(struct event_base *_base,
     modbus_rtu.tx_buf_size = tx_buffer.size();
     modbus_rtu.modbus_rtu_on_char = modbus_rtu_on_char;
 
-    modbus_rtu_initialize(&modbus_rtu);
+    emb_rtu_initialize(&modbus_rtu);
 
     stream_connect(&posix_serial_port.output_stream, &modbus_rtu.input_stream);
     stream_connect(&modbus_rtu.output_stream, &posix_serial_port.input_stream);
@@ -51,5 +51,5 @@ void posix_serial_rtu_t::modbus_rtu_on_char(void* _user_data) {
 void posix_serial_rtu_t::on_timer(evutil_socket_t fd, short what, void *arg) {
     posix_serial_rtu_t* _this = (posix_serial_rtu_t*)arg;
 
-    modbus_rtu_on_char_timeout(&_this->modbus_rtu);
+    emb_rtu_on_char_timeout(&_this->modbus_rtu);
 }

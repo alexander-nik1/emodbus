@@ -36,7 +36,7 @@ typedef void (*modbus_rtu_on_char_t)(void* _user_data);
  * 1) modbus_protocol_t - interface for connect to high level
  * 2) RTU Interface - interface for connect to hardware transceiver.
  */
-struct modbus_rtu_t {
+struct emb_rtu_t {
 
     /// (RTU Interface) Pointer to receive buffer (must be set by user)
     unsigned char* rx_buffer;
@@ -83,7 +83,7 @@ struct modbus_rtu_t {
  *
  * @param [in] _mbt Structure that will be initialized
  */
-void modbus_rtu_initialize(struct modbus_rtu_t* _mbt);
+void emb_rtu_initialize(struct emb_rtu_t* _mbt);
 
 /**
  * @brief Signal of timeout between characters.
@@ -93,7 +93,7 @@ void modbus_rtu_initialize(struct modbus_rtu_t* _mbt);
  *
  * @param [in] _mbt RTU context
  */
-void modbus_rtu_on_char_timeout(struct modbus_rtu_t* _mbt);
+void emb_rtu_on_char_timeout(struct emb_rtu_t* _mbt);
 
 /**
  * @brief Calls by user when error caused on low level.
@@ -103,7 +103,7 @@ void modbus_rtu_on_char_timeout(struct modbus_rtu_t* _mbt);
  * @param [in] _mbt RTU context
  * @param [in] _errno Error number.
  */
-void modbus_rtu_on_error(struct modbus_rtu_t* _mbt,
+void emb_rtu_on_error(struct emb_rtu_t* _mbt,
                          int _errno);
 
 /**
@@ -118,7 +118,7 @@ void modbus_rtu_on_error(struct modbus_rtu_t* _mbt,
  *
  * @return Zero on success, or error code on fail.
  */
-int modbus_rtu_send_packet_sync(struct modbus_rtu_t* _mbt,
+int emb_rtu_send_packet_synce(struct emb_rtu_t* _mbt,
                                 int _slave_addr,
                                 emb_const_pdu_t* _pdu);
 
