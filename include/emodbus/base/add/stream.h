@@ -25,6 +25,8 @@ int stream_read(struct input_stream_t* _input_stream, void* _data, unsigned int 
 
 void stream_connect(struct output_stream_t* _output_stream, struct input_stream_t* _input_stream);
 
+void stream_disconnect(struct output_stream_t* _output_stream, struct input_stream_t* _input_stream);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

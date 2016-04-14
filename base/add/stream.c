@@ -21,3 +21,8 @@ void stream_connect(struct output_stream_t* _output_stream, struct input_stream_
 	_output_stream->input_stream = _input_stream;
 	_input_stream->output_stream = _output_stream;
 }
+
+void stream_disconnect(struct output_stream_t* _output_stream, struct input_stream_t* _input_stream) {
+    _output_stream->input_stream = 0;
+    _input_stream->output_stream = 0;
+}
