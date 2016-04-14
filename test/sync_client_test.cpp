@@ -23,7 +23,6 @@
 #include <emodbus/client/read_fifo.h>
 
 #include <emodbus/base/add/stream.h>
-#include "posix-serial-port.h"
 
 #include <pthread.h>
 
@@ -31,71 +30,12 @@
 
 #include "timespec_operations.h"
 
-class posix_serial_port_rtu_t {
+#include "posix_serial_rtu/posix_serial_rtu.hpp"
+#include "dumping_helper.hpp"
+
+class cleent_t : public emb::sync_client_t {
 public:
-    posix_serial_port_rtu_t(struct event_base *_base,
-                            const char* _dev_name,
-                            unsigned int _baudrate) {
-
-        posix_serial_port_open(&posix_serial_port, _base, _dev_name, _baudrate);
-
-        rx_buffer.resize(128);
-        tx_buffer.resize(128);
-
-        modbus_rtu.user_data = this;
-        modbus_rtu.rx_buffer = &rx_buffer[0];
-        modbus_rtu.tx_buffer = &tx_buffer[0];
-        modbus_rtu.rx_buf_size = rx_buffer.size();
-        modbus_rtu.tx_buf_size = tx_buffer.size();
-        modbus_rtu.modbus_rtu_on_char = modbus_rtu_on_char;
-
-        modbus_rtu_initialize(&modbus_rtu);
-
-        stream_connect(&posix_serial_port.output_stream, &modbus_rtu.input_stream);
-        stream_connect(&modbus_rtu.output_stream, &posix_serial_port.input_stream);
-
-        char_pause.tv_sec = 0;
-      //  enum { pause = 100 };
-        char_pause.tv_usec = 1000 * 10; //(1000 * 1000) / (_baudrate / pause);
-
-        char_timeout_timer = event_new(_base, -1, EV_TIMEOUT/* | EV_PERSIST*/, on_timer, this);
-    }
-
-    ~posix_serial_port_rtu_t() {
-
-        event_del(char_timeout_timer);
-        event_free(char_timeout_timer);
-
-        posix_serial_port_close(&posix_serial_port);
-    }
-
-    struct emb_protocol_t* get_proto() {
-        return &modbus_rtu.proto;
-    }
-
-private:
-    static void modbus_rtu_on_char(void* _user_data) {
-        posix_serial_port_rtu_t* _this = (posix_serial_port_rtu_t*)_user_data;
-        event_add(_this->char_timeout_timer, &_this->char_pause);
-    }
-
-    static void on_timer(evutil_socket_t fd, short what, void *arg) {
-        posix_serial_port_rtu_t* _this = (posix_serial_port_rtu_t*)arg;
-        modbus_rtu_on_char_timeout(&_this->modbus_rtu);
-    }
-
-    std::vector<unsigned char> rx_buffer, tx_buffer;
-
-private:
-    struct posix_serial_port_t posix_serial_port;
-    struct modbus_rtu_t modbus_rtu;
-    struct timeval char_pause;
-    struct event *char_timeout_timer;
-};
-
-class emodbus_sserver_t : public emb::sync_client_t {
-public:
-    emodbus_sserver_t() {
+    cleent_t() {
         pthread_mutex_init(&mutex, NULL);
         pthread_mutex_trylock(&mutex);
     }
@@ -123,19 +63,23 @@ private:
 
     pthread_mutex_t mutex;
 
-} mb_server;
+} mb_client;
+
+emb_debug_helper_t emb_debug_helper;
 
 void* thr_proc(void* p) {
 
-    emodbus_sserver_t* client = (emodbus_sserver_t*)p;
+    cleent_t* client = (cleent_t*)p;
 
     struct event_base *base = event_base_new();
 
-    posix_serial_port_rtu_t psp(base, "/dev/ttyUSB0", 115200);
+    posix_serial_rtu_t psp(base, "/dev/ttyUSB0", 115200);
 
     client->set_proto(psp.get_proto());
 
     psp.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
+
+    emb_debug_helper.enable_dumping();
 
     event_base_dispatch(base);
 }
@@ -151,33 +95,23 @@ int main(int argc, char* argv[]) {
 
     pthread_t pthr;
 
-    pthread_create(&pthr, NULL, thr_proc, (void*)&mb_server);
+    pthread_create(&pthr, NULL, thr_proc, (void*)&mb_client);
 
     sleep(1);
 
+    emb::read_regs_t rr;
 
-    emb::pdu_t req(emb_read_fifo_calc_req_data_size());
-
-    emb::pdu_t ans(emb_read_fifo_calc_answer_data_size());
-
-    res = emb_read_fifo_make_req(req, 0x0000);
-    printf("emb_read_fifo_make_req = %d\n", res);
+    rr.build_req(0x0000, 8);
 
     for(i=0; i<1000; ++i) {
 
-        res = mb_server.do_request(224, 100, req, ans);
+        res = mb_client.do_request(16, 100, rr.req, rr.ans);
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 
-        int q = emb_read_fifo_regs_count(ans);
-
-        for(int j=0; j<q; ++j) {
-            printf("%04X ", emb_read_fifo_get_data(ans, j));
-        }
-
         printf("\n");
 
-        usleep(1000*5000);
+        usleep(1000*1000);
         //printf("---------------> do_request() := %d\n", res);
     }
 
@@ -248,11 +182,11 @@ void write_and_read_file_record_test() {
 
     for(int i=0; i<10; ++i) {
 
-        res = mb_server.do_request(16, 100, reqw, answ);
+        res = mb_client.do_request(16, 100, reqw, answ);
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 
-        res = mb_server.do_request(16, 100, req, ans);
+        res = mb_client.do_request(16, 100, req, ans);
         if(res)
             printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
 
