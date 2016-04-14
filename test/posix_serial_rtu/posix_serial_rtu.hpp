@@ -19,7 +19,7 @@ public:
     struct emb_protocol_t* get_proto();
 
 private:
-    static void modbus_rtu_on_char(void* _user_data);
+    static void modbus_rtu_on_char(struct emb_rtu_t *_emb);
     static void on_timer(evutil_socket_t fd, short what, void *arg);
     std::vector<unsigned char> rx_buffer, tx_buffer;
 

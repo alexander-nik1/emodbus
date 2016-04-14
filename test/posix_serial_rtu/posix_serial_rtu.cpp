@@ -1,5 +1,6 @@
 
 #include "posix_serial_rtu.hpp"
+#include <emodbus/base/add/container_of.h>
 #include <emodbus/base/modbus_pdu.h>
 
 posix_serial_rtu_t::posix_serial_rtu_t(struct event_base *_base,
@@ -11,12 +12,11 @@ posix_serial_rtu_t::posix_serial_rtu_t(struct event_base *_base,
     rx_buffer.resize(MAX_PDU_SIZE);
     tx_buffer.resize(MAX_PDU_SIZE);
 
-    modbus_rtu.user_data = this;
     modbus_rtu.rx_buffer = &rx_buffer[0];
     modbus_rtu.tx_buffer = &tx_buffer[0];
     modbus_rtu.rx_buf_size = rx_buffer.size();
     modbus_rtu.tx_buf_size = tx_buffer.size();
-    modbus_rtu.modbus_rtu_on_char = modbus_rtu_on_char;
+    modbus_rtu.emb_rtu_on_char = modbus_rtu_on_char;
 
     emb_rtu_initialize(&modbus_rtu);
 
@@ -43,8 +43,8 @@ struct emb_protocol_t* posix_serial_rtu_t::get_proto() {
 }
 
 
-void posix_serial_rtu_t::modbus_rtu_on_char(void* _user_data) {
-    posix_serial_rtu_t* _this = (posix_serial_rtu_t*)_user_data;
+void posix_serial_rtu_t::modbus_rtu_on_char(struct emb_rtu_t* _emb) {
+    posix_serial_rtu_t* _this = container_of(_emb, posix_serial_rtu_t, modbus_rtu);
     event_add(_this->char_timeout_timer, &_this->char_pause);
 }
 

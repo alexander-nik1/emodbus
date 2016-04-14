@@ -21,14 +21,6 @@ extern "C" {
 //typedef void (*modbus_rtu_on_packet_t)(void* _user_data, const void* _packet, unsigned int _size);
 
 /**
- * @brief Function type for signaling of received character.
- *
- *
- *
- */
-typedef void (*modbus_rtu_on_char_t)(void* _user_data);
-
-/**
  * @brief RTU Protocol context.
  *
  * Object of this structure is a one RTU protocol context.
@@ -59,14 +51,11 @@ struct emb_rtu_t {
     /// This PDU contains a packet, that will be sent (internal variable)
     emb_const_pdu_t* tx_pdu;
 
-    /// (RTU Interface) User context (Argument of callback functions) (must be set by user)
-    void* user_data;
-
     ///< Protocol (abstract connector to high level)
     struct emb_protocol_t proto;
 
     /// (RTU Interface) This function calls when a new char was received (must be set by user)
-    modbus_rtu_on_char_t modbus_rtu_on_char;
+    void (*emb_rtu_on_char)(struct emb_rtu_t* _emb);
 
     /// (RTU Interface) Stream for reading from it. (must be connected to hardware receiver by user)
     struct input_stream_t input_stream;

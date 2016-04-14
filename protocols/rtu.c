@@ -80,7 +80,7 @@ static int modbus_rtu_on_write(struct input_stream_t* _this, const void* _data, 
         mbt->rx_buf_counter += _size;
     }
 
-    mbt->modbus_rtu_on_char(mbt->user_data);
+    mbt->emb_rtu_on_char(mbt);
 
     return _size;
 }
