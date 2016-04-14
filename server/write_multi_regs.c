@@ -48,7 +48,7 @@ uint8_t emb_srv_write_regs(struct emb_super_server_t* _ssrv,
     ((uint16_t*)tx_data)[0] = SWAP_BYTES(start_addr);
     ((uint16_t*)tx_data)[1] = SWAP_BYTES(quantity);
 
-    _ssrv->tx_pdu->function = 0x16;
+    _ssrv->tx_pdu->function = 0x10;
     _ssrv->tx_pdu->data_size = WRITE_REGISTERS_ANS_SIZE();
 
     if(_ssrv->tx_pdu->data_size > _ssrv->tx_pdu->max_size)
