@@ -52,6 +52,7 @@ struct emb_rtu_t {
 
     /// Counter of transmitter's bytes (internal variable)
     unsigned int tx_buf_counter;
+
     /// Size of packet for transmitting (internal variable)
     unsigned int tx_pkt_size;
 
@@ -118,7 +119,7 @@ void emb_rtu_on_error(struct emb_rtu_t* _mbt,
  *
  * @return Zero on success, or error code on fail.
  */
-int emb_rtu_send_packet_synce(struct emb_rtu_t* _mbt,
+int emb_rtu_send_packet_sync(struct emb_rtu_t* _mbt,
                                 int _slave_addr,
                                 emb_const_pdu_t* _pdu);
 
