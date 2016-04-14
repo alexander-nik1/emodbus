@@ -57,3 +57,23 @@ set(EMODBUS_SERVER_MASK_REG
 
 add_library(emodbus-server-mask-reg SHARED ${EMODBUS_SERVER_MASK_REG})
 add_library(emodbus-server-mask-reg-static STATIC ${EMODBUS_SERVER_MASK_REG})
+
+# ===================================================
+# server-read-file
+
+set(EMODBUS_SERVER_READ_FILE
+    read_file.c
+)
+
+add_library(emodbus-server-read-file SHARED ${EMODBUS_SERVER_READ_FILE})
+add_library(emodbus-server-read-file-static STATIC ${EMODBUS_SERVER_READ_FILE})
+
+# ===================================================
+# server-write-file
+
+set(EMODBUS_SERVER_WRITE_FILE
+    write_file.c
+)
+
+add_library(emodbus-server-write-file SHARED ${EMODBUS_SERVER_WRITE_FILE})
+add_library(emodbus-server-write-file-static STATIC ${EMODBUS_SERVER_WRITE_FILE})
