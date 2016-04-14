@@ -33,14 +33,14 @@ uint8_t emb_srv_write_reg(struct emb_super_server_t* _ssrv,
     if(res)
         return res;
 
+    if(WRITE_REGISTER_ANS_SIZE() > _ssrv->tx_pdu->max_size)
+        return MBE_SLAVE_FAILURE;
+
     ((uint16_t*)tx_data)[0] = SWAP_BYTES(addr);
     ((uint16_t*)tx_data)[1] = SWAP_BYTES(data);
 
     _ssrv->tx_pdu->function = 0x06;
     _ssrv->tx_pdu->data_size = WRITE_REGISTER_ANS_SIZE();
-
-    if(_ssrv->tx_pdu->data_size > _ssrv->tx_pdu->max_size)
-        return MBE_SLAVE_FAILURE;
 
     return 0;
 }

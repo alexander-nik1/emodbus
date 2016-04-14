@@ -17,15 +17,15 @@ uint8_t emb_srv_mask_reg(struct emb_super_server_t* _ssrv,
     uint16_t tmp;
 
     const uint16_t addr = GET_BIG_END16(rx_data + 0),
-                   or_mask =  GET_BIG_END16(rx_data + 2),
-                   and_mask = GET_BIG_END16(rx_data + 4);
+                   and_mask =  GET_BIG_END16(rx_data + 2),
+                   or_mask = GET_BIG_END16(rx_data + 4);
 
     r = _srv->get_holdings(_srv, addr);
 
     if(!r)
         return MBE_ILLEGEL_DATA_ADDR;
 
-    if(!r->write_regs)
+    if(!r->read_regs || !r->write_regs)
         return MBE_ILLEGEL_DATA_ADDR;
 
     res = r->read_regs(r,
@@ -46,15 +46,15 @@ uint8_t emb_srv_mask_reg(struct emb_super_server_t* _ssrv,
     if(res)
         return res;
 
+    if(MASK_REGISTER_ANS_SIZE() > _ssrv->tx_pdu->max_size)
+        return MBE_SLAVE_FAILURE;
+
     ((uint16_t*)tx_data)[0] = SWAP_BYTES(addr);
-    ((uint16_t*)tx_data)[1] = SWAP_BYTES(or_mask);
-    ((uint16_t*)tx_data)[2] = SWAP_BYTES(and_mask);
+    ((uint16_t*)tx_data)[1] = SWAP_BYTES(and_mask);
+    ((uint16_t*)tx_data)[2] = SWAP_BYTES(or_mask);
 
     _ssrv->tx_pdu->function = 0x16;
     _ssrv->tx_pdu->data_size = MASK_REGISTER_ANS_SIZE();
-
-    if(_ssrv->tx_pdu->data_size > _ssrv->tx_pdu->max_size)
-        return MBE_SLAVE_FAILURE;
 
     return 0;
 }

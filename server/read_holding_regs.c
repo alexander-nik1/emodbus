@@ -38,6 +38,12 @@ uint8_t emb_srv_read_holdings(struct emb_super_server_t* _ssrv,
 
     ++tx_data; // skip byte-count
 
+    _ssrv->tx_pdu->function = 0x03;
+    _ssrv->tx_pdu->data_size = READ_HOLDINGS_ANS_SIZE(quantity);
+
+    if(_ssrv->tx_pdu->data_size > _ssrv->tx_pdu->max_size)
+        return MBE_SLAVE_FAILURE;
+
     res = r->read_regs(r,
                        MB_CONST_PDU(_ssrv->rx_pdu),
                        start_addr,
@@ -45,12 +51,6 @@ uint8_t emb_srv_read_holdings(struct emb_super_server_t* _ssrv,
                        (uint16_t*)tx_data);
     if(res)
         return res;
-
-    _ssrv->tx_pdu->function = 0x03;
-    _ssrv->tx_pdu->data_size = READ_HOLDINGS_ANS_SIZE(quantity);
-
-    if(_ssrv->tx_pdu->data_size > _ssrv->tx_pdu->max_size)
-        return MBE_SLAVE_FAILURE;
 
     // Swap all words
     for(i=0; i<quantity; ++i) {
