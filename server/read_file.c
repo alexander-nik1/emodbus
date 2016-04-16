@@ -15,7 +15,7 @@ uint8_t emb_srv_read_file(struct emb_super_server_t* _ssrv,
     uint8_t* tx_data = _ssrv->tx_pdu->data;
 
     const uint8_t byte_count = rx_data[0];
-    unsigned char byte_counter=0, i, j;
+    unsigned char byte_counter=0, i;
 
     if(byte_count < request_size || byte_count > (request_size*35))
         return MBE_ILLEGAL_DATA_VALUE;
@@ -33,6 +33,7 @@ uint8_t emb_srv_read_file(struct emb_super_server_t* _ssrv,
         if((rx_data[0] == EMB_FILE_REF_TYPE) && (file) /*&& ((file->start + file->size) >= (start_addr + reg_count))*/) {
 
             uint8_t res;
+            uint16_t j;
             const unsigned char bytes = reg_count * 2 + 1;
 
             *tx_data++ = bytes;
