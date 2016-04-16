@@ -375,12 +375,71 @@ uint8_t server_holdings_t::write_regs(struct emb_srv_holdings_t* _rr,
 }
 
 // *******************************************************************************
+// server_file_t
+
+server_file_t::server_file_t() {
+    set_funcs();
+}
+
+server_file_t::server_file_t(uint16_t _fileno/*, uint16_t _start, uint16_t _size*/) {
+    f.fileno = _fileno;
+//    f.start = _start;
+//    f.size = _size;
+    set_funcs();
+}
+
+void server_file_t::set_fileno(uint16_t _fileno)
+{ f.fileno = _fileno; }
+
+//void server_file_t::set_start(uint16_t _start)
+//{ f.start = _start; }
+
+//void server_file_t::set_size(uint16_t _size)
+//{ f.size = _size; }
+
+uint8_t server_file_t::on_read_file(emb_const_pdu_t* _req,
+                             uint16_t _offset,
+                             uint16_t _quantity,
+                             uint16_t* _pvalues)
+{ return 0; }
+
+uint8_t server_file_t::on_write_file(emb_const_pdu_t* _req,
+                              uint16_t _offset,
+                              uint16_t _quantity,
+                              const uint16_t* _pvalues)
+{ return 0; }
+
+void server_file_t::set_funcs() {
+    f.read_file = read_file;
+    f.write_file = write_file;
+}
+
+uint8_t server_file_t::read_file(emb_srv_file_t *_f,
+                                 emb_const_pdu_t* _req,
+                                 uint16_t _offset,
+                                 uint16_t _quantity,
+                                 uint16_t* _pvalues) {
+    server_file_t* _this = container_of(_f, server_file_t, f);
+    return _this->on_read_file(_req, _offset, _quantity, _pvalues);
+}
+
+uint8_t server_file_t::write_file(emb_srv_file_t *_f,
+                                  emb_const_pdu_t* _req,
+                                  uint16_t _offset,
+                                  uint16_t _quantity,
+                                  const uint16_t* _pvalues) {
+    server_file_t* _this = container_of(_f, server_file_t, f);
+    return _this->on_write_file(_req, _offset, _quantity, _pvalues);
+}
+
+// *******************************************************************************
 // server_t
 
 server_t::server_t(int _address) : address(_address) {
     memset(&srv, 0, sizeof(struct emb_server_t));
     srv.get_function = get_function;
     srv.get_holdings = get_holdings;
+    srv.get_file = get_file;
 }
 
 int server_t::addr() const { return address; }
@@ -424,6 +483,16 @@ bool server_t::add_holdings(server_holdings_t& _holdings) {
     return true;
 }
 
+bool server_t::add_file(server_file_t& _file) {
+    for(files_iter i=files.begin(); i != files.end(); ++i) {
+        if((*i)->f.fileno == _file.f.fileno)
+            //if(emb_is_ranges_cross((*i)->f.start, (*i)->f.size, _file.f.start, _file.f.size) )
+                return false;
+    }
+    files.push_back(&_file);
+    return true;
+}
+
 emb_srv_function_t server_t::get_function(struct emb_server_t* _srv, uint8_t _func) {
     server_t* _this = container_of(_srv, server_t, srv);
     for(func_iter i=_this->functions.begin(); i != _this->functions.end(); ++i) {
@@ -440,6 +509,15 @@ struct emb_srv_holdings_t* server_t::get_holdings(struct emb_server_t* _srv, uin
         const uint16_t end = start + (*i)->h.size - 1;
         if((start <= _begin) && (_begin <= end))
             return &((*i)->h);
+    }
+    return NULL;
+}
+
+struct emb_srv_file_t* server_t::get_file(struct emb_server_t* _srv, uint16_t _fileno/*, uint16_t _begin*/) {
+    server_t* _this = container_of(_srv, server_t, srv);
+    for(files_iter i=_this->files.begin(); i != _this->files.end(); ++i) {
+        if((*i)->f.fileno == _fileno)
+            return &((*i)->f);
     }
     return NULL;
 }

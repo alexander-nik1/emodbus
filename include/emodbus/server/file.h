@@ -14,8 +14,8 @@ enum { EMB_FILE_REF_TYPE = 0x06 };
 struct emb_srv_file_t {
 
     uint16_t fileno;
-    uint16_t start;
-    uint16_t size;
+//    uint16_t start;
+//    uint16_t size;
 
     uint8_t (*read_file)(struct emb_srv_file_t* _f,
                          emb_const_pdu_t* _req,

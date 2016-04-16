@@ -32,7 +32,7 @@ struct emb_server_t {
 
     struct emb_srv_holdings_t* (*get_holdings)(struct emb_server_t* _srv, uint16_t _begin);
 
-    struct emb_srv_file_t* (*get_file)(struct emb_server_t* _srv, uint16_t _fileno, uint16_t _begin);
+    struct emb_srv_file_t* (*get_file)(struct emb_server_t* _srv, uint16_t _fileno/*, uint16_t _begin*/);
 };
 
 struct emb_super_server_t {

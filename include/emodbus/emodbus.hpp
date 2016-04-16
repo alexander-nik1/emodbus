@@ -10,6 +10,7 @@
 
 #include <emodbus/server/server.h>
 #include <emodbus/server/holdings.h>
+#include <emodbus/server/file.h>
 
 namespace emb {
 
@@ -256,6 +257,43 @@ private:
 };
 
 // *******************************************************************************
+// server_file_t
+
+class server_file_t {
+    friend class server_t;
+public:
+    server_file_t();
+    server_file_t(uint16_t _fileno/*, uint16_t _start, uint16_t _size*/);
+
+    void set_fileno(uint16_t _fileno);
+//    void set_start(uint16_t _start);
+//    void set_size(uint16_t _size);
+    virtual uint8_t on_read_file(emb_const_pdu_t* _req,
+                                 uint16_t _offset,
+                                 uint16_t _quantity,
+                                 uint16_t* _pvalues);
+    virtual uint8_t on_write_file(emb_const_pdu_t* _req,
+                                  uint16_t _offset,
+                                  uint16_t _quantity,
+                                  const uint16_t* _pvalues);
+
+private:
+    void set_funcs();
+    static uint8_t read_file(struct emb_srv_file_t* _f,
+                             emb_const_pdu_t* _req,
+                             uint16_t _offset,
+                             uint16_t _quantity,
+                             uint16_t* _pvalues);
+    static uint8_t write_file(struct emb_srv_file_t* _f,
+                              emb_const_pdu_t* _req,
+                              uint16_t _offset,
+                              uint16_t _quantity,
+                              const uint16_t* _pvalues);
+
+    struct emb_srv_file_t f;
+};
+
+// *******************************************************************************
 // server_t
 
 class super_server_t;
@@ -276,17 +314,23 @@ public:
     bool add_function(uint8_t _func_no, emb_srv_function_t _func);
 
     bool add_holdings(server_holdings_t& _holdings);
+    bool add_file(server_file_t& _file);
 
 private:
     static emb_srv_function_t get_function(struct emb_server_t* _srv, uint8_t _func);
 
     static struct emb_srv_holdings_t* get_holdings(struct emb_server_t* _srv, uint16_t _begin);
 
+    static struct emb_srv_file_t* get_file(struct emb_server_t* _srv, uint16_t _fileno/*, uint16_t _begin*/);
+
     typedef std::vector<function_t>::iterator func_iter;
     std::vector<function_t> functions;
 
     typedef std::vector<server_holdings_t*>::iterator holdnigs_iter;
     std::vector<server_holdings_t*> holdings;
+
+    typedef std::vector<server_file_t*>::iterator files_iter;
+    std::vector<server_file_t*> files;
 
 protected:
     int address;

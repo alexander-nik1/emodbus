@@ -28,9 +28,9 @@ uint8_t emb_srv_read_file(struct emb_super_server_t* _ssrv,
         const uint16_t start_addr = GET_BIG_END16(rx_data + 3);
         const uint16_t reg_count = GET_BIG_END16(rx_data + 5);
 
-        struct emb_srv_file_t* file = _srv->get_file(_srv, file_number, start_addr);
+        struct emb_srv_file_t* file = _srv->get_file(_srv, file_number/*, start_addr*/);
 
-        if((rx_data[0] == EMB_FILE_REF_TYPE) && (file) && ((file->start + file->size) >= (start_addr + reg_count))) {
+        if((rx_data[0] == EMB_FILE_REF_TYPE) && (file) /*&& ((file->start + file->size) >= (start_addr + reg_count))*/) {
 
             uint8_t res;
             const unsigned char bytes = reg_count * 2 + 1;
@@ -42,6 +42,9 @@ uint8_t emb_srv_read_file(struct emb_super_server_t* _ssrv,
 
             if(!file->read_file)
                 return MBE_ILLEGEL_DATA_ADDR;
+
+            if(_ssrv->tx_pdu->max_size < byte_counter)
+                return MBE_SLAVE_FAILURE;
 
             res = file->read_file(file,
                                   MB_CONST_PDU(_ssrv->rx_pdu),
@@ -65,6 +68,9 @@ uint8_t emb_srv_read_file(struct emb_super_server_t* _ssrv,
 
     tx_data = _ssrv->tx_pdu->data;
     *tx_data = byte_counter;
+
+    _ssrv->tx_pdu->data_size = byte_counter + 1;
+    _ssrv->tx_pdu->function = 0x14;
 
     return 0;
 }
