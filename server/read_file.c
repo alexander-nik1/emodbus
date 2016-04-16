@@ -41,7 +41,7 @@ uint8_t emb_srv_read_file(struct emb_super_server_t* _ssrv,
             *tx_data++ = EMB_FILE_REF_TYPE;
 
             if(!file->read_file)
-                return MBE_ILLEGEL_DATA_ADDR;
+                return MBE_ILLEGAL_DATA_ADDR;
 
             if(_ssrv->tx_pdu->max_size < byte_counter)
                 return MBE_SLAVE_FAILURE;
@@ -61,7 +61,7 @@ uint8_t emb_srv_read_file(struct emb_super_server_t* _ssrv,
             }
         }
         else {
-            return MBE_ILLEGEL_DATA_ADDR;
+            return MBE_ILLEGAL_DATA_ADDR;
         }
         rx_data += request_size;
     }

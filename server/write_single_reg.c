@@ -20,10 +20,10 @@ uint8_t emb_srv_write_reg(struct emb_super_server_t* _ssrv,
     r = _srv->get_holdings(_srv, addr);
 
     if(!r)
-        return MBE_ILLEGEL_DATA_ADDR;
+        return MBE_ILLEGAL_DATA_ADDR;
 
     if(!r->write_regs)
-        return MBE_ILLEGEL_DATA_ADDR;
+        return MBE_ILLEGAL_DATA_ADDR;
 
     res = r->write_regs(r,
                         MB_CONST_PDU(_ssrv->rx_pdu),

@@ -23,16 +23,16 @@ uint8_t emb_srv_read_holdings(struct emb_super_server_t* _ssrv,
     r = _srv->get_holdings(_srv, start_addr);
 
     if(!r)
-        return MBE_ILLEGEL_DATA_ADDR;
+        return MBE_ILLEGAL_DATA_ADDR;
 
     if(start_addr > end)
-        return MBE_ILLEGEL_DATA_ADDR;
+        return MBE_ILLEGAL_DATA_ADDR;
 
     if(end > (r->start + r->size))
-        return MBE_ILLEGEL_DATA_ADDR;
+        return MBE_ILLEGAL_DATA_ADDR;
 
     if(!r->read_regs)
-        return MBE_ILLEGEL_DATA_ADDR;
+        return MBE_ILLEGAL_DATA_ADDR;
 
     *tx_data = quantity*2;  // byte count
 
