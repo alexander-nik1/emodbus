@@ -339,14 +339,12 @@ void server_holdings_t::set_start(uint16_t _start)
 void server_holdings_t::set_size(uint16_t _size)
 { h.size = _size; }
 
-uint8_t server_holdings_t::on_read_regs(emb_const_pdu_t* _req,
-                             uint16_t _offset,
+uint8_t server_holdings_t::on_read_regs(uint16_t _offset,
                              uint16_t _quantity,
                              uint16_t* _pvalues)
 { return 0; }
 
-uint8_t server_holdings_t::on_write_regs(emb_const_pdu_t* _req,
-                              uint16_t _offset,
+uint8_t server_holdings_t::on_write_regs(uint16_t _offset,
                               uint16_t _quantity,
                               const uint16_t* _pvalues)
 { return 0; }
@@ -357,21 +355,19 @@ void server_holdings_t::set_funcs() {
 }
 
 uint8_t server_holdings_t::read_regs(struct emb_srv_holdings_t* _rr,
-                                     emb_const_pdu_t* _req,
                                      uint16_t _offset,
                                      uint16_t _quantity,
                                      uint16_t* _pvalues) {
     server_holdings_t* _this = container_of(_rr, server_holdings_t, h);
-    return _this->on_read_regs(_req, _offset, _quantity, _pvalues);
+    return _this->on_read_regs(_offset, _quantity, _pvalues);
 }
 
 uint8_t server_holdings_t::write_regs(struct emb_srv_holdings_t* _rr,
-                                      emb_const_pdu_t* _req,
                                       uint16_t _offset,
                                       uint16_t _quantity,
                                       const uint16_t* _pvalues) {
     server_holdings_t* _this = container_of(_rr, server_holdings_t, h);
-    return _this->on_write_regs(_req, _offset, _quantity, _pvalues);
+    return _this->on_write_regs(_offset, _quantity, _pvalues);
 }
 
 // *******************************************************************************

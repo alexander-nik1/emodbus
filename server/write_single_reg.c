@@ -26,7 +26,6 @@ uint8_t emb_srv_write_reg(struct emb_super_server_t* _ssrv,
         return MBE_ILLEGAL_DATA_ADDR;
 
     res = r->write_regs(r,
-                        MB_CONST_PDU(_ssrv->rx_pdu),
                         addr,
                         1,
                         &data);

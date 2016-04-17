@@ -231,24 +231,20 @@ public:
 
     void set_start(uint16_t _start);
     void set_size(uint16_t _size);
-    virtual uint8_t on_read_regs(emb_const_pdu_t* _req,
-                                 uint16_t _offset,
+    virtual uint8_t on_read_regs(uint16_t _offset,
                                  uint16_t _quantity,
                                  uint16_t* _pvalues);
-    virtual uint8_t on_write_regs(emb_const_pdu_t* _req,
-                                  uint16_t _offset,
+    virtual uint8_t on_write_regs(uint16_t _offset,
                                   uint16_t _quantity,
                                   const uint16_t* _pvalues);
 
 private:
     void set_funcs();
     static uint8_t read_regs(struct emb_srv_holdings_t* _rr,
-                             emb_const_pdu_t* _req,
                              uint16_t _offset,
                              uint16_t _quantity,
                              uint16_t* _pvalues);
     static uint8_t write_regs(struct emb_srv_holdings_t* _rr,
-                              emb_const_pdu_t* _req,
                               uint16_t _offset,
                               uint16_t _quantity,
                               const uint16_t* _pvalues);

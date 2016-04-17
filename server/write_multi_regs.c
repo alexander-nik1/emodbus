@@ -38,7 +38,6 @@ uint8_t emb_srv_write_regs(struct emb_super_server_t* _ssrv,
     }
 
     i = r->write_regs(r,
-                      MB_CONST_PDU(_ssrv->rx_pdu),
                       start_addr,
                       quantity,
                       (uint16_t*)rx_data);

@@ -29,7 +29,6 @@ uint8_t emb_srv_mask_reg(struct emb_super_server_t* _ssrv,
         return MBE_ILLEGAL_DATA_ADDR;
 
     res = r->read_regs(r,
-                       MB_CONST_PDU(_ssrv->rx_pdu),
                        addr,
                        1,
                        &tmp);
@@ -39,7 +38,6 @@ uint8_t emb_srv_mask_reg(struct emb_super_server_t* _ssrv,
     tmp = (tmp & and_mask) | (or_mask & ~and_mask);
 
     res = r->write_regs(r,
-                        MB_CONST_PDU(_ssrv->rx_pdu),
                         addr,
                         1,
                         &tmp);
