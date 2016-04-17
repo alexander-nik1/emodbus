@@ -83,7 +83,7 @@ public:
         return 0;
     }
 
-    uint8_t on_write_file(emb_const_pdu_t* _req, uint16_t _offset,
+    uint8_t on_write_file(uint16_t _offset,
                           uint16_t _quantity, const uint16_t* _pvalues) {
 
         printf("Write File: start:0x%04X, length:0x%04X\nData:", _offset, _quantity);
@@ -128,7 +128,9 @@ int main(int argc, char* argv[]) {
     srv1.add_function(0x06, emb_srv_write_reg);
     srv1.add_function(0x10, emb_srv_write_regs);
     srv1.add_function(0x16, emb_srv_mask_reg);
+
     srv1.add_function(0x14, emb_srv_read_file);
+    srv1.add_function(0x15, emb_srv_write_file);
 
     srv1.add_holdings(h);
     srv1.add_file(f);

@@ -73,7 +73,7 @@ void* thr_proc(void* p) {
 
     struct event_base *base = event_base_new();
 
-    posix_serial_rtu_t psp(base, "/dev/ttyUSB0", 115200);
+    posix_serial_rtu_t psp(base, "/dev/ttyS0", 115200);
 
     client->set_proto(psp.get_proto());
 
@@ -99,7 +99,9 @@ int main(int argc, char* argv[]) {
 
     sleep(1);
 
-    emb::read_regs_t rr;
+    write_and_read_file_record_test();
+
+ /*   emb::read_regs_t rr;
 
     rr.build_req(0x0000, 8);
 
@@ -113,7 +115,7 @@ int main(int argc, char* argv[]) {
 
         usleep(1000*1000);
         //printf("---------------> do_request() := %d\n", res);
-    }
+    }*/
 
     pthread_join(pthr, NULL);
 
