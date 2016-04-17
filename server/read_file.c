@@ -48,7 +48,6 @@ uint8_t emb_srv_read_file(struct emb_super_server_t* _ssrv,
                 return MBE_SLAVE_FAILURE;
 
             res = file->read_file(file,
-                                  MB_CONST_PDU(_ssrv->rx_pdu),
                                   start_addr,
                                   reg_count,
                                   (uint16_t*)(tx_data));

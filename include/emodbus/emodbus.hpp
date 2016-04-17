@@ -268,24 +268,20 @@ public:
     void set_fileno(uint16_t _fileno);
 //    void set_start(uint16_t _start);
 //    void set_size(uint16_t _size);
-    virtual uint8_t on_read_file(emb_const_pdu_t* _req,
-                                 uint16_t _offset,
+    virtual uint8_t on_read_file(uint16_t _offset,
                                  uint16_t _quantity,
                                  uint16_t* _pvalues);
-    virtual uint8_t on_write_file(emb_const_pdu_t* _req,
-                                  uint16_t _offset,
+    virtual uint8_t on_write_file(uint16_t _offset,
                                   uint16_t _quantity,
                                   const uint16_t* _pvalues);
 
 private:
     void set_funcs();
     static uint8_t read_file(struct emb_srv_file_t* _f,
-                             emb_const_pdu_t* _req,
                              uint16_t _offset,
                              uint16_t _quantity,
                              uint16_t* _pvalues);
     static uint8_t write_file(struct emb_srv_file_t* _f,
-                              emb_const_pdu_t* _req,
                               uint16_t _offset,
                               uint16_t _quantity,
                               const uint16_t* _pvalues);

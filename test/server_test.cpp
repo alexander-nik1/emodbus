@@ -74,7 +74,7 @@ public:
         memset(&regs[0], 0, SIZE*2);
     }
 
-    uint8_t on_read_file(emb_const_pdu_t* _req, uint16_t _offset,
+    uint8_t on_read_file(uint16_t _offset,
                          uint16_t _quantity, uint16_t* _pvalues) {
 
         memcpy(_pvalues, &regs[_offset], _quantity*2);

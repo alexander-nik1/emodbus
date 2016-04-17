@@ -397,14 +397,12 @@ void server_file_t::set_fileno(uint16_t _fileno)
 //void server_file_t::set_size(uint16_t _size)
 //{ f.size = _size; }
 
-uint8_t server_file_t::on_read_file(emb_const_pdu_t* _req,
-                             uint16_t _offset,
+uint8_t server_file_t::on_read_file(uint16_t _offset,
                              uint16_t _quantity,
                              uint16_t* _pvalues)
 { return 0; }
 
-uint8_t server_file_t::on_write_file(emb_const_pdu_t* _req,
-                              uint16_t _offset,
+uint8_t server_file_t::on_write_file(uint16_t _offset,
                               uint16_t _quantity,
                               const uint16_t* _pvalues)
 { return 0; }
@@ -415,21 +413,19 @@ void server_file_t::set_funcs() {
 }
 
 uint8_t server_file_t::read_file(emb_srv_file_t *_f,
-                                 emb_const_pdu_t* _req,
                                  uint16_t _offset,
                                  uint16_t _quantity,
                                  uint16_t* _pvalues) {
     server_file_t* _this = container_of(_f, server_file_t, f);
-    return _this->on_read_file(_req, _offset, _quantity, _pvalues);
+    return _this->on_read_file(_offset, _quantity, _pvalues);
 }
 
 uint8_t server_file_t::write_file(emb_srv_file_t *_f,
-                                  emb_const_pdu_t* _req,
                                   uint16_t _offset,
                                   uint16_t _quantity,
                                   const uint16_t* _pvalues) {
     server_file_t* _this = container_of(_f, server_file_t, f);
-    return _this->on_write_file(_req, _offset, _quantity, _pvalues);
+    return _this->on_write_file(_offset, _quantity, _pvalues);
 }
 
 // *******************************************************************************
