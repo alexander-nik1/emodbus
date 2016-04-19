@@ -41,7 +41,7 @@ uint8_t emb_srv_write_regs(struct emb_super_server_t* _ssrv,
     }
 
     i = r->write_regs(r,
-                      start_addr,
+                      start_addr - r->start,
                       quantity,
                       (uint16_t*)rx_data);
     if(i)

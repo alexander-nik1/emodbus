@@ -48,7 +48,7 @@ uint8_t emb_srv_read_holdings(struct emb_super_server_t* _ssrv,
         return MBE_SLAVE_FAILURE;
 
     res = r->read_regs(r,
-                       start_addr,
+                       start_addr - r->start,
                        quantity,
                        (uint16_t*)tx_data);
     if(res)
