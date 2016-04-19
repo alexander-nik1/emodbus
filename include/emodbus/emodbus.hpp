@@ -9,6 +9,7 @@
 #include <emodbus/client/write_file_record.h>
 
 #include <emodbus/server/server.h>
+#include <emodbus/server/coils.h>
 #include <emodbus/server/holdings.h>
 #include <emodbus/server/file.h>
 
@@ -32,6 +33,13 @@ public:
 private:
     std::vector<char> buffer;
 };
+
+// *******************************************************************************
+//  #####  #       ###   #####  #   #  #####
+//  #      #        #    #      ##  #    #
+//  #      #        #    #####  # # #    #
+//  #      #        #    #      #  ##    #
+//  #####  #####   ###   #####  #   #    #
 
 // *******************************************************************************
 // read_hold_regs_t
@@ -219,9 +227,49 @@ private:
 };
 
 // *******************************************************************************
-// server_holdings_t
+//  #####  #####  ####   #   #  #####  ####
+//  #      #      #   #  #   #  #      #   #
+//  #####  #####  ####   #   #  #####  ####
+//      #  #      #   #   # #   #      #   #
+//  #####  #####  #   #    #    #####  #   #
 
 class server_t;
+
+// *******************************************************************************
+// server_coils_t
+
+class server_coils_t {
+    friend class server_t;
+public:
+    server_coils_t();
+    server_coils_t(uint16_t _start, uint16_t _size);
+
+    void set_start(uint16_t _start);
+    void set_size(uint16_t _size);
+
+    virtual uint8_t on_read_coils(uint16_t _offset,
+                                  uint16_t _quantity,
+                                  uint8_t* _pvalues);
+
+    virtual uint8_t on_write_coils(uint16_t _offset,
+                                   uint16_t _quantity,
+                                   const uint8_t* _pvalues);
+private:
+    void set_funcs();
+    static uint8_t read_coils(struct emb_srv_coils_t* _coils,
+                              uint16_t _offset,
+                              uint16_t _quantity,
+                              uint8_t* _pvalues);
+    static uint8_t write_coils(struct emb_srv_coils_t* _coils,
+                               uint16_t _offset,
+                               uint16_t _quantity,
+                               const uint8_t* _pvalues);
+
+    struct emb_srv_coils_t coils;
+};
+
+// *******************************************************************************
+// server_holdings_t
 
 class server_holdings_t {
     friend class server_t;
@@ -305,11 +353,14 @@ public:
 
     bool add_function(uint8_t _func_no, emb_srv_function_t _func);
 
+    bool add_coils(server_coils_t& _coils);
     bool add_holdings(server_holdings_t& _holdings);
     bool add_file(server_file_t& _file);
 
 private:
     static emb_srv_function_t get_function(struct emb_server_t* _srv, uint8_t _func);
+
+    static struct emb_srv_coils_t* get_coils(struct emb_server_t* _srv, uint16_t _begin);
 
     static struct emb_srv_holdings_t* get_holdings(struct emb_server_t* _srv, uint16_t _begin);
 
@@ -317,6 +368,9 @@ private:
 
     typedef std::vector<function_t>::iterator func_iter;
     std::vector<function_t> functions;
+
+    typedef std::vector<server_coils_t*>::iterator coils_iter;
+    std::vector<server_coils_t*> coils;
 
     typedef std::vector<server_holdings_t*>::iterator holdnigs_iter;
     std::vector<server_holdings_t*> holdings;

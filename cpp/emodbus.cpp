@@ -321,6 +321,56 @@ struct emb_client_req_procs_t aync_client_t::procs = {
 };
 
 // *******************************************************************************
+// server_coils_t
+
+server_coils_t::server_coils_t() {
+    set_funcs();
+}
+
+server_coils_t::server_coils_t(uint16_t _start, uint16_t _size) {
+    coils.start = _start;
+    coils.size = _size;
+    set_funcs();
+}
+
+void server_coils_t::set_start(uint16_t _start)
+{ coils.start = _start; }
+
+void server_coils_t::set_size(uint16_t _size)
+{ coils.size = _size; }
+
+uint8_t server_coils_t::on_read_coils(uint16_t _offset,
+                             uint16_t _quantity,
+                             uint8_t* _pvalues)
+{ return 0; }
+
+uint8_t server_coils_t::on_write_coils(uint16_t _offset,
+                              uint16_t _quantity,
+                              const uint8_t* _pvalues)
+{ return 0; }
+
+void server_coils_t::set_funcs() {
+    coils.read_coils = read_coils;
+    coils.write_coils = write_coils;
+}
+
+uint8_t server_coils_t::read_coils(struct emb_srv_coils_t* _coils,
+                                     uint16_t _offset,
+                                     uint16_t _quantity,
+                                     uint8_t* _pvalues) {
+    server_coils_t* _this = container_of(_coils, server_coils_t, coils);
+    return _this->on_read_coils(_offset, _quantity, _pvalues);
+}
+
+uint8_t server_coils_t::write_coils(struct emb_srv_coils_t* _coils,
+                                      uint16_t _offset,
+                                      uint16_t _quantity,
+                                      const uint8_t* _pvalues) {
+    server_coils_t* _this = container_of(_coils, server_coils_t, coils);
+    return _this->on_write_coils(_offset, _quantity, _pvalues);
+}
+
+// *******************************************************************************
 // server_holdings_t
 
 server_holdings_t::server_holdings_t() {
@@ -430,6 +480,7 @@ uint8_t server_file_t::write_file(emb_srv_file_t *_f,
 server_t::server_t(int _address) : address(_address) {
     memset(&srv, 0, sizeof(struct emb_server_t));
     srv.get_function = get_function;
+    srv.get_coils = get_coils;
     srv.get_holdings = get_holdings;
     srv.get_file = get_file;
 }
@@ -466,6 +517,15 @@ static bool emb_is_ranges_cross(uint16_t _start1,
     return false;
 }
 
+bool server_t::add_coils(server_coils_t& _coils) {
+    for(coils_iter i=coils.begin(); i != coils.end(); ++i) {
+        if( emb_is_ranges_cross((*i)->coils.start, (*i)->coils.size, _coils.coils.start, _coils.coils.size) )
+            return false;
+    }
+    coils.push_back(&_coils);
+    return true;
+}
+
 bool server_t::add_holdings(server_holdings_t& _holdings) {
     for(holdnigs_iter i=holdings.begin(); i != holdings.end(); ++i) {
         if( emb_is_ranges_cross((*i)->h.start, (*i)->h.size, _holdings.h.start, _holdings.h.size) )
@@ -490,6 +550,17 @@ emb_srv_function_t server_t::get_function(struct emb_server_t* _srv, uint8_t _fu
     for(func_iter i=_this->functions.begin(); i != _this->functions.end(); ++i) {
         if(i->func_no == _func)
             return i->func;
+    }
+    return NULL;
+}
+
+struct emb_srv_coils_t* server_t::get_coils(struct emb_server_t* _srv, uint16_t _begin) {
+    server_t* _this = container_of(_srv, server_t, srv);
+    for(coils_iter i=_this->coils.begin(); i != _this->coils.end(); ++i) {
+        const uint16_t start = (*i)->coils.start;
+        const uint16_t end = start + (*i)->coils.size - 1;
+        if((start <= _begin) && (_begin <= end))
+            return &((*i)->coils);
     }
     return NULL;
 }

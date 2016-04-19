@@ -3,7 +3,7 @@
 #define EMODBUS_SERVER_BASE_H
 
 #include <emodbus/base/modbus_proto.h>
-#include <emodbus/base/add/s-list.h>
+#include <emodbus/server/coils.h>
 #include <emodbus/server/holdings.h>
 #include <emodbus/server/file.h>
 #include <stdint.h>
@@ -28,7 +28,7 @@ struct emb_server_t {
 
     emb_srv_function_t (*get_function)(struct emb_server_t* _srv, uint8_t _func);
 
-//    struct emb_srv_coils_t* (*get_coils)(struct emb_server_t* _srv, uint16_t _begin);
+    struct emb_srv_coils_t* (*get_coils)(struct emb_server_t* _srv, uint16_t _begin);
 
     struct emb_srv_holdings_t* (*get_holdings)(struct emb_server_t* _srv, uint16_t _begin);
 
@@ -61,6 +61,11 @@ int emb_build_exception_pdu(emb_pdu_t* _result,
 void emb_super_server_set_proto(struct emb_super_server_t* _ssrv,
                                 struct emb_protocol_t* _proto);
 
+//**********************************************************************
+// Coils
+
+uint8_t emb_srv_read_coils(struct emb_super_server_t* _ssrv,
+                           struct emb_server_t* _srv);
 
 //**********************************************************************
 // Holding registers
