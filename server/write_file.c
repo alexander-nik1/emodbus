@@ -38,6 +38,9 @@ uint8_t emb_srv_write_file(struct emb_super_server_t* _ssrv,
         if(*rx_data != EMB_FILE_REF_TYPE)
             return MBE_ILLEGAL_DATA_ADDR;
 
+        if(!_srv->get_file)
+            return MBE_SLAVE_FAILURE;
+
         file = _srv->get_file(_srv, GET_BIG_END16(rx_data + 1)/*, start_addr*/);
 
         if((file) && (file->write_file) /*&& ((file->start + file->size) >= (start_addr + reg_count))*/) {

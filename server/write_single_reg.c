@@ -17,6 +17,9 @@ uint8_t emb_srv_write_reg(struct emb_super_server_t* _ssrv,
     const uint16_t addr = GET_BIG_END16(rx_data + 0),
                    data = GET_BIG_END16(rx_data + 2);
 
+    if(!_srv->get_holdings)
+        return MBE_SLAVE_FAILURE;
+
     r = _srv->get_holdings(_srv, addr);
 
     if(!r)

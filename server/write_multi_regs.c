@@ -22,6 +22,9 @@ uint8_t emb_srv_write_regs(struct emb_super_server_t* _ssrv,
     if(!(0x0001 <= quantity && quantity <= 0x007B) || (byte_count != (quantity*2)))
         return MBE_ILLEGAL_DATA_VALUE;
 
+    if(!_srv->get_holdings)
+        return MBE_SLAVE_FAILURE;
+
     r = _srv->get_holdings(_srv, start_addr);
 
     if(!r)

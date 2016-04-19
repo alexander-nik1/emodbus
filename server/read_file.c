@@ -28,7 +28,12 @@ uint8_t emb_srv_read_file(struct emb_super_server_t* _ssrv,
         const uint16_t start_addr = GET_BIG_END16(rx_data + 3);
         const uint16_t reg_count = GET_BIG_END16(rx_data + 5);
 
-        struct emb_srv_file_t* file = _srv->get_file(_srv, file_number/*, start_addr*/);
+        struct emb_srv_file_t* file;
+
+        if(!_srv->get_file)
+            return MBE_SLAVE_FAILURE;
+
+        file = _srv->get_file(_srv, file_number/*, start_addr*/);
 
         if((rx_data[0] == EMB_FILE_REF_TYPE) && (file) /*&& ((file->start + file->size) >= (start_addr + reg_count))*/) {
 

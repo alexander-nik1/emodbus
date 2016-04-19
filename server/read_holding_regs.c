@@ -20,6 +20,9 @@ uint8_t emb_srv_read_holdings(struct emb_super_server_t* _ssrv,
             quantity = GET_BIG_END16(rx_data + 2),
             end = start_addr + quantity;
 
+    if(!_srv->get_holdings)
+        return MBE_SLAVE_FAILURE;
+
     r = _srv->get_holdings(_srv, start_addr);
 
     if(!r)

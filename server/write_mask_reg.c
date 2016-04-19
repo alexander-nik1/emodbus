@@ -20,6 +20,9 @@ uint8_t emb_srv_mask_reg(struct emb_super_server_t* _ssrv,
                    and_mask =  GET_BIG_END16(rx_data + 2),
                    or_mask = GET_BIG_END16(rx_data + 4);
 
+    if(!_srv->get_holdings)
+        return MBE_SLAVE_FAILURE;
+
     r = _srv->get_holdings(_srv, addr);
 
     if(!r)
