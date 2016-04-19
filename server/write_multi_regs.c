@@ -36,8 +36,8 @@ uint8_t emb_srv_write_regs(struct emb_super_server_t* _ssrv,
     rx_data += 5;
 
     for(i=0; i<quantity; ++i) {
-        const uint16_t tmp = *((uint16_t*)rx_data);
-        *((uint16_t*)rx_data) = SWAP_BYTES(tmp);
+        const uint16_t tmp = ((uint16_t*)rx_data)[i];
+        ((uint16_t*)rx_data)[i] = SWAP_BYTES(tmp);
     }
 
     i = r->write_regs(r,
