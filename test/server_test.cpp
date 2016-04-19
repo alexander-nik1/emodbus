@@ -6,6 +6,7 @@
 #include <list>
 #include <errno.h>
 #include <string.h>
+#include <bitset>
 
 #include <emodbus/emodbus.hpp>
 
@@ -13,6 +14,7 @@
 #include <emodbus/base/modbus_errno.h>
 
 #include <emodbus/server/server.h>
+#include <emodbus/server/coils.h>
 #include <emodbus/server/holdings.h>
 #include <emodbus/server/file.h>
 
@@ -24,6 +26,62 @@
 
 #include "posix_serial_rtu/posix_serial_rtu.hpp"
 #include "dumping_helper.hpp"
+
+class my_coils_t : public emb::server_coils_t {
+public:
+    enum { START = 0x0000 };
+    enum { SIZE = 0xFFFF };
+
+    my_coils_t() : emb::server_coils_t(START, SIZE) {
+        values.resize(SIZE);
+        for(int i=0; i<SIZE; ++i) {
+            values[i] = false;
+        }
+    }
+
+private:
+    uint8_t on_read_coils(uint16_t _offset,
+                          uint16_t _quantity,
+                          uint8_t* _pvalues) {
+        printf("read_coils offset:0x%04X,quantity:0x%04X values:", _offset, _quantity);
+        for(int byte=0; _quantity != 0; ++byte) {
+            _pvalues[byte] = 0;
+            const int n_bits = _quantity > 8 ? 8 : _quantity;
+            for(int bit=0; bit<n_bits; ++bit) {
+                if(values[_offset + byte*8 + bit]) {
+                    _pvalues[byte] |= (1 << bit);
+                }
+                printf("%d ", (int)values[_offset + byte*8 + bit]);
+            }
+            _quantity -= n_bits;
+        }
+        printf("\n");
+        fflush(stdout);
+        return 0;
+    }
+
+    uint8_t on_write_coils(uint16_t _offset,
+                           uint16_t _quantity,
+                           const uint8_t* _pvalues) {
+
+        printf("write_coils offset:0x%04X,quantity:0x%04X values:", _offset, _quantity);
+
+        for(int byte=0; _quantity != 0; ++byte) {
+            const int n_bits = _quantity > 8 ? 8 : _quantity;
+            for(int bit=0; bit<n_bits; ++bit) {
+                values[_offset + byte*8 + bit] = (_pvalues[byte] & (1 << bit)) != 0;
+
+                printf("%d ", (int)values[_offset + byte*8 + bit]);
+            }
+            _quantity -= n_bits;
+        }
+        printf("\n");
+        fflush(stdout);
+        return 0;
+    }
+
+    std::vector<bool> values;
+};
 
 class my_holdings_t : public emb::server_holdings_t {
 public:
@@ -37,22 +95,24 @@ public:
         memset(&regs[0], 0, SIZE*2);
     }
 
-    uint8_t on_read_regs(emb_const_pdu_t* _req, uint16_t _offset,
+    uint8_t on_read_regs(uint16_t _offset,
                          uint16_t _quantity, uint16_t* _pvalues) {
 
         memcpy(_pvalues, &regs[_offset], _quantity*2);
 
         printf("Read Holdings: start:0x%04X, length:0x%04X\n", _offset, _quantity);
+        fflush(stdout);
         return 0;
     }
 
-    uint8_t on_write_regs(emb_const_pdu_t* _req, uint16_t _offset,
+    uint8_t on_write_regs(uint16_t _offset,
                           uint16_t _quantity, const uint16_t* _pvalues) {
 
         printf("Write Holdings: start:0x%04X, length:0x%04X\nData:", _offset, _quantity);
         for(int i=0; i<_quantity; ++i)
             printf("0x%04X ", _pvalues[i]);
         printf("\n");
+        fflush(stdout);
 
         memcpy(&regs[_offset], _pvalues, _quantity*2);
 
@@ -80,6 +140,7 @@ public:
         memcpy(_pvalues, &regs[_offset], _quantity*2);
 
         printf("Read File: start:0x%04X, length:0x%04X\n", _offset, _quantity);
+        fflush(stdout);
         return 0;
     }
 
@@ -90,6 +151,7 @@ public:
         for(int i=0; i<_quantity; ++i)
             printf("0x%04X ", _pvalues[i]);
         printf("\n");
+        fflush(stdout);
 
         memcpy(&regs[_offset], _pvalues, _quantity*2);
 
@@ -119,10 +181,13 @@ int main(int argc, char* argv[]) {
 
     sleep(1);
 
+    my_coils_t c;
     my_holdings_t h;
     my_file_t f;
 
     emb::server_t srv1(16);
+
+    srv1.add_function(0x01, emb_srv_read_coils);
 
     srv1.add_function(0x03, emb_srv_read_holdings);
     srv1.add_function(0x06, emb_srv_write_reg);
@@ -132,6 +197,7 @@ int main(int argc, char* argv[]) {
     srv1.add_function(0x14, emb_srv_read_file);
     srv1.add_function(0x15, emb_srv_write_file);
 
+    srv1.add_coils(c);
     srv1.add_holdings(h);
     srv1.add_file(f);
 

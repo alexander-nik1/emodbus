@@ -18,6 +18,22 @@ set(EMODBUS_SERVER_SRC
 add_library(emodbus-server SHARED ${EMODBUS_SERVER_SRC})
 add_library(emodbus-server-static STATIC ${EMODBUS_SERVER_SRC})
 
+###############################################################################################################
+# Coils
+
+# ===================================================
+# server-read-coils
+
+set(EMODBUS_SERVER_READ_COILS
+    read_coils.c
+)
+
+add_library(emodbus-server-read-coils SHARED ${EMODBUS_SERVER_READ_COILS})
+add_library(emodbus-server-read-coils-static STATIC ${EMODBUS_SERVER_READ_COILS})
+
+###############################################################################################################
+# Holdings
+
 # ===================================================
 # server-read-holdings
 
@@ -57,6 +73,9 @@ set(EMODBUS_SERVER_MASK_REG
 
 add_library(emodbus-server-mask-reg SHARED ${EMODBUS_SERVER_MASK_REG})
 add_library(emodbus-server-mask-reg-static STATIC ${EMODBUS_SERVER_MASK_REG})
+
+###############################################################################################################
+# Files
 
 # ===================================================
 # server-read-file

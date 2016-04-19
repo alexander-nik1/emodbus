@@ -2,6 +2,9 @@
 #ifndef EMODBUS_CALC_PDU_SIZE_H
 #define EMODBUS_CALC_PDU_SIZE_H
 
+#define READ_COILS_REQ_SIZE()                           (4)
+#define READ_COILS_ANS_SIZE(_bytes_count_)              (1+(_bytes_count_))
+
 #define READ_HOLDINGS_REQ_SIZE()                        (4)
 #define READ_HOLDINGS_ANS_SIZE(_quantity_)              (1+(_quantity_)*2)
 
