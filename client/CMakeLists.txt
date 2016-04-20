@@ -44,6 +44,17 @@ add_library(emodbus-client-mask-write-reg SHARED ${EMODBUS_CLIENT_MASK_WRITE_REG
 add_library(emodbus-client-mask-write-reg-static STATIC ${EMODBUS_CLIENT_MASK_WRITE_REG})
 
 # ===================================================
+# client write single register
+
+set(EMODBUS_CLIENT_WRITE_SINGLE_REG
+	write_single_reg.c
+)
+
+add_library(emodbus-client-write-single-reg SHARED ${EMODBUS_CLIENT_WRITE_SINGLE_REG})
+
+add_library(emodbus-client-write-single-reg-static STATIC ${EMODBUS_CLIENT_WRITE_SINGLE_REG})
+
+# ===================================================
 # client write multiple registers
 
 set(EMODBUS_CLIENT_WRITE_MULTI_REGS
