@@ -48,59 +48,102 @@ set(CPACK_PROTO_RTU_COMPONENTS "proto-rtu")
 
 set(CPACK_PROTO_FULL_COMPONENTS "proto-full;proto-static-full")
 
+set(CPACK_ADD_COMPONENTS "full-cpp")
+
 set(CPACK_PROTOCOL_COMPONENTS "${CPACK_PROTO_RTU_COMPONENTS};${CPACK_PROTO_FULL_COMPONENTS}")
 
-set(CPACK_COMPONENTS_ALL "${CPACK_BASE_COMPONENTS};${CPACK_SERVER_COMPONENTS};${CPACK_CLIENT_COMPONENTS};${CPACK_PROTOCOL_COMPONENTS}")
+set(CPACK_COMPONENTS_ALL "${CPACK_BASE_COMPONENTS};${CPACK_SERVER_COMPONENTS};${CPACK_CLIENT_COMPONENTS};${CPACK_PROTOCOL_COMPONENTS};${CPACK_ADD_COMPONENTS}")
 
 # component dev
-set(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS "emodbus-client-full, emodbus-server-full")
+# set(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS "emodbus-client-full, emodbus-server-full")
 INSTALL(DIRECTORY include DESTINATION /usr/ COMPONENT dev)
 
 # component base
-set(CPACK_DEBIAN_BASE_PACKAGE_DEPENDS "")
-INSTALL(PROGRAMS lib/libemodbus-base.so   DESTINATION /usr/lib/ COMPONENT base)
+# set(CPACK_DEBIAN_BASE_PACKAGE_DEPENDS "")
+INSTALL(FILES lib/libemodbus-base.so   DESTINATION /usr/lib/ COMPONENT base)
 
 # component base-static
-set(CPACK_DEBIAN_BASE-STATIC_PACKAGE_DEPENDS "")
-INSTALL(PROGRAMS lib/libemodbus-base-static.a   DESTINATION /usr/lib/ COMPONENT base-static)
+# set(CPACK_DEBIAN_BASE-STATIC_PACKAGE_DEPENDS "")
+INSTALL(FILES lib/libemodbus-base-static.a   DESTINATION /usr/lib/ COMPONENT base-static)
 
 # component srerver-libs
-set(CPACK_DEBIAN_SERVER-LIBS_PACKAGE_DEPENDS "emodbus-base")
+# set(CPACK_DEBIAN_SERVER-LIBS_PACKAGE_DEPENDS "emodbus-base")
+INSTALL(FILES 
+		lib/libemodbus-server.so
+		lib/libemodbus-server-mask-reg.so
+		lib/libemodbus-server-read-coils.so
+		lib/libemodbus-server-read-file.so
+		lib/libemodbus-server-read-holdings.so
+		lib/libemodbus-server-write-file.so
+		lib/libemodbus-server-write-reg.so
+		lib/libemodbus-server-write-regs.so
+		DESTINATION /usr/lib/ 
+		COMPONENT server-libs)
 
 # component srerver-libs-static
-set(CPACK_DEBIAN_SERVER-LIBS-STATIC_PACKAGE_DEPENDS "emodbus-base-static")
+# set(CPACK_DEBIAN_SERVER-LIBS-STATIC_PACKAGE_DEPENDS "emodbus-base-static")
+INSTALL(FILES 
+		lib/libemodbus-server-static.a
+		lib/libemodbus-server-mask-reg-static.a
+		lib/libemodbus-server-read-coils-static.a
+		lib/libemodbus-server-read-file-static.a
+		lib/libemodbus-server-read-holdings-static.a
+		lib/libemodbus-server-write-file-static.a
+		lib/libemodbus-server-write-reg-static.a
+		lib/libemodbus-server-write-regs-static.a
+		DESTINATION /usr/lib/ 
+		COMPONENT server-libs-static)
 
 # component srerver-full
-set(CPACK_DEBIAN_SERVER-FULL_PACKAGE_DEPENDS "emodbus-base")
+# set(CPACK_DEBIAN_SERVER-FULL_PACKAGE_DEPENDS "emodbus-base")
+INSTALL(FILES lib/libemodbus-server-full.so   DESTINATION /usr/lib/ COMPONENT server-full)
 
 # component client-libs
-set(CPACK_DEBIAN_CLIENT-LIBS_PACKAGE_DEPENDS "emodbus-base")
-#INSTALL(PROGRAMS lib/libemodbus-client-base.so DESTINATION /usr/lib/ COMPONENT client-libs)
-INSTALL(PROGRAMS lib/libemodbus-client-read-holdings.so DESTINATION /usr/lib/ COMPONENT client-libs)
-INSTALL(PROGRAMS lib/libemodbus-client-mask-write-reg.so DESTINATION /usr/lib/ COMPONENT client-libs)
+# set(CPACK_DEBIAN_CLIENT-LIBS_PACKAGE_DEPENDS "emodbus-base")
+INSTALL(FILES 
+		lib/libemodbus-client.so
+		lib/libemodbus-client-mask-write-reg.so
+		lib/libemodbus-client-read-fifo.so
+		lib/libemodbus-client-read-file-record.so
+		lib/libemodbus-client-read-holdings.so
+		lib/libemodbus-client-write-file-record.so
+		lib/libemodbus-client-write-multi-reg.so
+		lib/libemodbus-client-write-single-reg.so
+		DESTINATION /usr/lib/ 
+		COMPONENT client-libs)
 
 # component client-libs-static
-set(CPACK_DEBIAN_CLIENT-LIBS-STATIC_PACKAGE_DEPENDS "emodbus-base-static")
-#INSTALL(PROGRAMS lib/libemodbus-client-base-static.a DESTINATION /usr/lib/ COMPONENT client-libs-static)
-INSTALL(PROGRAMS lib/libemodbus-client-read-holdings-static.a DESTINATION /usr/lib/ COMPONENT client-libs-static)
-INSTALL(PROGRAMS lib/libemodbus-client-mask-write-reg-static.a DESTINATION /usr/lib/ COMPONENT client-libs-static)
+# set(CPACK_DEBIAN_CLIENT-LIBS-STATIC_PACKAGE_DEPENDS "emodbus-base-static")
+INSTALL(FILES 
+		lib/libemodbus-client-static.a
+		lib/libemodbus-client-mask-write-reg-static.a
+		lib/libemodbus-client-read-fifo-static.a
+		lib/libemodbus-client-read-file-record-static.a
+		lib/libemodbus-client-read-holdings-static.a
+		lib/libemodbus-client-write-file-record-static.a
+		lib/libemodbus-client-write-multi-reg-static.a
+		lib/libemodbus-client-write-single-reg-static.a
+		DESTINATION /usr/lib/ 
+		COMPONENT client-libs-static)
 
 # component client-full
-set(CPACK_DEBIAN_CLIENT-FULL_PACKAGE_DEPENDS "emodbus-base")
-INSTALL(PROGRAMS lib/libemodbus-client-full.so DESTINATION /usr/lib/ COMPONENT client-full)
+# set(CPACK_DEBIAN_CLIENT-FULL_PACKAGE_DEPENDS "emodbus-base")
+INSTALL(FILES lib/libemodbus-client-full.so DESTINATION /usr/lib/ COMPONENT client-full)
 
 # component proto-rtu
-set(CPACK_DEBIAN_PROTO-RTU_PACKAGE_DEPENDS "emodbus-base")
-INSTALL(PROGRAMS lib/libemodbus-rtu.so DESTINATION /usr/lib/ COMPONENT proto-rtu)
+# set(CPACK_DEBIAN_PROTO-RTU_PACKAGE_DEPENDS "emodbus-base")
+INSTALL(FILES lib/libemodbus-rtu.so DESTINATION /usr/lib/ COMPONENT proto-rtu)
 
 # component proto-full
-set(CPACK_DEBIAN_PROTO-FULL_PACKAGE_DEPENDS "emodbus-base")
-INSTALL(PROGRAMS lib/libemodbus-rtu.so DESTINATION /usr/lib/ COMPONENT proto-full)
+# set(CPACK_DEBIAN_PROTO-FULL_PACKAGE_DEPENDS "emodbus-base")
+INSTALL(FILES lib/libemodbus-rtu.so DESTINATION /usr/lib/ COMPONENT proto-full)
 
 # component proto-static-full
-set(CPACK_DEBIAN_PROTO-STATIC-FULL_PACKAGE_DEPENDS "emodbus-base-static")
-INSTALL(PROGRAMS lib/libemodbus-rtu-static.a DESTINATION /usr/lib/ COMPONENT proto-static-full)
+# set(CPACK_DEBIAN_PROTO-STATIC-FULL_PACKAGE_DEPENDS "emodbus-base-static")
+INSTALL(FILES lib/libemodbus-rtu-static.a DESTINATION /usr/lib/ COMPONENT proto-static-full)
 
+# component full-cpp
+INSTALL(FILES lib/libemodbus-full-cpp.so DESTINATION /usr/lib/ COMPONENT full-cpp)
 
 set(MAJOR_VERSION "0")
 set(MINOR_VERSION "1")
