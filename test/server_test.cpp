@@ -43,7 +43,7 @@ private:
     uint8_t on_read_coils(uint16_t _offset,
                           uint16_t _quantity,
                           uint8_t* _pvalues) {
-        printf("read_coils offset:0x%04X,quantity:0x%04X values:", _offset, _quantity);
+//        printf("read_coils offset:0x%04X,quantity:0x%04X values:", _offset, _quantity);
         for(int byte=0; _quantity != 0; ++byte) {
             _pvalues[byte] = 0;
             const int n_bits = _quantity > 8 ? 8 : _quantity;
@@ -51,12 +51,12 @@ private:
                 if(values[_offset + byte*8 + bit]) {
                     _pvalues[byte] |= (1 << bit);
                 }
-                printf("%d ", (int)values[_offset + byte*8 + bit]);
+//                printf("%d ", (int)values[_offset + byte*8 + bit]);
             }
             _quantity -= n_bits;
         }
-        printf("\n");
-        fflush(stdout);
+//        printf("\n");
+//        fflush(stdout);
         return 0;
     }
 
@@ -64,19 +64,19 @@ private:
                            uint16_t _quantity,
                            const uint8_t* _pvalues) {
 
-        printf("write_coils offset:0x%04X,quantity:0x%04X values:", _offset, _quantity);
+//        printf("write_coils offset:0x%04X,quantity:0x%04X values:", _offset, _quantity);
 
         for(int byte=0; _quantity != 0; ++byte) {
             const int n_bits = _quantity > 8 ? 8 : _quantity;
             for(int bit=0; bit<n_bits; ++bit) {
                 values[_offset + byte*8 + bit] = (_pvalues[byte] & (1 << bit)) != 0;
 
-                printf("%d ", (int)values[_offset + byte*8 + bit]);
+//                printf("%d ", (int)values[_offset + byte*8 + bit]);
             }
             _quantity -= n_bits;
         }
-        printf("\n");
-        fflush(stdout);
+//        printf("\n");
+//        fflush(stdout);
         return 0;
     }
 
@@ -188,6 +188,8 @@ int main(int argc, char* argv[]) {
     emb::server_t srv1(16);
 
     srv1.add_function(0x01, emb_srv_read_coils);
+    srv1.add_function(0x05, emb_srv_write_coil);
+    srv1.add_function(0x0F, emb_srv_write_coils);
 
     srv1.add_function(0x03, emb_srv_read_holdings);
     srv1.add_function(0x06, emb_srv_write_reg);
