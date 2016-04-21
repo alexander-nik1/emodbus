@@ -67,6 +67,12 @@ void emb_super_server_set_proto(struct emb_super_server_t* _ssrv,
 uint8_t emb_srv_read_coils(struct emb_super_server_t* _ssrv,
                            struct emb_server_t* _srv);
 
+uint8_t emb_srv_write_coil(struct emb_super_server_t* _ssrv,
+                           struct emb_server_t* _srv);
+
+uint8_t emb_srv_write_coils(struct emb_super_server_t* _ssrv,
+                            struct emb_server_t* _srv);
+
 //**********************************************************************
 // Holding registers
 

@@ -31,6 +31,27 @@ set(EMODBUS_SERVER_READ_COILS
 add_library(emodbus-server-read-coils SHARED ${EMODBUS_SERVER_READ_COILS})
 add_library(emodbus-server-read-coils-static STATIC ${EMODBUS_SERVER_READ_COILS})
 
+# ===================================================
+# server-write-coil
+
+set(EMODBUS_SERVER_WRITE_COIL
+    write_coil.c
+)
+
+add_library(emodbus-server-write-coil SHARED ${EMODBUS_SERVER_WRITE_COIL})
+add_library(emodbus-server-write-coil-static STATIC ${EMODBUS_SERVER_WRITE_COIL})
+
+
+# ===================================================
+# server-write-coils
+
+set(EMODBUS_SERVER_WRITE_COILS
+    write_coils.c
+)
+
+add_library(emodbus-server-write-coils SHARED ${EMODBUS_SERVER_WRITE_COILS})
+add_library(emodbus-server-write-coils-static STATIC ${EMODBUS_SERVER_WRITE_COILS})
+
 ###############################################################################################################
 # Holdings
 
