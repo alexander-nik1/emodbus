@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <vector>
 #include <errno.h>
+#include <stdlib.h>
 
 #include <emodbus/emodbus.hpp>
 
@@ -73,11 +74,11 @@ void* thr_proc(void* p) {
 
     struct event_base *base = event_base_new();
 
-    posix_serial_rtu_t psp(base, "/dev/ttyS0", 115200);
+    posix_serial_rtu_t psp(base, "/dev/ttyUSB1", 115200);
 
     client->set_proto(psp.get_proto());
 
-    psp.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
+    psp.get_proto()->flags &= ~EMB_PROTO_FLAG_DUMD_PAKETS;
 
     emb_debug_helper.enable_dumping();
 
@@ -86,10 +87,9 @@ void* thr_proc(void* p) {
 
 void print_all_read_file_answer_data(emb_const_pdu_t* ans);
 void write_and_read_file_record_test();
+void coils_test();
 
 int main(int argc, char* argv[]) {
-
-    int res,i;
 
     printf("emodbus sync client test\n");
 
@@ -99,27 +99,91 @@ int main(int argc, char* argv[]) {
 
     sleep(1);
 
-    write_and_read_file_record_test();
-
- /*   emb::read_regs_t rr;
-
-    rr.build_req(0x0000, 8);
-
-    for(i=0; i<1000; ++i) {
-
-        res = mb_client.do_request(16, 100, rr.req, rr.ans);
-        if(res)
-            printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
-
-        printf("\n");
-
-        usleep(1000*1000);
-        //printf("---------------> do_request() := %d\n", res);
-    }*/
+    coils_test();
 
     pthread_join(pthr, NULL);
 
     return 0;
+}
+
+void print_boolean_array(const bool* _arr, size_t _arr_size) {
+    for(size_t i=0; i<_arr_size; ++i) {
+        printf("%d ", _arr[i]);
+    }
+}
+
+bool cmp_boolean_arrays(const bool* _a, const bool* _b, size_t _arr_size) {
+    for(size_t i=0; i<_arr_size; ++i) {
+        if(_a[i] != _b[i])
+            return false;
+    }
+    return true;
+}
+
+void coils_test() {
+
+    int res,i, errors=0;
+
+    emb::read_coils_t rr;
+    emb::write_coils_t wr;
+    emb::write_coil_t wc;
+
+    std::vector<char> to_write, to_read;
+
+    for(i=0; i<1000; ++i) {
+
+        const unsigned int coils_size = (rand() % 0x07B0) + 1;
+        const uint16_t coil_address = rand() % ((1 << 16) - coils_size - 1);
+
+        to_write.resize(coils_size);
+
+        for(int j=0; j<coils_size; ++j)
+            to_write[j] = (rand() & 1) != 0;
+
+        // Write data
+        wr.build_req(coil_address, coils_size, (const bool*)(&to_write[0]));
+        res = mb_client.do_request(16, 100, wr.req, wr.ans);
+        if(res) printf("Error (write): %d \"%s\"\n", res, emb_strerror(-res));
+
+        const int single_writes = rand() % 10 + 1;
+        for(int z=0; z<single_writes; ++z) {
+            const bool x = (rand() & 1) != 0;
+            const uint16_t pos = rand() % coils_size;
+            wc.build_req(coil_address + pos, x);
+            res = mb_client.do_request(16, 100, wc.req, wc.ans);
+            if(res) printf("Error (read): %d \"%s\"\n", res, emb_strerror(-res));
+            to_write[pos] = x;
+        }
+
+
+        // read coils
+        rr.build_req(coil_address, coils_size);
+        res = mb_client.do_request(16, 100, rr.req, rr.ans);
+        if(res) printf("Error (read): %d \"%s\"\n", res, emb_strerror(-res));
+
+
+        to_read.resize(rr.get_req_quantity());
+        rr.response_data((bool*)&to_read[0], to_read.size());
+
+        // Compare
+        if(!cmp_boolean_arrays((bool*)&to_write[0], (bool*)&to_read[0], coils_size)) {
+
+            printf("Error: addr:0x%04X, size:0x%04X\n", coil_address, coils_size);
+
+            printf("wrote: ");
+            print_boolean_array((bool*)(&to_write[0]), coils_size);
+            puts("");
+            printf("read:  ");
+            print_boolean_array((bool*)(&to_read[0]), coils_size);
+            puts("\n");
+
+            ++errors;
+        }
+
+        usleep(1000*10);
+        //printf("---------------> do_request() := %d\n", res);
+    }
+    printf("Coils test: errors = %d\n", errors);
 }
 
 void print_all_read_file_answer_data(emb_const_pdu_t* ans) {
