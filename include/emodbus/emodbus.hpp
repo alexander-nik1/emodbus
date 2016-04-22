@@ -42,7 +42,23 @@ private:
 //  #####  #####   ###   #####  #   #    #
 
 // *******************************************************************************
-// read_hold_regs_t
+// read_coils_t
+
+class read_coils_t {
+public:
+    read_coils_t();
+
+    void build_req(uint16_t _starting_address, uint16_t _quantity);
+
+    uint16_t get_req_starting_addr() const;
+    uint16_t get_req_quantity() const;
+    char get_answer_coil(uint16_t _offset) const;
+
+    pdu_t req, ans;
+};
+
+// *******************************************************************************
+// read_regs_t
 
 class read_regs_t {
 public:

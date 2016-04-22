@@ -22,6 +22,17 @@ add_library(emodbus-client SHARED ${EMODBUS_CLIENT_SRC})
 add_library(emodbus-client-static STATIC ${EMODBUS_CLIENT_SRC})
 
 # ===================================================
+# client read coils
+
+set(EMODBUS_CLIENT_READ_COILS_SRC
+	read_coils.c
+)
+
+add_library(emodbus-client-read-coils SHARED ${EMODBUS_CLIENT_READ_COILS_SRC})
+
+add_library(emodbus-client-read-coils-static STATIC ${EMODBUS_CLIENT_READ_COILS_SRC})
+
+# ===================================================
 # client read holding regs
 
 set(EMODBUS_CLIENT_READ_HOLDING_REGS_SRC
