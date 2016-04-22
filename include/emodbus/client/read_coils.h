@@ -66,11 +66,23 @@ uint16_t emb_read_coils_get_quantity(emb_const_pdu_t* _req);
  * Function returns a coil value from answer.
  *
  * @param[in] _ans Answer
- * @param[in] _reg_offset Offset of the coil inside answer.
- * @return Register value.
+ * @param[in] _coil_offset Offset of the coil inside answer.
+ * @return Coil value.
  */
 char emb_read_coils_get_coil(emb_const_pdu_t* _answer,
                              uint16_t _coil_offset);
+
+/**
+ * @brief Get eight coils from answer.
+ *
+ * Function returns a eight coils values from answer.
+ *
+ * @param[in] _ans Answer
+ * @param[in] _byte_offset Offset to the byte in the answer.
+ * @return An eight coils values. (One byte from answer)
+ */
+uint8_t emb_read_coils_get_byte(emb_const_pdu_t* _answer,
+                                uint8_t _byte_offset);
 
 #ifdef __cplusplus
 }   // extern "C"

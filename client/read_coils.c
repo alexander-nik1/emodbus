@@ -19,7 +19,8 @@ int emb_read_coils_calc_req_data_size() {
 
 int emb_read_coils_calc_answer_data_size(uint16_t _quantity) {
     if( 1 <= _quantity && _quantity <= 0x07D0 ) {
-        return READ_COILS_ANS_SIZE(_quantity);
+        const uint8_t bytes_count = (_quantity / 8) + ((_quantity & 7) ? 1 : 0);
+        return READ_COILS_ANS_SIZE(bytes_count);
     }
     else {
         return -EINVAL;
@@ -57,6 +58,13 @@ uint16_t emb_read_coils_get_quantity(emb_const_pdu_t *_req) {
 
 char emb_read_coils_get_coil(emb_const_pdu_t *_answer,
                              uint16_t _coil_offset) {
+    // TODO: Make a _coil_offset value checking here.
     const uint8_t byte = ((uint8_t*)_answer->data)[_coil_offset / 8 + 1];
-    return (byte >> (_coil_offset % 8)) & 1;
+    return (byte >> (_coil_offset & 7)) & 1;
+}
+
+uint8_t emb_read_coils_get_byte(emb_const_pdu_t* _answer,
+                                uint8_t _byte_offset) {
+    // TODO: Make a _byte_offset value checking here.
+    return ((uint8_t*)_answer->data)[1 + _byte_offset];
 }
