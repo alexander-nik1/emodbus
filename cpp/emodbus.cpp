@@ -84,6 +84,15 @@ uint8_t read_coils_t::get_answer_byte(uint8_t _offset) const {
     return emb_read_coils_get_byte(ans, _offset);
 }
 
+void read_coils_t::response_data(bool *_coils, unsigned int _size) const {
+    uint16_t sz = emb_read_coils_get_quantity(req);
+    if(sz > _size)
+        sz = _size;
+    for(uint16_t i=0; i<sz; ++i) {
+        _coils[i] = emb_read_coils_get_coil(ans, i);
+    }
+}
+
 // *******************************************************************************
 // write_coil_t
 
@@ -108,13 +117,32 @@ uint16_t write_coil_t::get_req_addr() const {
 
 write_coils_t::write_coils_t() { }
 
-void write_coils_t::build_req(uint16_t _starting_address, uint16_t _quantity, const uint8_t *_pcoils) {
+void write_coils_t::build_req(uint16_t _starting_address,
+                              uint16_t _quantity,
+                              const bool *_pcoils) {
     int res;
+
+    std::vector<uint8_t> coils;
+
+    coils.resize((_quantity / 8) + ((_quantity & 7) ? 1 : 0));
+
+    uint16_t quantity_counter = _quantity;
+
+    for(int byte=0; quantity_counter != 0; ++byte) {
+        coils[byte] = 0;
+        const int n_bits = quantity_counter > 8 ? 8 : quantity_counter;
+        for(int bit=0; bit<n_bits; ++bit) {
+            if(_pcoils[byte*8 + bit]) {
+                coils[byte] |= (1 << bit);
+            }
+        }
+        quantity_counter -= n_bits;
+    }
 
     req.resize(emb_write_coils_calc_req_data_size(_quantity));
     ans.resize(emb_write_coils_calc_answer_data_size());
 
-    if((res = emb_write_coils_make_req(req, _starting_address, _quantity, _pcoils)))
+    if((res = emb_write_coils_make_req(req, _starting_address, _quantity, &coils[0])))
         throw res;
 }
 

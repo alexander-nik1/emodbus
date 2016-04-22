@@ -55,6 +55,8 @@ public:
     char get_answer_coil(uint16_t _offset) const;
     uint8_t get_answer_byte(uint8_t _offset) const;
 
+    void response_data(bool* _coils, unsigned int _size) const;
+
     pdu_t req, ans;
 };
 
@@ -80,7 +82,7 @@ public:
     write_coils_t();
 
     void build_req(uint16_t _starting_address, uint16_t _quantity,
-                   const uint8_t *_pcoils);
+                   const bool *_pcoils);
 
     uint16_t get_req_starting_addr() const;
     uint16_t get_req_quantity() const;
