@@ -53,6 +53,23 @@ public:
     uint16_t get_req_starting_addr() const;
     uint16_t get_req_quantity() const;
     char get_answer_coil(uint16_t _offset) const;
+    uint8_t get_answer_byte(uint8_t _offset) const;
+
+    pdu_t req, ans;
+};
+
+// *******************************************************************************
+// write_coils_t
+
+class write_coils_t {
+public:
+    write_coils_t();
+
+    void build_req(uint16_t _starting_address, uint16_t _quantity,
+                   const uint8_t *_pcoils);
+
+    uint16_t get_req_starting_addr() const;
+    uint16_t get_req_quantity() const;
 
     pdu_t req, ans;
 };

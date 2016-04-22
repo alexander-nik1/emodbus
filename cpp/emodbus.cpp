@@ -4,6 +4,7 @@
 #include <emodbus/base/modbus_errno.h>
 
 #include <emodbus/client/read_coils.h>
+#include <emodbus/client/write_coils.h>
 #include <emodbus/client/read_holding_regs.h>
 #include <emodbus/client/write_mask_reg.h>
 #include <emodbus/client/write_single_reg.h>
@@ -76,6 +77,33 @@ uint16_t read_coils_t::get_req_quantity() const {
 
 char read_coils_t::get_answer_coil(uint16_t _offset) const {
     return emb_read_coils_get_coil(ans, _offset);
+}
+
+uint8_t read_coils_t::get_answer_byte(uint8_t _offset) const {
+    return emb_read_coils_get_byte(ans, _offset);
+}
+
+// *******************************************************************************
+// write_coils_t
+
+write_coils_t::write_coils_t() { }
+
+void write_coils_t::build_req(uint16_t _starting_address, uint16_t _quantity, const uint8_t *_pcoils) {
+    int res;
+
+    req.resize(emb_write_coils_calc_req_data_size(_quantity));
+    ans.resize(emb_write_coils_calc_answer_data_size());
+
+    if((res = emb_write_coils_make_req(req, _starting_address, _quantity, _pcoils)))
+        throw res;
+}
+
+uint16_t write_coils_t::get_req_starting_addr() const {
+    return emb_write_coils_get_starting_addr(req);
+}
+
+uint16_t write_coils_t::get_req_quantity() const {
+    return emb_write_coils_get_quantity(req);
 }
 
 // *******************************************************************************
