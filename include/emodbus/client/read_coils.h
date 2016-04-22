@@ -19,6 +19,8 @@
 extern "C" {
 #endif
 
+enum { EMB_READ_COILS_MAX_QUANTITY = 0x07D0 };
+
 /**
  * @brief Calculate the request size
  * @return The size of request's data size

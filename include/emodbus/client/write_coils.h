@@ -19,6 +19,8 @@
 extern "C" {
 #endif
 
+enum { EMB_WRITE_COILS_MAX_QUANTITY = 0x07B0 };
+
 /**
  * @brief Calculate the request size
  * @param[in] _quantity The quantity of coils

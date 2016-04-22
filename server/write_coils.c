@@ -20,7 +20,7 @@ uint8_t emb_srv_write_coils(struct emb_super_server_t* _ssrv,
             quantity = GET_BIG_END16(rx_data + 2);
     const uint8_t byte_count = *(rx_data + 4);
 
-    if(!(0x0001 <= quantity && quantity <= 0x07D0))
+    if(!(0x0001 <= quantity && quantity <= 0x07B0))
         return MBE_ILLEGAL_DATA_VALUE;
 
     if((_ssrv->rx_pdu->data_size - 5) != byte_count)
