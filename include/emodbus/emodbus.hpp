@@ -59,6 +59,20 @@ public:
 };
 
 // *******************************************************************************
+// write_coil_t
+
+class write_coil_t {
+public:
+    write_coil_t();
+
+    void build_req(uint16_t _address, bool _value);
+
+    uint16_t get_req_addr() const;
+
+    pdu_t req, ans;
+};
+
+// *******************************************************************************
 // write_coils_t
 
 class write_coils_t {
