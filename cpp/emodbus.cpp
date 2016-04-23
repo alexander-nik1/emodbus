@@ -56,6 +56,14 @@ namespace client {
 //  #####  #####   ###   #####  #   #    #
 
 // *******************************************************************************
+// transaction_t
+
+void transaction_t::emb_transaction_on_response(int _slave_addr) { }
+void transaction_t::emb_transaction_on_error(int _errno) { }
+
+transaction_t::operator struct emb_client_transaction_t* () { return &tr; }
+
+// *******************************************************************************
 // read_coils_t
 
 read_coils_t::read_coils_t() { }
@@ -316,120 +324,95 @@ uint16_t read_fifo_t::get_answer_data(uint16_t _offset) const {
 }
 
 // *******************************************************************************
-// sync_client_t
+// client_t
 
-sync_client_t::sync_client_t() {
-
+client_t::client_t()
+    : is_sync(false)
+    , curr_transaction(NULL)
+{
     memset(&client, 0, sizeof(struct emb_client_t));
-
     client.user_data = this;
-
     emb_client_init(&client);
 }
 
-int sync_client_t::do_request(int _server_addr,
-                    unsigned int _timeout,
-                    emb_const_pdu_t* _request,
-                    emb_pdu_t *_response) {
+int client_t::do_transaction(int _server_addr,
+                             unsigned int _timeout,
+                             transaction_t &_transaction) {
     int res;
 
-    req.req_pdu = _request;
-    req.resp_pdu = _response;
+    curr_transaction = &_transaction;
+    curr_server_addr = _server_addr;
+
+    req.req_pdu = _transaction.req;
+    req.resp_pdu = _transaction.ans;
     req.procs = &procs;
     req.user_data = this;
 
-    if((res = emb_client_do_request(&client, _server_addr, &req)) != 0) {
+    if((res = emb_client_do_transaction(&client, _server_addr, &req)) != 0) {
         return res;
     }
 
-    res = emb_client_start_wait(_timeout);
+    if(is_sync) {
+        res = emb_sync_client_start_wait(_timeout);
 
-    if(!res) {
-        return result;
-    }
-    else if(res == 1) {
-        emb_client_wait_timeout(&client);
-        return -modbus_resp_timeout;
+        if(!res) {
+            return result;
+        }
+        else if(res == 1) {
+            emb_client_wait_timeout(&client);
+            return -modbus_resp_timeout;
+        }
+        else {
+            return res;
+        }
     }
     else {
         return res;
     }
 }
 
-void sync_client_t::set_proto(struct emb_protocol_t* _proto) {
+void client_t::set_proto(struct emb_protocol_t* _proto) {
     emb_client_set_proto(&client, _proto);
 }
 
-void sync_client_t::emb_on_response(struct emb_client_request_t* _req, int _slave_addr) {
-    sync_client_t* _this = (sync_client_t*)_req->user_data;
-    _this->result = 0;
-    _this->emb_client_stop_wait();
-}
+void client_t::set_sync(bool _is_sync) { is_sync = _is_sync; }
 
-void sync_client_t::emb_on_error(struct emb_client_request_t* _req, int _errno) {
-    sync_client_t* _this = (sync_client_t*)_req->user_data;
-    _this->result = _errno;
-    _this->emb_client_stop_wait();
-}
+bool client_t::get_sync() const { return is_sync; }
 
+void client_t::emb_on_response(int _slave_addr) { }
 
-struct emb_client_req_procs_t sync_client_t::procs = {
-    sync_client_t::emb_on_response,
-    sync_client_t::emb_on_error
-};
+void client_t::emb_on_error(int _slave_addr, int _errno) { }
 
-// *******************************************************************************
-// aync_client_t
+int client_t::emb_sync_client_start_wait(unsigned int _timeout) { return 0; }
 
-aync_client_t::aync_client_t() {
-
-    memset(&client, 0, sizeof(struct emb_client_t));
-
-    client.user_data = this;
-
-    emb_client_init(&client);
-}
-
-int aync_client_t::do_request(int _server_addr,
-                              int _req_id,
-                              emb_const_pdu_t* _request,
-                              emb_pdu_t *_response,
-                              claabacker_t* _callbacker) {
-
-    req.req_pdu = _request;
-    req.resp_pdu = _response;
-    req.procs = &procs;
-    req.user_data = this;
-    curr_callbacker = _callbacker;
-    curr_req_id = _req_id;
-
-    return emb_client_do_request(&client, _server_addr, &req);
-}
-
-void aync_client_t::set_proto(struct emb_protocol_t* _proto) {
-    emb_client_set_proto(&client, _proto);
-}
-
-void aync_client_t::answer_timeout() {
+void client_t::sync_answer_timeout() {
     emb_client_wait_timeout(&client);
 }
 
-void aync_client_t::emb_on_response(struct emb_client_request_t* _req, int _slave_addr) {
-    aync_client_t* _this = (aync_client_t*)_req->user_data;
-    if(_this->curr_callbacker)
-        _this->curr_callbacker->emb_client_on_response(_req, _this->curr_req_id, _slave_addr);
+void client_t::emb_on_response_(struct emb_client_transaction_t* _req, int _slave_addr) {
+    client_t* _this = (client_t*)_req->user_data;
+    _this->result = 0;
+
+    _this->emb_on_response(_slave_addr);
+
+    if(_this->curr_transaction)
+        _this->curr_transaction->emb_transaction_on_response(_slave_addr);
 }
 
-void aync_client_t::emb_on_error(struct emb_client_request_t* _req, int _errno) {
-    aync_client_t* _this = (aync_client_t*)_req->user_data;
-    if(_this->curr_callbacker)
-        _this->curr_callbacker->emb_client_on_error(_req, _this->curr_req_id, _errno);
+void client_t::emb_on_error_(struct emb_client_transaction_t* _req, int _slave_addr, int _errno) {
+    client_t* _this = (client_t*)_req->user_data;
+    _this->result = _errno;
+
+    _this->emb_on_error(_slave_addr, _errno);
+
+    if(_this->curr_transaction)
+        _this->curr_transaction->emb_transaction_on_error(_errno);
 }
 
 
-struct emb_client_req_procs_t aync_client_t::procs = {
-    aync_client_t::emb_on_response,
-    aync_client_t::emb_on_error
+struct emb_client_req_procs_t client_t::procs = {
+    client_t::emb_on_response_,
+    client_t::emb_on_error_
 };
 
 } // namespace client

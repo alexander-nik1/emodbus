@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-struct emb_client_request_t;
+struct emb_client_transaction_t;
 struct emb_client_t;
 
 /**
@@ -37,13 +37,13 @@ enum emb_client_state_t {
  */
 struct emb_client_req_procs_t {
     /// Calls when a correct response was received.
-    void (*on_response)(struct emb_client_request_t*,
+    void (*on_response)(struct emb_client_transaction_t*,
                         int _slave_addr);
 
     /// Calls when happens a some error, like: system error, receiving error(for example, CRC error),
     /// and modbus error(error, returned by server (slave) device)
-    void (*on_error)(struct emb_client_request_t*,
-                     int _errno);
+    void (*on_error)(struct emb_client_transaction_t*,
+                     int _slave_addr, int _errno);
 };
 
 /**
@@ -52,7 +52,7 @@ struct emb_client_req_procs_t {
  * This is a ONE request descriptor for client.
  *
  */
-struct emb_client_request_t {
+struct emb_client_transaction_t {
     emb_const_pdu_t* req_pdu;               ///< Receive PDU
     emb_pdu_t* resp_pdu;                    ///< Response PDU
     struct emb_client_req_procs_t* procs;   ///< Callbacks for this request
@@ -80,7 +80,7 @@ struct emb_client_t {
     int curr_addr;
 
     /// This variable saves a pointer to a current request.
-    struct emb_client_request_t* curr_req;
+    struct emb_client_transaction_t* curr_transaction;
 };
 
 /**
@@ -113,9 +113,9 @@ void emb_client_wait_timeout(struct emb_client_t* _cli);
  * @return if there is no errors, it will return zero, otherwize
  * it will return a error code. You can see it by emb_strerror() function.
  */
-int emb_client_do_request(struct emb_client_t* _cli,
-                          int _slave_addr,
-                          struct emb_client_request_t* _req);
+int emb_client_do_transaction(struct emb_client_t* _cli,
+                              int _slave_addr,
+                              struct emb_client_transaction_t* _transact);
 
 /**
  * @brief Set low level

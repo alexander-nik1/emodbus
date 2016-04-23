@@ -21,13 +21,10 @@ namespace emb {
 class pdu_t : public emb_pdu_t {
 public:
     pdu_t();
-
     pdu_t(unsigned int _sz);
 
     void resize(unsigned int _size);
-
     operator emb_pdu_t* ();
-
     operator emb_const_pdu_t* () const;
 
 private:
@@ -44,9 +41,26 @@ namespace client {
 //  #####  #####   ###   #####  #   #    #
 
 // *******************************************************************************
+// transaction_t
+
+class transaction_t {
+public:
+
+    virtual void emb_transaction_on_response(int _slave_addr);
+    virtual void emb_transaction_on_error(int _errno);
+
+    pdu_t req, ans;
+
+    operator struct emb_client_transaction_t* ();
+
+private:
+    struct emb_client_transaction_t tr;
+};
+
+// *******************************************************************************
 // read_coils_t
 
-class read_coils_t {
+class read_coils_t : public transaction_t {
 public:
     read_coils_t();
 
@@ -58,28 +72,24 @@ public:
     uint8_t get_answer_byte(uint8_t _offset) const;
 
     void response_data(bool* _coils, unsigned int _size) const;
-
-    pdu_t req, ans;
 };
 
 // *******************************************************************************
 // write_coil_t
 
-class write_coil_t {
+class write_coil_t : public transaction_t {
 public:
     write_coil_t();
 
     void build_req(uint16_t _address, bool _value);
 
     uint16_t get_req_addr() const;
-
-    pdu_t req, ans;
 };
 
 // *******************************************************************************
 // write_coils_t
 
-class write_coils_t {
+class write_coils_t : public transaction_t {
 public:
     write_coils_t();
 
@@ -88,14 +98,12 @@ public:
 
     uint16_t get_req_starting_addr() const;
     uint16_t get_req_quantity() const;
-
-    pdu_t req, ans;
 };
 
 // *******************************************************************************
 // read_regs_t
 
-class read_regs_t {
+class read_regs_t : public transaction_t {
 public:
     read_regs_t();
 
@@ -105,14 +113,12 @@ public:
     uint16_t get_req_quantity() const;
     uint16_t get_answer_reg(uint16_t _offset) const;
     uint16_t get_answer_quantity() const;
-
-    pdu_t req, ans;
 };
 
 // *******************************************************************************
 // write_reg_t
 
-class write_reg_t {
+class write_reg_t : public transaction_t {
 public:
     write_reg_t();
 
@@ -123,14 +129,12 @@ public:
 
     uint16_t get_answer_address() const;
     uint16_t get_answer_value() const;
-
-    pdu_t req, ans;
 };
 
 // *******************************************************************************
 // write_regs_t
 
-class write_regs_t {
+class write_regs_t : public transaction_t {
 public:
     write_regs_t();
 
@@ -142,14 +146,12 @@ public:
 
     uint16_t get_answer_address() const;
     uint16_t get_answer_quantity() const;
-
-    pdu_t req, ans;
 };
 
 // *******************************************************************************
 // write_mask_reg_t
 
-class write_mask_reg_t {
+class write_mask_reg_t : public transaction_t {
 public:
     write_mask_reg_t();
 
@@ -164,42 +166,36 @@ public:
     uint16_t get_answer_address() const;
     uint16_t get_answer_and_mask() const;
     uint16_t get_answer_or_mask() const;
-
-    pdu_t req, ans;
 };
 
 // *******************************************************************************
 // read_file_record_t
 
-class read_file_record_t {
+class read_file_record_t : public transaction_t {
 public:
     read_file_record_t();
 
     typedef emb_read_file_req_t sub_req_t;
 
     void build_req(const sub_req_t* _reqs, int _reqs_number);
-
-    pdu_t req, ans;
 };
 
 // *******************************************************************************
 // write_file_record_t
 
-class write_file_record_t {
+class write_file_record_t : public transaction_t {
 public:
     write_file_record_t();
 
     typedef emb_write_file_req_t sub_req_t;
 
     void build_req(const sub_req_t* _reqs, int _reqs_number);
-
-    pdu_t req, ans;
 };
 
 // *******************************************************************************
 // read_fifo_t
 
-class read_fifo_t {
+class read_fifo_t : public transaction_t {
 public:
     read_fifo_t();
 
@@ -207,74 +203,43 @@ public:
 
     uint16_t get_answer_regs_count() const;
     uint16_t get_answer_data(uint16_t _offset) const;
-
-    pdu_t req, ans;
 };
 
 // *******************************************************************************
-// sync_client_t
+// client_t
 
-class sync_client_t {
+class client_t {
 public:
-    sync_client_t();
+    client_t();
 
-    int do_request(int _server_addr,
-                    unsigned int _timeout,
-                    emb_const_pdu_t* _request,
-                    emb_pdu_t *_response);
+    int do_transaction(int _server_addr,
+                       unsigned int _timeout,
+                       transaction_t& _transaction);
 
     void set_proto(struct emb_protocol_t* _proto);
 
-protected:
+    void set_sync(bool _is_sync);
+    bool get_sync() const;
 
-    virtual int emb_client_start_wait(unsigned int _timeout) = 0;
-    virtual void emb_client_stop_wait() = 0;
+    virtual void emb_on_response(int _slave_addr);
+    virtual void emb_on_error(int _slave_addr, int _errno);
 
-protected:
-
-    static void emb_on_response(struct emb_client_request_t* _req, int _slave_addr);
-
-    static void emb_on_error(struct emb_client_request_t* _req, int _errno);
-
-    struct emb_client_request_t req;
-    static struct emb_client_req_procs_t procs;
-    struct emb_client_t client;
-
-    int result;
-};
-
-// *******************************************************************************
-// aync_client_t
-
-class aync_client_t {
-public:
-    aync_client_t();
-
-    struct claabacker_t {
-        virtual void emb_client_on_response(struct emb_client_request_t* _req, int _req_id, int _slave_addr) =0;
-        virtual void emb_client_on_error(struct emb_client_request_t* _req, int _req_id, int _errno) =0;
-    };
-
-    int do_request(int _server_addr,
-                   int _req_id,
-                   emb_const_pdu_t* _request,
-                   emb_pdu_t *_response,
-                   claabacker_t* _callbacker);
-
-    void set_proto(struct emb_protocol_t* _proto);
-
-    void answer_timeout();
+protected: // (interface for sync mode)
+    virtual int emb_sync_client_start_wait(unsigned int _timeout);
+    void sync_answer_timeout();
 
 private:
-    static void emb_on_response(struct emb_client_request_t* _req, int _slave_addr);
-
-    static void emb_on_error(struct emb_client_request_t* _req, int _errno);
-
-    struct emb_client_request_t req;
-    struct emb_client_t client;
+    static void emb_on_response_(struct emb_client_transaction_t* _req, int _slave_addr);
+    static void emb_on_error_(struct emb_client_transaction_t* _req, int _slave_addr, int _errno);
     static struct emb_client_req_procs_t procs;
-    claabacker_t* curr_callbacker;
-    int curr_req_id;
+
+protected:
+    struct emb_client_transaction_t req;
+    struct emb_client_t client;
+    transaction_t* curr_transaction;
+    int curr_server_addr;
+    bool is_sync;
+    int result;
 };
 
 } // namespace client

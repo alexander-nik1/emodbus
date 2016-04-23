@@ -34,16 +34,18 @@
 #include "posix_serial_rtu/posix_serial_rtu.hpp"
 #include "dumping_helper.hpp"
 
-class cleent_t : public emb::client::sync_client_t {
+class cleent_t : public emb::client::client_t {
 public:
     cleent_t() {
         pthread_mutex_init(&mutex, NULL);
         pthread_mutex_trylock(&mutex);
+
+        emb::client::client_t::set_sync(true);
     }
 
 private:
 
-    int emb_client_start_wait(unsigned int _timeout) {
+    int emb_sync_client_start_wait(unsigned int _timeout) {
         struct timespec expiry_time;
         int res;
         timespec_get_clock_realtime(&expiry_time);
@@ -58,7 +60,11 @@ private:
         }
     }
 
-    void emb_client_stop_wait() {
+    void emb_on_response(int _slave_addr) {
+        pthread_mutex_unlock(&mutex);
+    }
+
+    void emb_on_error(int _slave_addr, int _errno) {
         pthread_mutex_unlock(&mutex);
     }
 
@@ -143,7 +149,7 @@ void coils_test() {
 
         // Write data
         wr.build_req(coil_address, coils_size, (const bool*)(&to_write[0]));
-        res = mb_client.do_request(16, 100, wr.req, wr.ans);
+        res = mb_client.do_transaction(16, 100, wr);
         if(res) printf("Error (write): %d \"%s\"\n", res, emb_strerror(-res));
 
         const int single_writes = rand() % 10 + 1;
@@ -151,7 +157,7 @@ void coils_test() {
             const bool x = (rand() & 1) != 0;
             const uint16_t pos = rand() % coils_size;
             wc.build_req(coil_address + pos, x);
-            res = mb_client.do_request(16, 100, wc.req, wc.ans);
+            res = mb_client.do_transaction(16, 100, wc);
             if(res) printf("Error (read): %d \"%s\"\n", res, emb_strerror(-res));
             to_write[pos] = x;
         }
@@ -159,7 +165,7 @@ void coils_test() {
 
         // read coils
         rr.build_req(coil_address, coils_size);
-        res = mb_client.do_request(16, 100, rr.req, rr.ans);
+        res = mb_client.do_transaction(16, 100, rr);
         if(res) printf("Error (read): %d \"%s\"\n", res, emb_strerror(-res));
 
 
@@ -211,7 +217,7 @@ void print_all_read_file_answer_data(emb_const_pdu_t* ans) {
         printf("\n");
     }
 }
-
+/*
 void write_and_read_file_record_test() {
 
     int res;
@@ -270,4 +276,4 @@ void write_and_read_file_record_test() {
         usleep(1000*10);
         //printf("---------------> do_request() := %d\n", res);
     }
-}
+}*/
