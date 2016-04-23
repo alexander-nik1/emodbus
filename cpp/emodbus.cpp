@@ -331,7 +331,7 @@ client_t::client_t()
     , curr_transaction(NULL)
 {
     memset(&client, 0, sizeof(struct emb_client_t));
-    client.user_data = this;
+    //client.user_data = this;
     emb_client_init(&client);
 }
 
@@ -392,9 +392,7 @@ void client_t::sync_answer_timeout() {
 void client_t::emb_on_response_(struct emb_client_transaction_t* _req, int _slave_addr) {
     client_t* _this = (client_t*)_req->user_data;
     _this->result = 0;
-
     _this->emb_on_response(_slave_addr);
-
     if(_this->curr_transaction)
         _this->curr_transaction->emb_transaction_on_response(_slave_addr);
 }
@@ -402,9 +400,7 @@ void client_t::emb_on_response_(struct emb_client_transaction_t* _req, int _slav
 void client_t::emb_on_error_(struct emb_client_transaction_t* _req, int _slave_addr, int _errno) {
     client_t* _this = (client_t*)_req->user_data;
     _this->result = _errno;
-
     _this->emb_on_error(_slave_addr, _errno);
-
     if(_this->curr_transaction)
         _this->curr_transaction->emb_transaction_on_error(_errno);
 }

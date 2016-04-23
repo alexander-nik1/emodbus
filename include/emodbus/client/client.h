@@ -74,7 +74,7 @@ struct emb_client_t {
     enum emb_client_state_t state;
 
     /// Some data for high level
-    void* user_data;
+//    void* user_data;
 
     /// This variable saves a current-request address
     int curr_addr;
