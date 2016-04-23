@@ -248,6 +248,77 @@ protected:
     int result;
 };
 
+// *******************************************************************************
+// proxy_t
+
+class proxy_t {
+//private:
+public:
+
+    // Just overload the << operator for useful usage.
+    template<typename T>
+    struct vector : public std::vector<T> {
+        vector& operator << (const T& _v) {
+            std::vector<T>::push_back(_v);
+            return *this;
+        }
+    };
+
+    typedef vector<bool> coils_t;
+    typedef coils_t inputs_t;
+    typedef vector<uint16_t> regs_t;
+    typedef vector<regs_t> array_rest_t;
+    typedef vector<emb_read_file_req_t> read_file_reqs_t;
+
+    struct write_file_req_t {
+        write_file_req_t(uint16_t _file_number,
+                         uint16_t _record_number,
+                         const regs_t& _regs)
+
+                         : file_number(_file_number)
+                         , record_number(_record_number)
+                         , regs(_regs) { }
+
+        uint16_t file_number;
+        uint16_t record_number;
+        const regs_t regs;
+    };
+
+    typedef vector<write_file_req_t> write_file_reqs_t;
+public:
+
+    proxy_t(client_t& _client, int _server_addr);
+
+    // Discrete inputs
+    inputs_t read_discrete_inputs(uint16_t _begin, uint16_t _size);
+
+    // Coils
+    coils_t read_coils(uint16_t _begin, uint16_t _size);
+    void write_coil(uint16_t _addr, bool _value);
+    void write_coils(uint16_t _begin, const coils_t& _values);
+
+    // Input registers
+    regs_t read_input_regs(uint16_t _begin, uint16_t _size);
+
+    // Holding registers
+    regs_t read_holdings(uint16_t _begin, uint16_t _size);
+    void write_holding(uint16_t _addr, uint16_t _value);
+    void write_holdings(uint16_t _begin, const regs_t& _values);
+    regs_t read_write_holdings(uint16_t _read_begin, uint16_t _size,
+                               uint16_t _write_begin, const regs_t& _values);
+
+    // File records
+    array_rest_t read_file(const read_file_reqs_t& _sub_requests);
+    void write_file(const write_file_reqs_t& _sub_requests);
+
+    // FIFO
+    regs_t read_fifo(uint16_t _begin);
+
+private:
+    client_t* client;
+    int server_addr;
+};
+
 } // namespace client
 
 namespace server {

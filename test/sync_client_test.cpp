@@ -100,6 +100,11 @@ int main(int argc, char* argv[]) {
 
     printf("emodbus sync client test\n");
 
+    emb::client::proxy_t::write_file_reqs_t wfr;
+
+    wfr << emb::client::proxy_t::write_file_req_t(0, 0x0000, emb::client::proxy_t::regs_t() << 0xAAAA << 0xDEAD)
+        << emb::client::proxy_t::write_file_req_t(8, 0x0045, emb::client::proxy_t::regs_t() << 0xAAAA << 0xDEAD);
+
     pthread_t pthr;
 
     pthread_create(&pthr, NULL, thr_proc, (void*)&mb_client);

@@ -65,8 +65,6 @@ transaction_t::transaction_t() {
     tr.user_data = NULL;
 }
 
-#include <stdio.h>
-
 void transaction_t::emb_transaction_on_response(int _slave_addr) { }
 void transaction_t::emb_transaction_on_error(int _slave_addr, int _errno) { }
 
