@@ -33,6 +33,17 @@ add_library(emodbus-client-read-coils SHARED ${EMODBUS_CLIENT_READ_COILS_SRC})
 add_library(emodbus-client-read-coils-static STATIC ${EMODBUS_CLIENT_READ_COILS_SRC})
 
 # ===================================================
+# client write coil
+
+set(EMODBUS_CLIENT_WRITE_COIL_SRC
+	write_coil.c
+)
+
+add_library(emodbus-client-write-coil SHARED ${EMODBUS_CLIENT_WRITE_COIL_SRC})
+
+add_library(emodbus-client-write-coil-static STATIC ${EMODBUS_CLIENT_WRITE_COIL_SRC})
+
+# ===================================================
 # client write coils
 
 set(EMODBUS_CLIENT_WRITE_COILS_SRC
