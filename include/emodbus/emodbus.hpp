@@ -34,6 +34,8 @@ private:
     std::vector<char> buffer;
 };
 
+namespace client {
+
 // *******************************************************************************
 //  #####  #       ###   #####  #   #  #####
 //  #      #        #    #      ##  #    #
@@ -275,6 +277,10 @@ private:
     int curr_req_id;
 };
 
+} // namespace client
+
+namespace server {
+
 // *******************************************************************************
 //  #####  #####  ####   #   #  #####  ####
 //  #      #      #   #  #   #  #      #   #
@@ -285,13 +291,13 @@ private:
 class server_t;
 
 // *******************************************************************************
-// server_coils_t
+// coils_t
 
-class server_coils_t {
+class coils_t {
     friend class server_t;
 public:
-    server_coils_t();
-    server_coils_t(uint16_t _start, uint16_t _size);
+    coils_t();
+    coils_t(uint16_t _start, uint16_t _size);
 
     void set_start(uint16_t _start);
     void set_size(uint16_t _size);
@@ -318,13 +324,13 @@ private:
 };
 
 // *******************************************************************************
-// server_holdings_t
+// holdings_t
 
-class server_holdings_t {
+class holdings_t {
     friend class server_t;
 public:
-    server_holdings_t();
-    server_holdings_t(uint16_t _start, uint16_t _size);
+    holdings_t();
+    holdings_t(uint16_t _start, uint16_t _size);
 
     void set_start(uint16_t _start);
     void set_size(uint16_t _size);
@@ -350,13 +356,13 @@ private:
 };
 
 // *******************************************************************************
-// server_file_t
+// file_record_t
 
-class server_file_t {
+class file_record_t {
     friend class server_t;
 public:
-    server_file_t();
-    server_file_t(uint16_t _fileno/*, uint16_t _start, uint16_t _size*/);
+    file_record_t();
+    file_record_t(uint16_t _fileno/*, uint16_t _start, uint16_t _size*/);
 
     void set_fileno(uint16_t _fileno);
 //    void set_start(uint16_t _start);
@@ -402,9 +408,9 @@ public:
 
     bool add_function(uint8_t _func_no, emb_srv_function_t _func);
 
-    bool add_coils(server_coils_t& _coils);
-    bool add_holdings(server_holdings_t& _holdings);
-    bool add_file(server_file_t& _file);
+    bool add_coils(coils_t& _coils);
+    bool add_holdings(holdings_t& _holdings);
+    bool add_file(file_record_t& _file);
 
 private:
     static emb_srv_function_t get_function(struct emb_server_t* _srv, uint8_t _func);
@@ -418,14 +424,14 @@ private:
     typedef std::vector<function_t>::iterator func_iter;
     std::vector<function_t> functions;
 
-    typedef std::vector<server_coils_t*>::iterator coils_iter;
-    std::vector<server_coils_t*> coils;
+    typedef std::vector<coils_t*>::iterator coils_iter;
+    std::vector<coils_t*> coils;
 
-    typedef std::vector<server_holdings_t*>::iterator holdnigs_iter;
-    std::vector<server_holdings_t*> holdings;
+    typedef std::vector<holdings_t*>::iterator holdnigs_iter;
+    std::vector<holdings_t*> holdings;
 
-    typedef std::vector<server_file_t*>::iterator files_iter;
-    std::vector<server_file_t*> files;
+    typedef std::vector<file_record_t*>::iterator files_iter;
+    std::vector<file_record_t*> files;
 
 protected:
     int address;
@@ -454,6 +460,8 @@ private:
     emb::pdu_t rx_pdu,tx_pdu;
 };
 
-}; // namespace emb
+} // namespace server
+
+} // namespace emb
 
 #endif // EMODBUS_HPP

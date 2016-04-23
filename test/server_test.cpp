@@ -27,12 +27,12 @@
 #include "posix_serial_rtu/posix_serial_rtu.hpp"
 #include "dumping_helper.hpp"
 
-class my_coils_t : public emb::server_coils_t {
+class my_coils_t : public emb::server::coils_t {
 public:
     enum { START = 0x0000 };
     enum { SIZE = 0xFFFF };
 
-    my_coils_t() : emb::server_coils_t(START, SIZE) {
+    my_coils_t() : emb::server::coils_t(START, SIZE) {
         values.resize(SIZE);
         for(int i=0; i<SIZE; ++i) {
             values[i] = false;
@@ -83,13 +83,13 @@ private:
     std::vector<bool> values;
 };
 
-class my_holdings_t : public emb::server_holdings_t {
+class my_holdings_t : public emb::server::holdings_t {
 public:
 
     enum { START = 0x0000 };
     enum { SIZE = 0xFFFF };
 
-    my_holdings_t() : emb::server_holdings_t(START, SIZE) {
+    my_holdings_t() : emb::server::holdings_t(START, SIZE) {
 
         regs.resize(SIZE);
         memset(&regs[0], 0, SIZE*2);
@@ -122,13 +122,13 @@ private:
     std::vector<uint16_t> regs;
 };
 
-class my_file_t : public emb::server_file_t {
+class my_file_t : public emb::server::file_record_t {
 public:
     enum { FILENO = 0 };
     enum { START = 0x0000 };
     enum { SIZE = 0xFFFF };
 
-    my_file_t() : emb::server_file_t(FILENO/*, START, SIZE*/) {
+    my_file_t() : emb::server::file_record_t(FILENO/*, START, SIZE*/) {
 
         regs.resize(SIZE);
         memset(&regs[0], 0, SIZE*2);
@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
 
     printf("emodbus server test\n");
 
-    emb::super_server_t ssrv;
+    emb::server::super_server_t ssrv;
 
     struct event_base *base = event_base_new();
 
@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
     my_holdings_t h;
     my_file_t f;
 
-    emb::server_t srv1(16);
+    emb::server::server_t srv1(16);
 
     srv1.add_function(0x01, emb_srv_read_coils);
     srv1.add_function(0x05, emb_srv_write_coil);

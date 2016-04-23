@@ -34,7 +34,7 @@
 #include "posix_serial_rtu/posix_serial_rtu.hpp"
 #include "dumping_helper.hpp"
 
-class cleent_t : public emb::sync_client_t {
+class cleent_t : public emb::client::sync_client_t {
 public:
     cleent_t() {
         pthread_mutex_init(&mutex, NULL);
@@ -88,6 +88,7 @@ void* thr_proc(void* p) {
 void print_all_read_file_answer_data(emb_const_pdu_t* ans);
 void write_and_read_file_record_test();
 void coils_test();
+void registers_test();
 
 int main(int argc, char* argv[]) {
 
@@ -124,9 +125,9 @@ void coils_test() {
 
     int res,i, errors=0;
 
-    emb::read_coils_t rr;
-    emb::write_coils_t wr;
-    emb::write_coil_t wc;
+    emb::client::read_coils_t rr;
+    emb::client::write_coils_t wr;
+    emb::client::write_coil_t wc;
 
     std::vector<char> to_write, to_read;
 
@@ -184,6 +185,14 @@ void coils_test() {
         //printf("---------------> do_request() := %d\n", res);
     }
     printf("Coils test: errors = %d\n", errors);
+}
+
+void registers_test() {
+    const uint16_t rr_begin = 0x1000;
+    const uint16_t rr_size = 0x1000;
+    const uint16_t rr_end = rr_begin + rr_size;
+
+    const int n_tests = 100;
 }
 
 void print_all_read_file_answer_data(emb_const_pdu_t* ans) {
