@@ -46,14 +46,22 @@ namespace client {
 class transaction_t {
 public:
 
+    transaction_t();
+
     virtual void emb_transaction_on_response(int _slave_addr);
-    virtual void emb_transaction_on_error(int _errno);
+    virtual void emb_transaction_on_error(int _slave_addr, int _errno);
 
     pdu_t req, ans;
 
     operator struct emb_client_transaction_t* ();
 
 private:
+    static void emb_trans_on_response_(struct emb_client_transaction_t* _tr,
+                                       int _slave_addr);
+    static void emb_trans_on_error_(struct emb_client_transaction_t* _tr,
+                                    int _slave_addr, int _errno);
+
+    static struct emb_client_req_procs_t procs;
     struct emb_client_transaction_t tr;
 };
 
@@ -229,12 +237,10 @@ protected: // (interface for sync mode)
     void sync_answer_timeout();
 
 private:
-    static void emb_on_response_(struct emb_client_transaction_t* _req, int _slave_addr);
-    static void emb_on_error_(struct emb_client_transaction_t* _req, int _slave_addr, int _errno);
-    static struct emb_client_req_procs_t procs;
+    static void emb_on_response_(struct emb_client_t* _req, int _slave_addr);
+    static void emb_on_error_(struct emb_client_t* _req, int _slave_addr, int _errno);
 
 protected:
-    struct emb_client_transaction_t req;
     struct emb_client_t client;
     transaction_t* curr_transaction;
     int curr_server_addr;

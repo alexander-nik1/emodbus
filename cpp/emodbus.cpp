@@ -58,10 +58,36 @@ namespace client {
 // *******************************************************************************
 // transaction_t
 
-void transaction_t::emb_transaction_on_response(int _slave_addr) { }
-void transaction_t::emb_transaction_on_error(int _errno) { }
+transaction_t::transaction_t() {
+    tr.procs = &procs;
+    tr.req_pdu = req;
+    tr.resp_pdu = ans;
+    tr.user_data = NULL;
+}
+
+#include <stdio.h>
+
+void transaction_t::emb_transaction_on_response(int _slave_addr) { printf("transaction response: %d\n", _slave_addr); }
+void transaction_t::emb_transaction_on_error(int _slave_addr, int _errno) { printf("transaction error: %d, %d\n", _slave_addr, _errno); }
 
 transaction_t::operator struct emb_client_transaction_t* () { return &tr; }
+
+void transaction_t::emb_trans_on_response_(struct emb_client_transaction_t* _tr,
+                                           int _slave_addr) {
+    transaction_t* _this = container_of(_tr, transaction_t, tr);
+    _this->emb_transaction_on_response(_slave_addr);
+}
+
+void transaction_t::emb_trans_on_error_(struct emb_client_transaction_t* _tr,
+                                        int _slave_addr, int _errno) {
+    transaction_t* _this = container_of(_tr, transaction_t, tr);
+    _this->emb_transaction_on_error(_slave_addr, _errno);
+}
+
+struct emb_client_req_procs_t transaction_t::procs = {
+    transaction_t::emb_trans_on_response_,
+    transaction_t::emb_trans_on_error_
+};
 
 // *******************************************************************************
 // read_coils_t
@@ -331,7 +357,8 @@ client_t::client_t()
     , curr_transaction(NULL)
 {
     memset(&client, 0, sizeof(struct emb_client_t));
-    //client.user_data = this;
+    client.on_response = emb_on_response_;
+    client.on_error = emb_on_error_;
     emb_client_init(&client);
 }
 
@@ -343,12 +370,7 @@ int client_t::do_transaction(int _server_addr,
     curr_transaction = &_transaction;
     curr_server_addr = _server_addr;
 
-    req.req_pdu = _transaction.req;
-    req.resp_pdu = _transaction.ans;
-    req.procs = &procs;
-    req.user_data = this;
-
-    if((res = emb_client_do_transaction(&client, _server_addr, &req)) != 0) {
+    if((res = emb_client_do_transaction(&client, _server_addr, _transaction)) != 0) {
         return res;
     }
 
@@ -389,27 +411,17 @@ void client_t::sync_answer_timeout() {
     emb_client_wait_timeout(&client);
 }
 
-void client_t::emb_on_response_(struct emb_client_transaction_t* _req, int _slave_addr) {
-    client_t* _this = (client_t*)_req->user_data;
+void client_t::emb_on_response_(struct emb_client_t* _req, int _slave_addr) {
+    client_t* _this = container_of(_req, client_t, client);
     _this->result = 0;
     _this->emb_on_response(_slave_addr);
-    if(_this->curr_transaction)
-        _this->curr_transaction->emb_transaction_on_response(_slave_addr);
 }
 
-void client_t::emb_on_error_(struct emb_client_transaction_t* _req, int _slave_addr, int _errno) {
-    client_t* _this = (client_t*)_req->user_data;
+void client_t::emb_on_error_(struct emb_client_t* _req, int _slave_addr, int _errno) {
+    client_t* _this = container_of(_req, client_t, client);
     _this->result = _errno;
     _this->emb_on_error(_slave_addr, _errno);
-    if(_this->curr_transaction)
-        _this->curr_transaction->emb_transaction_on_error(_errno);
 }
-
-
-struct emb_client_req_procs_t client_t::procs = {
-    client_t::emb_on_response_,
-    client_t::emb_on_error_
-};
 
 } // namespace client
 

@@ -12,7 +12,7 @@
  */
 
 #define CLIENT_REQ_ON_ERROR(_req_, _addr_, _errno_)        \
-    if((_req_->procs) && (_req_->procs->on_error)) \
+    if((_req_->procs) && (_req_->procs->on_error))         \
         _req_->procs->on_error(_req_, _addr_, _errno_)
 
 static void emb_client_on_receive_pkt(void* _user_data,
@@ -21,7 +21,6 @@ static void emb_client_on_receive_pkt(void* _user_data,
 
     struct emb_client_t* cli = (struct emb_client_t*)_user_data;
     struct emb_client_transaction_t* req = cli->curr_transaction;
-    const struct emb_client_function_i* func;
     int res;
 
     cli->curr_transaction = (struct emb_client_transaction_t*)0;
@@ -35,19 +34,28 @@ static void emb_client_on_receive_pkt(void* _user_data,
         }
 
         if(cli->curr_addr != _slave_addr) {
+            if(cli->on_error)
+                cli->on_error(cli, _slave_addr, -modbus_resp_wrong_address);
             CLIENT_REQ_ON_ERROR(req, _slave_addr, -modbus_resp_wrong_address);
             break;
         }
 
         if((res = emb_check_pdu_for_exception(_pkt))) {
+            if(cli->on_error)
+                cli->on_error(cli, _slave_addr, res);
             CLIENT_REQ_ON_ERROR(req, _slave_addr, res);
             break;
         }
 
         if(req->req_pdu->function != _pkt->function) {
+            if(cli->on_error)
+                cli->on_error(cli, _slave_addr, -modbus_resp_wrong_func);
             CLIENT_REQ_ON_ERROR(req, _slave_addr, -modbus_resp_wrong_func);
             break;
         }
+
+        if(cli->on_response)
+            cli->on_response(cli, _slave_addr);
 
         if(req->procs && req->procs->on_response)
             req->procs->on_response(req, _slave_addr);
@@ -61,6 +69,8 @@ static void emb_client_on_error(void* _user_data, int _errno) {
     if(req) {
         cli->curr_transaction = (struct emb_client_transaction_t*)0;
         cli->state = mt_state_no_task;
+        if(cli->on_error)
+            cli->on_error(cli, cli->curr_addr, _errno);
         CLIENT_REQ_ON_ERROR(req, cli->curr_addr, _errno);
     }
 }
@@ -75,7 +85,9 @@ void emb_client_wait_timeout(struct emb_client_t* _cli) {
     if(req) {
         _cli->state = mt_state_no_task;
         _cli->curr_transaction = (struct emb_client_transaction_t*)0;
-//        CLIENT_REQ_ON_ERROR(req, -modbus_resp_timeout);
+//        if(_cli->on_error)
+//            _cli->on_error(_cli, _cli->curr_addr, -modbus_resp_timeout);
+        CLIENT_REQ_ON_ERROR(req, _cli->curr_addr, -modbus_resp_timeout);
     }
 }
 

@@ -73,14 +73,17 @@ struct emb_client_t {
     /// The state of the modbus client
     enum emb_client_state_t state;
 
-    /// Some data for high level
-//    void* user_data;
-
     /// This variable saves a current-request address
     int curr_addr;
 
     /// This variable saves a pointer to a current request.
     struct emb_client_transaction_t* curr_transaction;
+
+    /// This function calls by client. A call says about a response was received.
+    void (*on_response)(struct emb_client_t* _cli, int _slave_addr);
+
+    /// This function calls by client. A call indicates an error.
+    void (*on_error)(struct emb_client_t* _cli, int _slave_addr, int _errno);
 };
 
 /**
