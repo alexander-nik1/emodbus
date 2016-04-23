@@ -74,6 +74,8 @@ INSTALL(FILES
 		lib/libemodbus-server-read-coils.so
 		lib/libemodbus-server-read-file.so
 		lib/libemodbus-server-read-holdings.so
+		lib/libemodbus-server-write-coil.so
+		lib/libemodbus-server-write-coils.so
 		lib/libemodbus-server-write-file.so
 		lib/libemodbus-server-write-reg.so
 		lib/libemodbus-server-write-regs.so
@@ -88,6 +90,8 @@ INSTALL(FILES
 		lib/libemodbus-server-read-coils-static.a
 		lib/libemodbus-server-read-file-static.a
 		lib/libemodbus-server-read-holdings-static.a
+		lib/libemodbus-server-write-coil-static.a
+		lib/libemodbus-server-write-coils-static.a
 		lib/libemodbus-server-write-file-static.a
 		lib/libemodbus-server-write-reg-static.a
 		lib/libemodbus-server-write-regs-static.a
@@ -107,6 +111,8 @@ INSTALL(FILES
 		lib/libemodbus-client-read-fifo.so
 		lib/libemodbus-client-read-file-record.so
 		lib/libemodbus-client-read-holdings.so
+		lib/libemodbus-client-write-coil.so
+		lib/libemodbus-client-write-coils.so
 		lib/libemodbus-client-write-file-record.so
 		lib/libemodbus-client-write-multi-reg.so
 		lib/libemodbus-client-write-single-reg.so
@@ -122,6 +128,8 @@ INSTALL(FILES
 		lib/libemodbus-client-read-fifo-static.a
 		lib/libemodbus-client-read-file-record-static.a
 		lib/libemodbus-client-read-holdings-static.a
+		lib/libemodbus-client-write-coil-static.a
+		lib/libemodbus-client-write-coils-static.a
 		lib/libemodbus-client-write-file-record-static.a
 		lib/libemodbus-client-write-multi-reg-static.a
 		lib/libemodbus-client-write-single-reg-static.a
