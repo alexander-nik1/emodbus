@@ -67,8 +67,8 @@ transaction_t::transaction_t() {
 
 #include <stdio.h>
 
-void transaction_t::emb_transaction_on_response(int _slave_addr) { printf("transaction response: %d\n", _slave_addr); }
-void transaction_t::emb_transaction_on_error(int _slave_addr, int _errno) { printf("transaction error: %d, %d\n", _slave_addr, _errno); }
+void transaction_t::emb_transaction_on_response(int _slave_addr) { }
+void transaction_t::emb_transaction_on_error(int _slave_addr, int _errno) { }
 
 transaction_t::operator struct emb_client_transaction_t* () { return &tr; }
 
