@@ -326,6 +326,111 @@ uint16_t write_mask_reg_t::write_mask_reg_t::get_answer_or_mask() const {
 }
 
 // *******************************************************************************
+// read_file_t
+
+read_file_t::subreq_t::subreq_t(uint16_t _fileno, uint16_t _record_no, uint16_t _length) {
+    emb_read_file_req_t::file_number = _fileno;
+    emb_read_file_req_t::record_number = _record_no;
+    emb_read_file_req_t::record_length = _length;
+}
+
+read_file_t::answer_iterator_t::answer_iterator_t(emb_const_pdu_t *_anw)
+    : ans(_anw)
+    , iterator_(NULL) {
+    reset_to_begin();
+}
+
+uint16_t read_file_t::answer_iterator_t::subanswer_quantity() const {
+    return emb_read_file_subanswer_quantity(iterator_);
+}
+
+uint16_t read_file_t::answer_iterator_t::subanswer_data(int _i) const {
+    if(_i < 0)
+        _i = subanswer_quantity() + _i;
+    return emb_read_file_subanswer_data(iterator_, _i);
+}
+
+bool read_file_t::answer_iterator_t::operator == (const answer_iterator_t& _a) const {
+    return (this->iterator_ == _a.iterator_);
+}
+
+bool read_file_t::answer_iterator_t::operator != (const answer_iterator_t& _a) const {
+    return !operator == (_a);
+}
+
+void read_file_t::answer_iterator_t::operator ++ () {
+    iterator_ = emb_read_file_next_subanswer(ans, iterator_);
+}
+
+void read_file_t::answer_iterator_t::operator ++ (int) {
+    iterator_ = emb_read_file_next_subanswer(ans, iterator_);
+}
+
+void read_file_t::answer_iterator_t::reset_to_begin() {
+    if(ans)
+        iterator_ = emb_read_file_next_subanswer(ans, NULL);
+}
+
+read_file_t::read_file_t() { }
+
+void read_file_t::build_req(const req_t &_reqs) {
+    int res;
+    req.resize(emb_read_file_calc_req_data_size(_reqs.size()));
+    ans.resize(emb_read_file_calc_answer_data_size(&_reqs[0], _reqs.size()));
+
+    if(res = emb_read_file_make_req(req, &_reqs[0], _reqs.size()))
+        throw res;
+}
+
+read_file_t::answer_iterator_t read_file_t::subanswer_begin() const {
+    return answer_iterator_t(ans);
+}
+
+read_file_t::answer_iterator_t read_file_t::subanswer_end() const {
+    return answer_iterator_t(NULL);
+}
+
+read_file_t::answer_iterator_t read_file_t::operator [] (int _subanswer_index) const {
+    emb_read_file_subansw_t* i = emb_read_file_find_subanswer(ans, _subanswer_index);
+    answer_iterator_t res(ans);
+    if(i)
+        res.iterator_ = i;
+    else
+        res.ans = NULL;
+    return res;
+}
+
+// *******************************************************************************
+// write_file_t
+
+write_file_t::subreq_t::subreq_t(uint16_t _file_number,
+                                 uint16_t _record_number,
+                                 const regs_t& _regs)
+
+                 : file_number(_file_number)
+                 , record_number(_record_number)
+                 , regs(_regs) { }
+
+write_file_t::write_file_t() { }
+
+void write_file_t::build_req(const req_t& _req) {
+    int res;
+    std::vector<emb_write_file_req_t> reqs(_req.size());
+    for(size_t i=0; i<_req.size(); ++i) {
+        reqs[i].file_number = _req[i].file_number;
+        reqs[i].record_number = _req[i].record_number;
+        reqs[i].record_length = _req[i].regs.size();
+        reqs[i].data = &_req[i].regs[0];
+    }
+
+    req.resize(emb_write_file_calc_req_data_size(&reqs[0], reqs.size()));
+    ans.resize(emb_write_file_calc_answer_data_size(&reqs[0], reqs.size()));
+
+    if(res = emb_write_file_make_req(req, &reqs[0], reqs.size()))
+        throw res;
+}
+
+// *******************************************************************************
 // read_fifo_t
 
 read_fifo_t::read_fifo_t() { }

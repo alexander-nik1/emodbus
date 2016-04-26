@@ -15,6 +15,20 @@
 
 namespace emb {
 
+// Just overload the << operator for useful usage.
+template<typename T>
+struct vector : public std::vector<T> {
+    vector& operator << (const T& _v) {
+        std::vector<T>::push_back(_v);
+        return *this;
+    }
+};
+
+typedef vector<bool> coils_t;
+typedef coils_t inputs_t;
+typedef vector<uint16_t> regs_t;
+typedef vector<regs_t> array_rest_t;
+
 // *******************************************************************************
 // pdu_t
 
@@ -177,27 +191,71 @@ public:
 };
 
 // *******************************************************************************
-// read_file_record_t
+// read_file_t
 
-class read_file_record_t : public transaction_t {
+class read_file_t : public transaction_t {
 public:
-    read_file_record_t();
 
-    typedef emb_read_file_req_t sub_req_t;
+    // Read file record for
+    struct subreq_t : public emb_read_file_req_t {
+        subreq_t(uint16_t _fileno, uint16_t _record_no, uint16_t _length);
+    };
 
-    void build_req(const sub_req_t* _reqs, int _reqs_number);
+    typedef vector<subreq_t> req_t;
+
+    class answer_iterator_t {
+        friend class read_file_t;
+    private:
+        answer_iterator_t(emb_const_pdu_t* _anw);
+
+    public:
+        uint16_t subanswer_quantity() const;
+        uint16_t subanswer_data(int _i) const;
+
+        bool operator == (const answer_iterator_t& _a) const;
+        bool operator != (const answer_iterator_t& _a) const;
+
+        void operator ++ ();
+        void operator ++ (int);
+
+        void reset_to_begin();
+
+    private:
+        emb_const_pdu_t* ans;
+        emb_read_file_subansw_t* iterator_;
+    };
+
+    read_file_t();
+
+    void build_req(const req_t& _reqs);
+
+    answer_iterator_t subanswer_begin() const;
+    answer_iterator_t subanswer_end() const;
+
+    answer_iterator_t operator [] (int _subanswer_index) const;
 };
 
 // *******************************************************************************
-// write_file_record_t
+// write_file_t
 
-class write_file_record_t : public transaction_t {
+class write_file_t : public transaction_t {
 public:
-    write_file_record_t();
 
-    typedef emb_write_file_req_t sub_req_t;
+    struct subreq_t {
+        subreq_t(uint16_t _file_number,
+                 uint16_t _record_number,
+                 const regs_t& _regs);
 
-    void build_req(const sub_req_t* _reqs, int _reqs_number);
+        uint16_t file_number;
+        uint16_t record_number;
+        const regs_t regs;
+    };
+
+    typedef vector<subreq_t> req_t;
+
+    write_file_t();
+
+    void build_req(const req_t& _req);
 };
 
 // *******************************************************************************
@@ -252,39 +310,6 @@ protected:
 // proxy_t
 
 class proxy_t {
-//private:
-public:
-
-    // Just overload the << operator for useful usage.
-    template<typename T>
-    struct vector : public std::vector<T> {
-        vector& operator << (const T& _v) {
-            std::vector<T>::push_back(_v);
-            return *this;
-        }
-    };
-
-    typedef vector<bool> coils_t;
-    typedef coils_t inputs_t;
-    typedef vector<uint16_t> regs_t;
-    typedef vector<regs_t> array_rest_t;
-    typedef vector<emb_read_file_req_t> read_file_reqs_t;
-
-    struct write_file_req_t {
-        write_file_req_t(uint16_t _file_number,
-                         uint16_t _record_number,
-                         const regs_t& _regs)
-
-                         : file_number(_file_number)
-                         , record_number(_record_number)
-                         , regs(_regs) { }
-
-        uint16_t file_number;
-        uint16_t record_number;
-        const regs_t regs;
-    };
-
-    typedef vector<write_file_req_t> write_file_reqs_t;
 public:
 
     proxy_t(client_t& _client, int _server_addr);
@@ -308,8 +333,8 @@ public:
                                uint16_t _write_begin, const regs_t& _values);
 
     // File records
-    array_rest_t read_file(const read_file_reqs_t& _sub_requests);
-    void write_file(const write_file_reqs_t& _sub_requests);
+    array_rest_t read_file(const read_file_t::req_t& _req);
+    void write_file(const write_file_t::req_t& _req);
 
     // FIFO
     regs_t read_fifo(uint16_t _begin);

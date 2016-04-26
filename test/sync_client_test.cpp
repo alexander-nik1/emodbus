@@ -80,7 +80,7 @@ void* thr_proc(void* p) {
 
     struct event_base *base = event_base_new();
 
-    posix_serial_rtu_t psp(base, "/dev/ttyUSB1", 115200);
+    posix_serial_rtu_t psp(base, "/dev/ttyS0", 115200);
 
     client->set_proto(psp.get_proto());
 
@@ -91,7 +91,7 @@ void* thr_proc(void* p) {
     event_base_dispatch(base);
 }
 
-void print_all_read_file_answer_data(emb_const_pdu_t* ans);
+void print_all_read_file_answer_data(const emb::client::read_file_t &ans);
 void write_and_read_file_record_test();
 void coils_test();
 void registers_test();
@@ -100,18 +100,15 @@ int main(int argc, char* argv[]) {
 
     printf("emodbus sync client test\n");
 
-    emb::client::proxy_t::write_file_reqs_t wfr;
-
-    wfr << emb::client::proxy_t::write_file_req_t(0, 0x0000, emb::client::proxy_t::regs_t() << 0xAAAA << 0xDEAD)
-        << emb::client::proxy_t::write_file_req_t(8, 0x0045, emb::client::proxy_t::regs_t() << 0xAAAA << 0xDEAD);
-
     pthread_t pthr;
 
     pthread_create(&pthr, NULL, thr_proc, (void*)&mb_client);
 
     sleep(1);
 
-    coils_test();
+    //coils_test();
+
+    write_and_read_file_record_test();
 
     pthread_join(pthr, NULL);
 
@@ -206,79 +203,52 @@ void registers_test() {
     const int n_tests = 100;
 }
 
-void print_all_read_file_answer_data(emb_const_pdu_t* ans) {
+void write_and_read_file_record_test() {
 
-    for(emb_read_file_subansw_t* sa = emb_read_file_first_subanswer(ans);
-        sa != NULL; sa = emb_read_file_next_subanswer(ans, sa)) {
+    using namespace emb;
+    using namespace emb::client;
 
-        const uint16_t q = emb_read_file_subanswer_quantity(sa);
+    int res;
 
-        printf("Subanswer:(%d): ", q);
+    write_file_t wf;
+    read_file_t rf;
 
-        for(int j=0; j<q; ++j) {
-            printf("%04X ", emb_read_file_subanswer_data(sa, j));
+    // make a write request
+    write_file_t::req_t wf_data;
+    wf_data << write_file_t::subreq_t(0, 0, regs_t() << 0x1111 << 0xDEAD << 0xC0FE)
+            << write_file_t::subreq_t(0, 4, regs_t() << 0x2222 << 0xDEAD << 0xC0FE << 0xABBA)
+            << write_file_t::subreq_t(0, 8, regs_t() << 0x3333 << 0xDEAD << 0xF00D);
+    wf.build_req(wf_data);
+
+    // make a read request
+    read_file_t::req_t rf_data;
+    rf_data << read_file_t::subreq_t(0, 0, 3)
+            << read_file_t::subreq_t(0, 4, 4)
+            << read_file_t::subreq_t(0, 8, 3)
+            << read_file_t::subreq_t(0, 0, 20);
+    rf.build_req(rf_data);
+
+    // before write
+    res = mb_client.do_transaction(16, 100, wf);
+    if(res)
+        printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
+
+    // after read
+    res = mb_client.do_transaction(16, 100, rf);
+    if(res)
+        printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
+
+    // Iterate over all received data, and print it.
+    for(read_file_t::answer_iterator_t ii=rf.subanswer_begin(); ii != rf.subanswer_end(); ++ii) {
+
+        const int quantity = ii.subanswer_quantity();
+        printf("Subanswer:(%d): ", quantity);
+
+        for(int j=0; j<quantity; ++j) {
+            printf("%04X ", ii.subanswer_data(j));
         }
 
         printf("\n");
     }
+
 }
-/*
-void write_and_read_file_record_test() {
-
-    int res;
-
-    emb_read_file_req_t reqs[1];
-
-    reqs[0].file_number = 0;
-    reqs[0].record_number = 0x0000;
-    reqs[0].record_length = 0x0011;
-
-    enum { wr_sz = 3 };
-
-    emb_write_file_req_t rew[wr_sz];
-
-    const uint16_t dw[wr_sz][3] = {
-        { 0x1111, 0xDEAD, 0xC0FE },
-        { 0x2222, 0xDEAD, 0xC0FE },
-        { 0x3333, 0xDEAD, 0xC0FE }
-    };
-
-    for(int i=0; i<wr_sz; ++i) {
-        rew[i].file_number = 0;
-        rew[i].record_number = i * 4;
-        rew[i].record_length = 3;
-        rew[i].data = dw[i];
-    }
-
-    emb::pdu_t req(emb_read_file_calc_req_data_size(1));
-
-    emb::pdu_t ans(emb_read_file_calc_answer_data_size(reqs, 1));
-
-    emb::pdu_t reqw(emb_write_file_calc_req_data_size(rew, wr_sz));
-
-    emb::pdu_t answ(emb_write_file_calc_answer_data_size(rew, wr_sz));
-
-    printf("size = %d\n", reqw.max_size);
-
-    res = emb_read_file_make_req(req, reqs, 1);
-    printf("emb_read_file_make_req = %d\n", res);
-
-    res = emb_write_file_make_req(reqw, rew, wr_sz);
-    printf("emb_write_file_make_req = %d\n", res);
-
-    for(int i=0; i<10; ++i) {
-
-        res = mb_client.do_request(16, 100, reqw, answ);
-        if(res)
-            printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
-
-        res = mb_client.do_request(16, 100, req, ans);
-        if(res)
-            printf("Error: %d \"%s\"\n", res, emb_strerror(-res));
-
-        print_all_read_file_answer_data(ans);
-
-        usleep(1000*10);
-        //printf("---------------> do_request() := %d\n", res);
-    }
-}*/
