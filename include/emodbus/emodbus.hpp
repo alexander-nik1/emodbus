@@ -355,7 +355,14 @@ public:
 
     enum { DEFAULT_TIMEOUT = 100 };
 
-    proxy_t(client_t& _client, int _server_addr);
+    proxy_t();
+
+    proxy_t(client_t* _client, int _server_addr);
+
+    void set_client(client_t* _client);
+    client_t* client() const;
+
+    void set_server_address(int _server_address);
 
     void set_timeout(unsigned int _time);
     unsigned int timeout() const;
@@ -388,13 +395,13 @@ public:
 public:
     holdings_t holdings;
 
-private:
+public:
 
     void do_transaction(transaction_t& _tr);
 
 private:
-    client_t* client;
-    int server_addr;
+    client_t* client_;
+    int server_addr_;
     unsigned int timeout_;
 };
 

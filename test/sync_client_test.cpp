@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
 
     sleep(1);
 
-    emb::client::proxy_t d8_proxy(mb_client, 48);
+    emb::client::proxy_t d8_proxy(&mb_client, 48);
 
     for(int i=0; i<100; ++i) {
 

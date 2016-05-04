@@ -593,9 +593,13 @@ proxy_t::holdings_t::regs_t& proxy_t::holdings_t::operator[] (const emb::range_t
     return regs;
 }
 
-proxy_t::proxy_t(client_t& _client, int _server_addr)
-    : client(&_client)
-    , server_addr(_server_addr)
+proxy_t::proxy_t()
+    : client_(NULL)
+    , server_addr_(0) { }
+
+proxy_t::proxy_t(client_t *_client, int _server_addr)
+    : client_(_client)
+    , server_addr_(_server_addr)
     , timeout_(DEFAULT_TIMEOUT) {
 
     holdings.p = this;
@@ -668,7 +672,7 @@ regs_t proxy_t::read_holdings(uint16_t _begin, uint16_t _size) {
 //}
 
 void proxy_t::do_transaction(transaction_t& _tr) {
-    const int res = client->do_transaction(server_addr, timeout_, _tr);
+    const int res = client_->do_transaction(server_addr_, timeout_, _tr);
     if(res)
         throw res;
 }
