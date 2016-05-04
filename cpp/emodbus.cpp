@@ -219,6 +219,11 @@ uint16_t read_regs_t::get_answer_quantity() const {
     return emb_read_hold_regs_get_regs_n(ans);
 }
 
+void read_regs_t::get_answer_regs(regs_t& _res, uint16_t _offset, uint16_t _n_regs) {
+    _res.resize(_n_regs);
+    emb_read_hold_regs_get_regs(ans, _offset, _n_regs, &_res[0]);
+}
+
 // *******************************************************************************
 // write_reg_t
 
@@ -524,6 +529,149 @@ void client_t::emb_on_error_(struct emb_client_t* _req, int _slave_addr, int _er
     client_t* _this = container_of(_req, client_t, client);
     _this->result = _errno;
     _this->emb_on_error(_slave_addr, _errno);
+}
+
+// *******************************************************************************
+// proxy_t
+
+proxy_t::holdings_t::reg_t::reg_t(uint16_t _addr, proxy_t* _p)
+    : addr(_addr), p(_p) { }
+
+proxy_t::holdings_t::reg_t::operator uint16_t() {
+    read_regs_t r;
+    r.build_req(addr, 1);
+    p->do_transaction(r);
+    return r.get_answer_reg(0);
+}
+
+void proxy_t::holdings_t::reg_t::operator = (uint16_t _v) {
+    write_reg_t r;
+    r.build_req(addr, _v);
+    p->do_transaction(r);
+}
+
+void proxy_t::holdings_t::reg_t::operator |= (uint16_t _v) {
+    write_mask_reg_t r;
+    r.build_req(addr, ~_v, _v);
+    p->do_transaction(r);
+}
+
+void proxy_t::holdings_t::reg_t::operator &= (uint16_t _v) {
+    write_mask_reg_t r;
+    r.build_req(addr, ~_v, 0);
+    p->do_transaction(r);
+}
+
+void proxy_t::holdings_t::reg_t::operator = (const emb::regs_t& _regs) {
+    write_regs_t r;
+    r.build_req(addr, _regs.size(), &_regs[0]);
+    p->do_transaction(r);
+}
+
+proxy_t::holdings_t::regs_t::regs_t(uint16_t _start, uint16_t _end, proxy_t* _p)
+    : start(_start), end(_end), p(_p) { }
+
+proxy_t::holdings_t::regs_t::operator emb::regs_t() {
+    read_regs_t r;
+    r.build_req(start, (end - start)+1);
+    p->do_transaction(r);
+    emb::regs_t res;
+    r.get_answer_regs(res, 0, r.get_answer_quantity());
+    return res;
+}
+
+void proxy_t::holdings_t::regs_t::operator = (const emb::regs_t& _regs) {
+    write_regs_t r;
+    r.build_req(start, _regs.size(), &_regs[0]);
+    p->do_transaction(r);
+}
+
+proxy_t::holdings_t::reg_t proxy_t::holdings_t::operator[] (uint16_t _i) {
+    return reg_t(_i, p);
+}
+
+proxy_t::holdings_t::regs_t proxy_t::holdings_t::operator[] (const emb::range_t& _r) {
+    return regs_t(_r.first, _r.second, p);
+}
+
+proxy_t::proxy_t(client_t& _client, int _server_addr)
+    : client(&_client)
+    , server_addr(_server_addr)
+    , timeout_(DEFAULT_TIMEOUT) {
+
+    holdings.p = this;
+}
+
+void proxy_t::set_timeout(unsigned int _time) {
+    timeout_ = _time;
+}
+
+unsigned int proxy_t::timeout() const
+{ return timeout_; }
+
+// Discrete inputs
+//inputs_t proxy_t::read_discrete_inputs(uint16_t _begin, uint16_t _size) {
+//    return inputs_t();
+//}
+
+// Coils
+//coils_t proxy_t::read_coils(uint16_t _begin, uint16_t _size) {
+//    return coils_t();
+//}
+
+//void proxy_t::write_coil(uint16_t _addr, bool _value) {
+
+//}
+
+//void proxy_t::write_coils(uint16_t _begin, const coils_t& _values) {
+
+//}
+
+// Input registers
+//regs_t proxy_t::read_input_regs(uint16_t _begin, uint16_t _size) {
+
+//}
+
+// Holding registers
+regs_t proxy_t::read_holdings(uint16_t _begin, uint16_t _size) {
+    read_regs_t r;
+    r.build_req(_begin, _size);
+    regs_t res;
+    r.get_answer_regs(res, 0, r.get_answer_quantity());
+    return res;
+}
+
+//void proxy_t::write_holding(uint16_t _addr, uint16_t _value) {
+
+//}
+
+//void proxy_t::write_holdings(uint16_t _begin, const regs_t& _values) {
+
+//}
+
+//regs_t proxy_t::read_write_holdings(uint16_t _read_begin, uint16_t _size,
+//                           uint16_t _write_begin, const regs_t& _values) {
+//    return regs_t();
+//}
+
+//// File records
+//array_rest_t proxy_t::read_file(const read_file_t::req_t& _req) {
+//    return array_rest_t();
+//}
+
+//void proxy_t::write_file(const write_file_t::req_t& _req) {
+
+//}
+
+//// FIFO
+//regs_t proxy_t::read_fifo(uint16_t _begin) {
+//    return regs_t();
+//}
+
+void proxy_t::do_transaction(transaction_t& _tr) {
+    const int res = client->do_transaction(server_addr, timeout_, _tr);
+    if(res)
+        throw res;
 }
 
 } // namespace client

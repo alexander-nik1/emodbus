@@ -24,6 +24,8 @@ struct vector : public std::vector<T> {
     }
 };
 
+typedef std::pair<uint16_t, uint16_t> range_t;
+
 typedef vector<bool> coils_t;
 typedef coils_t inputs_t;
 typedef vector<uint16_t> regs_t;
@@ -135,6 +137,8 @@ public:
     uint16_t get_req_quantity() const;
     uint16_t get_answer_reg(uint16_t _offset) const;
     uint16_t get_answer_quantity() const;
+
+    void get_answer_regs(regs_t& _res, uint16_t _offset, uint16_t _n_regs);
 };
 
 // *******************************************************************************
@@ -310,9 +314,49 @@ protected:
 // proxy_t
 
 class proxy_t {
+
+    struct holdings_t {
+        friend class proxy_t;
+    private:
+        struct reg_t {
+            reg_t(uint16_t _addr, proxy_t* _p);
+
+            operator uint16_t();
+            void operator = (uint16_t _v);
+            void operator |= (uint16_t _v);
+            void operator &= (uint16_t _v);
+            void operator = (const emb::regs_t& _regs);
+
+        private:
+            uint16_t addr;
+            proxy_t* p;
+        };
+
+        struct regs_t {
+            regs_t(uint16_t _start, uint16_t _end, proxy_t* _p);
+            operator emb::regs_t();
+            void operator = (const emb::regs_t& _regs);
+
+        private:
+            uint16_t start, end;
+            proxy_t* p;
+        };
+    public:
+        reg_t operator[] (uint16_t _i);
+        regs_t operator[] (const emb::range_t& _r);
+
+    private:
+        proxy_t* p;
+    };
+
 public:
 
+    enum { DEFAULT_TIMEOUT = 100 };
+
     proxy_t(client_t& _client, int _server_addr);
+
+    void set_timeout(unsigned int _time);
+    unsigned int timeout() const;
 
     // Discrete inputs
     inputs_t read_discrete_inputs(uint16_t _begin, uint16_t _size);
@@ -339,9 +383,17 @@ public:
     // FIFO
     regs_t read_fifo(uint16_t _begin);
 
+public:
+    holdings_t holdings;
+
+private:
+
+    void do_transaction(transaction_t& _tr);
+
 private:
     client_t* client;
     int server_addr;
+    unsigned int timeout_;
 };
 
 } // namespace client

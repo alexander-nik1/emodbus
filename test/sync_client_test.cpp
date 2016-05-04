@@ -80,11 +80,11 @@ void* thr_proc(void* p) {
 
     struct event_base *base = event_base_new();
 
-    posix_serial_rtu_t psp(base, "/dev/ttyS0", 115200);
+    posix_serial_rtu_t psp(base, "/dev/ttyUSB0", 115200);
 
     client->set_proto(psp.get_proto());
 
-    psp.get_proto()->flags &= ~EMB_PROTO_FLAG_DUMD_PAKETS;
+    psp.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
 
     emb_debug_helper.enable_dumping();
 
@@ -106,11 +106,27 @@ int main(int argc, char* argv[]) {
 
     sleep(1);
 
-    //coils_test();
+    emb::client::proxy_t d8_proxy(mb_client, 48);
 
-    write_and_read_file_record_test();
+    for(int i=0; i<100; ++i) {
 
-    pthread_join(pthr, NULL);
+        try {
+
+            printf("v = 0x%04X\n", (uint16_t)d8_proxy.holdings[0]);
+
+            emb::regs_t r = d8_proxy.holdings[emb::range_t(0x40, 0x47)];
+            for(int j=0; j<r.size(); ++j)
+                printf("0x%04X ", r[j]);
+            printf("\n");
+        }
+        catch (int err) {
+            fprintf(stderr, "Error: %s\n", emb_strerror(-err));
+        }
+
+        usleep(1000 * 100);
+    }
+
+   // pthread_join(pthr, NULL);
 
     return 0;
 }
