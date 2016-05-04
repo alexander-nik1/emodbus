@@ -319,7 +319,7 @@ class proxy_t {
         friend class proxy_t;
     private:
         struct reg_t {
-            reg_t(uint16_t _addr, proxy_t* _p);
+            friend class holdings_t;
 
             operator uint16_t();
             void operator = (uint16_t _v);
@@ -330,20 +330,22 @@ class proxy_t {
         private:
             uint16_t addr;
             proxy_t* p;
-        };
+        } reg;
 
         struct regs_t {
-            regs_t(uint16_t _start, uint16_t _end, proxy_t* _p);
+            friend class holdings_t;
+
             operator emb::regs_t();
             void operator = (const emb::regs_t& _regs);
 
         private:
             uint16_t start, end;
             proxy_t* p;
-        };
+        } regs;
+
     public:
-        reg_t operator[] (uint16_t _i);
-        regs_t operator[] (const emb::range_t& _r);
+        reg_t& operator[] (uint16_t _i);
+        regs_t& operator[] (const emb::range_t& _r);
 
     private:
         proxy_t* p;

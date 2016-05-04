@@ -534,9 +534,6 @@ void client_t::emb_on_error_(struct emb_client_t* _req, int _slave_addr, int _er
 // *******************************************************************************
 // proxy_t
 
-proxy_t::holdings_t::reg_t::reg_t(uint16_t _addr, proxy_t* _p)
-    : addr(_addr), p(_p) { }
-
 proxy_t::holdings_t::reg_t::operator uint16_t() {
     read_regs_t r;
     r.build_req(addr, 1);
@@ -568,9 +565,6 @@ void proxy_t::holdings_t::reg_t::operator = (const emb::regs_t& _regs) {
     p->do_transaction(r);
 }
 
-proxy_t::holdings_t::regs_t::regs_t(uint16_t _start, uint16_t _end, proxy_t* _p)
-    : start(_start), end(_end), p(_p) { }
-
 proxy_t::holdings_t::regs_t::operator emb::regs_t() {
     read_regs_t r;
     r.build_req(start, (end - start)+1);
@@ -586,12 +580,17 @@ void proxy_t::holdings_t::regs_t::operator = (const emb::regs_t& _regs) {
     p->do_transaction(r);
 }
 
-proxy_t::holdings_t::reg_t proxy_t::holdings_t::operator[] (uint16_t _i) {
-    return reg_t(_i, p);
+proxy_t::holdings_t::reg_t& proxy_t::holdings_t::operator[] (uint16_t _i) {
+    reg.p = p;
+    reg.addr = _i;
+    return reg;
 }
 
-proxy_t::holdings_t::regs_t proxy_t::holdings_t::operator[] (const emb::range_t& _r) {
-    return regs_t(_r.first, _r.second, p);
+proxy_t::holdings_t::regs_t& proxy_t::holdings_t::operator[] (const emb::range_t& _r) {
+    regs.p = p;
+    regs.start = _r.first;
+    regs.end = _r.second;
+    return regs;
 }
 
 proxy_t::proxy_t(client_t& _client, int _server_addr)
