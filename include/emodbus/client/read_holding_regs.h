@@ -73,6 +73,21 @@ uint16_t emb_read_hold_regs_get_reg(emb_const_pdu_t* _answer,
                                     uint16_t _reg_offset);
 
 /**
+ * @brief Get registers from answer
+ *
+ * Function returns a registers from answer.
+ *
+ * @param[in] _ans Answer
+ * @param[in] _reg_offset Offset of the first register inside answer.
+ * @param[in] _n_regs Number of registers to read
+ * @param[in] _p_data Pointer to place, where data to be copied.
+ */
+void emb_read_hold_regs_get_regs(emb_const_pdu_t* _answer,
+                                 uint16_t _reg_offset,
+                                 uint16_t _n_regs,
+                                 uint16_t* _p_data);
+
+/**
  * @brief Get registers number from answer
  *
  * Function returns a registers number from answer

@@ -61,6 +61,17 @@ uint16_t emb_read_hold_regs_get_reg(emb_const_pdu_t *_answer,
     return SWAP_BYTES(x);
 }
 
+void emb_read_hold_regs_get_regs(emb_const_pdu_t* _answer,
+                                 uint16_t _reg_offset,
+                                 uint16_t _n_regs,
+                                 uint16_t* _p_data) {
+    uint16_t i;
+    for(i=0; i<_n_regs; ++i) {
+        const uint16_t x = ((uint16_t*)(((uint8_t*)_answer->data) + 1))[_reg_offset + i];
+        _p_data[i] = SWAP_BYTES(x);
+    }
+}
+
 int emb_read_hold_regs_get_regs_n(emb_const_pdu_t *_answer) {
     return ((uint8_t*)_answer->data)[0] >> 1;
 }
