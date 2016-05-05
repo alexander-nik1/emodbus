@@ -77,6 +77,19 @@ uint16_t emb_read_fifo_regs_count(emb_const_pdu_t* _answer);
 uint16_t emb_read_fifo_get_data(emb_const_pdu_t* _answer,
                                 uint16_t _offset);
 
+/**
+ * @brief Get all data registers from answer
+ *
+ * This function returns all data from the answer.
+ *
+ * @param[in] _answer The answer
+ * @param[in] _buf_size The maximum size that to be copied into the _buf.
+ * @param[in] _buf The pointer to copy data in.
+ * @return Number of registers, that were copied.
+ */
+uint16_t emb_read_fifo_get_all_data(emb_const_pdu_t* _answer,
+                                    uint16_t _buf_size, uint16_t* _buf);
+
 #ifdef __cplusplus
 }   // extern "C"
 #endif

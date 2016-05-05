@@ -59,3 +59,21 @@ uint16_t emb_read_fifo_get_data(emb_const_pdu_t* _answer,
     }
     return -1;
 }
+
+uint16_t emb_read_fifo_get_all_data(emb_const_pdu_t* _answer,
+                                    uint16_t _buf_size, uint16_t* _buf) {
+    if(_answer) {
+        uint16_t i;
+        const uint16_t regs_count = emb_read_fifo_regs_count(_answer);
+
+        if(_buf_size > regs_count)
+            _buf_size = regs_count;
+
+        for(i=0; i<_buf_size; ++i) {
+            const uint16_t x = ((uint16_t*)_answer->data)[2 + i];
+            _buf[i] = SWAP_BYTES(x);
+        }
+        return _buf_size;
+    }
+    return -1;
+}
