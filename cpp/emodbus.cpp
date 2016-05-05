@@ -405,6 +405,17 @@ read_file_t::answer_iterator_t read_file_t::operator [] (int _subanswer_index) c
     return res;
 }
 
+read_file_t::answer_t& read_file_t::get_answer(answer_t& _res) {
+    for(answer_iterator_t ii=subanswer_begin(); ii != subanswer_end(); ++ii) {
+        subanswer_t sa;
+        sa.length = ii.subanswer_quantity();
+        for(uint16_t j=0; j<sa.length; ++j)
+            sa.data << ii.subanswer_data(j);
+        _res << sa;
+    }
+    return _res;
+}
+
 // *******************************************************************************
 // write_file_t
 
@@ -455,6 +466,17 @@ uint16_t read_fifo_t::get_answer_regs_count() const {
 
 uint16_t read_fifo_t::get_answer_data(uint16_t _offset) const {
     return emb_read_fifo_get_data(ans, _offset);
+}
+
+uint16_t read_fifo_t::get_answer_all_data(uint16_t _buf_size, uint16_t* _buf) const {
+    return emb_read_fifo_get_all_data(ans, _buf_size, _buf);
+}
+
+regs_t& read_fifo_t::get_answer_all_data(regs_t& _result) const {
+    const uint16_t sz = get_answer_regs_count();
+    _result.resize(sz);
+    emb_read_fifo_get_all_data(ans, sz, &_result[0]);
+    return _result;
 }
 
 // *******************************************************************************
@@ -629,8 +651,8 @@ unsigned int proxy_t::timeout() const
 //}
 
 // Coils
-//coils_t proxy_t::read_coils(uint16_t _begin, uint16_t _size) {
-//    return coils_t();
+//void proxy_t::read_coils(uint16_t _begin, uint16_t _size, coils_t& _result) {
+
 //}
 
 //void proxy_t::write_coil(uint16_t _addr, bool _value) {
@@ -647,40 +669,50 @@ unsigned int proxy_t::timeout() const
 //}
 
 // Holding registers
-regs_t proxy_t::read_holdings(uint16_t _begin, uint16_t _size) {
+void proxy_t::read_holdings(uint16_t _begin, uint16_t _size, regs_t& _result) {
     read_regs_t r;
     r.build_req(_begin, _size);
-    regs_t res;
-    r.get_answer_regs(res, 0, r.get_answer_quantity());
-    return res;
+    do_transaction(r);
+    r.get_answer_regs(_result, 0, r.get_answer_quantity());
 }
 
-//void proxy_t::write_holding(uint16_t _addr, uint16_t _value) {
+void proxy_t::write_holding(uint16_t _addr, uint16_t _value) {
+    write_reg_t r;
+    r.build_req(_addr, _value);
+    do_transaction(r);
+}
 
-//}
-
-//void proxy_t::write_holdings(uint16_t _begin, const regs_t& _values) {
-
-//}
+void proxy_t::write_holdings(uint16_t _begin, const regs_t& _values) {
+    write_regs_t r;
+    r.build_req(_begin, _values.size(), &_values[0]);
+    do_transaction(r);
+}
 
 //regs_t proxy_t::read_write_holdings(uint16_t _read_begin, uint16_t _size,
 //                           uint16_t _write_begin, const regs_t& _values) {
 //    return regs_t();
 //}
 
-//// File records
-//array_rest_t proxy_t::read_file(const read_file_t::req_t& _req) {
-//    return array_rest_t();
-//}
+// File records
+void proxy_t::read_file(const read_file_t::req_t& _req, read_file_t::answer_t& _result) {
+    read_file_t r;
+    r.build_req(_req);
+    do_transaction(r);
+    r.get_answer(_result);
+}
 
-//void proxy_t::write_file(const write_file_t::req_t& _req) {
+void proxy_t::write_file(const write_file_t::req_t& _req) {
+    write_file_t r;
+    r.build_req(_req);
+    do_transaction(r);
+}
 
-//}
-
-//// FIFO
-//regs_t proxy_t::read_fifo(uint16_t _begin) {
-//    return regs_t();
-//}
+// FIFO
+void proxy_t::read_fifo(uint16_t _begin, regs_t& _result) {
+    read_fifo_t r;
+    r.build_req(_begin);
+    r.get_answer_all_data(_result);
+}
 
 void proxy_t::do_transaction(transaction_t& _tr) {
     const int res = client_->do_transaction(server_addr_, timeout_, _tr);

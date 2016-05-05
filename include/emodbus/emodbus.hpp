@@ -29,7 +29,6 @@ typedef std::pair<uint16_t, uint16_t> range_t;
 typedef vector<bool> coils_t;
 typedef coils_t inputs_t;
 typedef vector<uint16_t> regs_t;
-typedef vector<regs_t> array_rest_t;
 
 // *******************************************************************************
 // pdu_t
@@ -207,6 +206,13 @@ public:
 
     typedef vector<subreq_t> req_t;
 
+    struct subanswer_t {
+        uint16_t length;
+        emb::regs_t data;
+    };
+
+    typedef vector<subanswer_t> answer_t;
+
     class answer_iterator_t {
         friend class read_file_t;
     private:
@@ -237,6 +243,8 @@ public:
     answer_iterator_t subanswer_end() const;
 
     answer_iterator_t operator [] (int _subanswer_index) const;
+
+    answer_t& get_answer(answer_t& _res);
 };
 
 // *******************************************************************************
@@ -273,6 +281,8 @@ public:
 
     uint16_t get_answer_regs_count() const;
     uint16_t get_answer_data(uint16_t _offset) const;
+    uint16_t get_answer_all_data(uint16_t _buf_size, uint16_t* _buf) const;
+    regs_t& get_answer_all_data(regs_t& _result) const;
 };
 
 // *******************************************************************************
@@ -369,36 +379,35 @@ public:
     unsigned int timeout() const;
 
     // Discrete inputs
-    inputs_t read_discrete_inputs(uint16_t _begin, uint16_t _size);
+    void read_discrete_inputs(uint16_t _begin, uint16_t _size, inputs_t& _result);
 
     // Coils
-    coils_t read_coils(uint16_t _begin, uint16_t _size);
+    void read_coils(uint16_t _begin, uint16_t _size, coils_t& _result);
     void write_coil(uint16_t _addr, bool _value);
     void write_coils(uint16_t _begin, const coils_t& _values);
 
     // Input registers
-    regs_t read_input_regs(uint16_t _begin, uint16_t _size);
+    void read_input_regs(uint16_t _begin, uint16_t _size, regs_t& _result);
 
     // Holding registers
-    regs_t read_holdings(uint16_t _begin, uint16_t _size);
+    void read_holdings(uint16_t _begin, uint16_t _size, regs_t& _result);
     void write_holding(uint16_t _addr, uint16_t _value);
     void write_holdings(uint16_t _begin, const regs_t& _values);
-    regs_t read_write_holdings(uint16_t _read_begin, uint16_t _size,
-                               uint16_t _write_begin, const regs_t& _values);
+    void read_write_holdings(uint16_t _read_begin, uint16_t _read_size, regs_t& _read_result,
+                             uint16_t _write_begin, const regs_t& _to_write);
 
     // File records
-    array_rest_t read_file(const read_file_t::req_t& _req);
+    void read_file(const read_file_t::req_t& _req, read_file_t::answer_t& _result);
     void write_file(const write_file_t::req_t& _req);
 
     // FIFO
-    regs_t read_fifo(uint16_t _begin);
+    void read_fifo(uint16_t _begin, regs_t& _result);
+
+public:
+    void do_transaction(transaction_t& _tr);
 
 public:
     holdings_t holdings;
-
-public:
-
-    void do_transaction(transaction_t& _tr);
 
 private:
     client_t* client_;
