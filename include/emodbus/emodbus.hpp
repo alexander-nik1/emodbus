@@ -363,6 +363,7 @@ public:
     client_t* client() const;
 
     void set_server_address(int _server_address);
+    int server_address() const;
 
     void set_timeout(unsigned int _time);
     unsigned int timeout() const;

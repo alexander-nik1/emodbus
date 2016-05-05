@@ -605,9 +605,20 @@ proxy_t::proxy_t(client_t *_client, int _server_addr)
     holdings.p = this;
 }
 
-void proxy_t::set_timeout(unsigned int _time) {
-    timeout_ = _time;
-}
+void proxy_t::set_client(client_t* _client)
+{ client_ = _client; }
+
+client_t* proxy_t::client() const
+{ return client_; }
+
+void proxy_t::set_server_address(int _server_address)
+{ server_addr_ = _server_address; }
+
+int proxy_t::server_address() const
+{ return server_addr_; }
+
+void proxy_t::set_timeout(unsigned int _time)
+{ timeout_ = _time; }
 
 unsigned int proxy_t::timeout() const
 { return timeout_; }
