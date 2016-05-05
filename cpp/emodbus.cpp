@@ -19,6 +19,36 @@
 namespace emb {
 
 // *******************************************************************************
+// regs_t
+
+regs_t& regs_t::operator << (const int& _v) {
+    push_back(_v);
+    return *this;
+}
+
+regs_t& regs_t::operator << (const float& _v) {
+    const uint16_t* p = (uint16_t*)&_v;
+    push_back(p[0]);
+    push_back(p[1]);
+    return *this;
+}
+
+regs_t& regs_t::operator >> (int& _v) {
+    _v = front();
+    erase(begin());
+    return *this;
+}
+
+regs_t& regs_t::operator >> (float& _v) {
+    uint16_t* p = (uint16_t*)&_v;
+    iterator i = begin();
+    p[0] = *i++;
+    p[1] = *i++;
+    erase(begin(), i);
+    return *this;
+}
+
+// *******************************************************************************
 // pdu_t
 
 pdu_t::pdu_t() {
@@ -219,6 +249,10 @@ uint16_t read_regs_t::get_answer_quantity() const {
     return emb_read_hold_regs_get_regs_n(ans);
 }
 
+void read_regs_t::get_answer_regs(uint16_t* _p_data, uint16_t _offset, uint16_t _n_regs) {
+    emb_read_hold_regs_get_regs(ans, _offset, _n_regs, _p_data);
+}
+
 void read_regs_t::get_answer_regs(regs_t& _res, uint16_t _offset, uint16_t _n_regs) {
     _res.resize(_n_regs);
     emb_read_hold_regs_get_regs(ans, _offset, _n_regs, &_res[0]);
@@ -407,11 +441,11 @@ read_file_t::answer_iterator_t read_file_t::operator [] (int _subanswer_index) c
 
 read_file_t::answer_t& read_file_t::get_answer(answer_t& _res) {
     for(answer_iterator_t ii=subanswer_begin(); ii != subanswer_end(); ++ii) {
-        subanswer_t sa;
-        sa.length = ii.subanswer_quantity();
-        for(uint16_t j=0; j<sa.length; ++j)
-            sa.data << ii.subanswer_data(j);
-        _res << sa;
+        _res.push_back(subanswer_t());
+        const uint16_t length = ii.subanswer_quantity();
+        _res.back().length = length;
+        for(uint16_t j=0; j<length; ++j)
+            _res.back().data.push_back(ii.subanswer_data(j));
     }
     return _res;
 }
@@ -556,26 +590,26 @@ void client_t::emb_on_error_(struct emb_client_t* _req, int _slave_addr, int _er
 // *******************************************************************************
 // proxy_t
 
-proxy_t::holdings_t::reg_t::operator uint16_t() {
+proxy_t::holdings_t::reg_t::operator int() {
     read_regs_t r;
     r.build_req(addr, 1);
     p->do_transaction(r);
     return r.get_answer_reg(0);
 }
 
-void proxy_t::holdings_t::reg_t::operator = (uint16_t _v) {
+void proxy_t::holdings_t::reg_t::operator = (int _v) {
     write_reg_t r;
     r.build_req(addr, _v);
     p->do_transaction(r);
 }
 
-void proxy_t::holdings_t::reg_t::operator |= (uint16_t _v) {
+void proxy_t::holdings_t::reg_t::operator |= (int _v) {
     write_mask_reg_t r;
     r.build_req(addr, ~_v, _v);
     p->do_transaction(r);
 }
 
-void proxy_t::holdings_t::reg_t::operator &= (uint16_t _v) {
+void proxy_t::holdings_t::reg_t::operator &= (int _v) {
     write_mask_reg_t r;
     r.build_req(addr, ~_v, 0);
     p->do_transaction(r);
@@ -584,6 +618,28 @@ void proxy_t::holdings_t::reg_t::operator &= (uint16_t _v) {
 void proxy_t::holdings_t::reg_t::operator = (const emb::regs_t& _regs) {
     write_regs_t r;
     r.build_req(addr, _regs.size(), &_regs[0]);
+    p->do_transaction(r);
+}
+
+proxy_t::holdings_t::reg_t::operator float() {
+    read_regs_t r;
+    float res;
+    r.build_req(addr, 2);
+    p->do_transaction(r);
+    r.get_answer_regs((uint16_t*)&res, 0, r.get_answer_quantity());
+    return res;
+}
+
+void proxy_t::holdings_t::reg_t::operator = (float _v) {
+    write_regs_t r;
+    r.build_req(addr, 2, (uint16_t*)&_v);
+    p->do_transaction(r);
+}
+
+void proxy_t::holdings_t::reg_t::set_bit(unsigned char _nbit, bool _value) {
+    write_mask_reg_t r;
+    const uint16_t mask = (1 << _nbit);
+    r.build_req(addr, ~mask, _value ? mask : 0);
     p->do_transaction(r);
 }
 
@@ -617,7 +673,11 @@ proxy_t::holdings_t::regs_t& proxy_t::holdings_t::operator[] (const emb::range_t
 
 proxy_t::proxy_t()
     : client_(NULL)
-    , server_addr_(0) { }
+    , server_addr_(0)
+    , timeout_(DEFAULT_TIMEOUT) {
+
+    holdings.p = this;
+}
 
 proxy_t::proxy_t(client_t *_client, int _server_addr)
     : client_(_client)

@@ -28,7 +28,22 @@ typedef std::pair<uint16_t, uint16_t> range_t;
 
 typedef vector<bool> coils_t;
 typedef coils_t inputs_t;
-typedef vector<uint16_t> regs_t;
+
+struct regs_t : public std::vector<uint16_t> {
+    regs_t& operator << (const int& _v);
+    regs_t& operator << (const float& _v);
+
+    regs_t& operator >> (int& _v);
+    regs_t& operator >> (float& _v);
+//    template <typename X>
+//    regs_t& operator << (const X& _v) {
+//        const uint16_t* p = (uint16_t*)&_v;
+//        for(int i=0; i<(sizeof(X)/2); ++i) {
+//            std::vector<uint16_t>::push_back(*p++);
+//        }
+//        return *this;
+//    }
+};
 
 // *******************************************************************************
 // pdu_t
@@ -137,6 +152,7 @@ public:
     uint16_t get_answer_reg(uint16_t _offset) const;
     uint16_t get_answer_quantity() const;
 
+    void get_answer_regs(uint16_t* _p_data, uint16_t _offset, uint16_t _n_regs);
     void get_answer_regs(regs_t& _res, uint16_t _offset, uint16_t _n_regs);
 };
 
@@ -331,11 +347,16 @@ class proxy_t {
         struct reg_t {
             friend class holdings_t;
 
-            operator uint16_t();
-            void operator = (uint16_t _v);
-            void operator |= (uint16_t _v);
-            void operator &= (uint16_t _v);
+            operator int();
+            void operator = (int _v);
+            void operator |= (int _v);
+            void operator &= (int _v);
             void operator = (const emb::regs_t& _regs);
+
+            operator float();
+            void operator = (float _v);
+
+            void set_bit(unsigned char _nbit, bool _value);
 
         private:
             uint16_t addr;
