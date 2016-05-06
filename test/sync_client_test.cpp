@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
 
         try {
 
-            printf("v = 0x%04X\n", (uint16_t)d8_proxy.holdings[0]);
+            printf("v = 0x%04X\n", (int)d8_proxy.holdings[0]);
 
 
             d8_proxy.holdings[0] = 0xC0FE;
