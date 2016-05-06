@@ -31,7 +31,8 @@
 
 #include "timespec_operations.h"
 
-#include "posix_serial_rtu/posix_serial_rtu.hpp"
+//#include "posix_serial_rtu/posix_serial_rtu.hpp"
+#include "rtu/rtu.hpp"
 #include "dumping_helper.hpp"
 
 class cleent_t : public emb::client::client_t {
@@ -80,7 +81,8 @@ void* thr_proc(void* p) {
 
     struct event_base *base = event_base_new();
 
-    posix_serial_rtu_t psp(base, "/dev/ttyUSB0", 115200);
+    //rtu_t psp(base, "/dev/ttyUSB0", 115200);
+    rtu_t psp(base, 4003, "10.1.1.132");
 
     client->set_proto(psp.get_proto());
 

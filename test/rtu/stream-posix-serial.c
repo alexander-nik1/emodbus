@@ -1,5 +1,5 @@
 
-#include "posix-serial-port.h"
+#include "stream-posix-serial.h"
 #include <emodbus/base/add/container_of.h>
 #include <errno.h>
 #include <termios.h>

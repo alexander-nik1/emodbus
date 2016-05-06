@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
 
     struct event_base *base = event_base_new();
 
-    posix_serial_rtu_t psp(base, "/dev/ttyUSB0", 115200);
+    rtu_t psp(base, "/dev/ttyUSB0", 115200);
 
     ssrv.set_proto(psp.get_proto());
 

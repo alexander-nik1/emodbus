@@ -1,6 +1,6 @@
 
-#ifndef _POSIX_SERIAL_PORT_H_
-#define _POSIX_SERIAL_PORT_H_
+#ifndef STREAM_POSIX_SERIAL_H
+#define STREAM_POSIX_SERIAL_H
 
 #include <emodbus/base/add/stream.h>
 #include <event2/event.h>
@@ -17,20 +17,20 @@ struct stream_posix_serial_t {
 };
 
 int stream_posix_serial_open(struct stream_posix_serial_t* _psp,
-                           struct event_base* _ev_base,
-                           const char* _dev_name,
-                           unsigned int _baudrate);
+                             struct event_base* _ev_base,
+                             const char* _dev_name,
+                             unsigned int _baudrate);
 
 void stream_posix_serial_close(struct stream_posix_serial_t* _psp);
 
 int stream_posix_serial_set_baudrate(struct stream_posix_serial_t* _psp,
-                                   unsigned int _baudrate);
+                                     unsigned int _baudrate);
 
 int stream_posix_serial_set_blocking(struct stream_posix_serial_t* _psp,
-                                   int _blocking_enable);
+                                     int _blocking_enable);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // _POSIX_SERIAL_PORT_H_
+#endif // STREAM_POSIX_SERIAL_H

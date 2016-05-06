@@ -17,7 +17,8 @@ SET(CXXSTANDARD "-std=c++11")
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXSTANDARD}")
 
-add_subdirectory(posix_serial_rtu)
+#add_subdirectory(posix_serial_rtu)
+add_subdirectory(rtu)
 
 add_executable(sync_client_test ${SYNC_CLI_TEST_SRC})
 
@@ -28,7 +29,7 @@ target_link_libraries(srv_test
     emodbus-server-full
     emodbus-full-cpp
     pthread
-    posix_serial_rtu
+    rtu
 )
 
 
@@ -37,5 +38,5 @@ target_link_libraries(sync_client_test
     emodbus-client-full
     emodbus-full-cpp
     pthread
-    posix_serial_rtu
+    rtu
 )
