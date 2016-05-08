@@ -109,9 +109,9 @@ void emb_rtu_port_event(struct emb_rtu_t* _mbt,
  *
  * @return Zero on success, or error code on fail.
  */
-//int emb_rtu_send_packet_sync(struct emb_rtu_t* _mbt,
-//                                int _slave_addr,
-//                                emb_const_pdu_t* _pdu);
+int emb_rtu_send_packet_sync(struct emb_rtu_t* _mbt,
+                                int _slave_addr,
+                                emb_const_pdu_t* _pdu);
 
 #ifdef __cplusplus
 }   // extern "C"
