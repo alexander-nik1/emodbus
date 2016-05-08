@@ -1,13 +1,12 @@
 
 #include <emodbus/base/common.h>
-#include <streams/stream.h>
 
 #include <stdint.h>
 
 #if EMODBUS_PACKETS_DUMPING
 
-struct output_stream_t emb_dump_rx = {0, 0};
-struct output_stream_t emb_dump_tx = {0, 0};
+emb_dumping_data_t emb_dump_rx_data = 0;
+emb_dumping_data_t emb_dump_tx_data = 0;
 
 /**
  * @brief Print packet contents

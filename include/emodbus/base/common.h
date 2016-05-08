@@ -34,8 +34,10 @@ extern "C" {
 
 #if EMODBUS_PACKETS_DUMPING
 
-extern struct output_stream_t emb_dump_rx;
-extern struct output_stream_t emb_dump_tx;
+typedef void (*emb_dumping_data_t)(const void* _data, unsigned int _size);
+
+extern emb_dumping_data_t emb_dump_rx_data;
+extern emb_dumping_data_t emb_dump_tx_data;
 
 #endif // EMODBUS_PACKETS_DUMPING
 

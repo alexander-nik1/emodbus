@@ -18,13 +18,13 @@
 #include <emodbus/server/holdings.h>
 #include <emodbus/server/file.h>
 
-#include <streams/stream.h>
+#include <astreams/stream.h>
 
 #include <event2/event.h>
 
 #include "timespec_operations.h"
 
-#include "posix_serial_rtu/posix_serial_rtu.hpp"
+#include "rtu/serial-rtu.hpp"
 #include "dumping_helper.hpp"
 
 class my_coils_t : public emb::server::coils_t {
@@ -163,19 +163,26 @@ private:
 
 emb_debug_helper_t emb_debug_helper;
 
+serial_rtu_t rtu;
+
 int main(int argc, char* argv[]) {
 
     printf("emodbus server test\n");
+
+    int res;
 
     emb::server::super_server_t ssrv;
 
     struct event_base *base = event_base_new();
 
-    rtu_t psp(base, "/dev/ttyUSB0", 115200);
+    res = rtu.open(base, "/dev/ttyUSB0", 115200);
 
-    ssrv.set_proto(psp.get_proto());
+    if(res)
+        exit(res);
 
-    psp.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
+    ssrv.set_proto(rtu.get_proto());
+
+    rtu.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
 
     emb_debug_helper.enable_dumping();
 

@@ -10,15 +10,11 @@
  *
  */
 
-#include <streams/stream.h>
-
 #include <emodbus/base/modbus_proto.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-//typedef void (*modbus_rtu_on_packet_t)(void* _user_data, const void* _packet, unsigned int _size);
 
 /**
  * @brief RTU Protocol context.
@@ -57,11 +53,8 @@ struct emb_rtu_t {
     /// (RTU Interface) This function calls when a new char was received (must be set by user)
     void (*emb_rtu_on_char)(struct emb_rtu_t* _emb);
 
-    /// (RTU Interface) Stream for reading from it. (must be connected to hardware receiver by user)
-    struct input_stream_t input_stream;
-
-    /// (RTU Interface) Stream for writing to. (must be connected to hardware transmitter by user)
-    struct output_stream_t output_stream;
+    unsigned int (*read_from_port)(struct emb_rtu_t* _this, void* _p_buf, unsigned int _buf_size);
+    unsigned int (*write_to_port)(struct emb_rtu_t* _this, const void* _p_data, unsigned int _sz_to_write);
 };
 
 /**
@@ -96,6 +89,14 @@ void emb_rtu_on_char_timeout(struct emb_rtu_t* _mbt);
 void emb_rtu_on_error(struct emb_rtu_t* _mbt,
                          int _errno);
 
+enum emb_rtu_port_event_t {
+    emb_rtu_data_received_event,
+    emb_rtu_tx_buf_empty_event
+};
+
+void emb_rtu_port_event(struct emb_rtu_t* _mbt,
+                        enum emb_rtu_port_event_t _event);
+
 /**
  * @brief Send a packet synchronously.
  *
@@ -108,9 +109,9 @@ void emb_rtu_on_error(struct emb_rtu_t* _mbt,
  *
  * @return Zero on success, or error code on fail.
  */
-int emb_rtu_send_packet_sync(struct emb_rtu_t* _mbt,
-                                int _slave_addr,
-                                emb_const_pdu_t* _pdu);
+//int emb_rtu_send_packet_sync(struct emb_rtu_t* _mbt,
+//                                int _slave_addr,
+//                                emb_const_pdu_t* _pdu);
 
 #ifdef __cplusplus
 }   // extern "C"

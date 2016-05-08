@@ -2,7 +2,7 @@
 #ifndef EMB_DUMPING_HELPER_H
 #define EMB_DUMPING_HELPER_H
 
-#include <streams/stream.h>
+#include <astreams/stream.h>
 
 class emb_debug_helper_t {
 public:
@@ -18,12 +18,9 @@ public:
 
 private:
     static void dbg_print_packet(void* _f, const char* _prefix, const void* _pkt, unsigned int _size);
-    static int on_write_rx(struct input_stream_t* _this, const void* _data, unsigned int _size);
-    static int on_write_tx(struct input_stream_t* _this, const void* _data, unsigned int _size);
 
-private:
-    input_stream_t emb_dumpi_rx;
-    input_stream_t emb_dumpi_tx;
+    static void on_write_rx(const void* _data, unsigned int _size);
+    static void on_write_tx(const void* _data, unsigned int _size);
 };
 
 #endif // EMB_DUMPING_HELPER_H

@@ -1,17 +1,10 @@
 
-add_library(stream-posix-serial SHARED
-    stream-posix-serial.h
-    stream-posix-serial.c
+add_library(emodbus-serial-rtu SHARED
+    serial-rtu.cpp
+    serial-rtu.hpp
 )
 
-add_library(rtu SHARED
-    rtu.cpp
-    rtu.hpp
-)
-
-target_link_libraries(rtu
-    stream-posix-serial
-    #stream-tcp-client
+target_link_libraries(emodbus-serial-rtu
     emodbus-rtu
     event
 )

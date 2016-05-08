@@ -5,11 +5,7 @@
 #include <emodbus/base/common.h>
 
 emb_debug_helper_t::emb_debug_helper_t() {
-    emb_dumpi_rx.on_write = on_write_rx;
-    emb_dumpi_rx.output_stream = NULL;
 
-    emb_dumpi_tx.on_write = on_write_tx;
-    emb_dumpi_tx.output_stream = NULL;
 }
 
 void emb_debug_helper_t::enable_dumping() {
@@ -23,19 +19,19 @@ void emb_debug_helper_t::disable_dumping() {
 }
 
 void emb_debug_helper_t::enable_rx_dumping() {
-    stream_connect(&emb_dump_rx, &emb_dumpi_rx);
+    emb_dump_rx_data = on_write_rx;
 }
 
 void emb_debug_helper_t::disable_rx_dumping() {
-    stream_disconnect(&emb_dump_rx, &emb_dumpi_rx);
+    emb_dump_rx_data = 0;
 }
 
 void emb_debug_helper_t::enable_tx_dumping() {
-    stream_connect(&emb_dump_tx, &emb_dumpi_tx);
+    emb_dump_tx_data = on_write_tx;
 }
 
 void emb_debug_helper_t::disable_tx_dumping() {
-    stream_disconnect(&emb_dump_tx, &emb_dumpi_tx);
+    emb_dump_tx_data = 0;
 }
 
 void emb_debug_helper_t::dbg_print_packet(void *_f, const char* _prefix, const void* _pkt, unsigned int _size) {
@@ -51,12 +47,10 @@ void emb_debug_helper_t::dbg_print_packet(void *_f, const char* _prefix, const v
     }
 }
 
-int emb_debug_helper_t::on_write_rx(struct input_stream_t* _this, const void* _data, unsigned int _size) {
+void emb_debug_helper_t::on_write_rx(const void* _data, unsigned int _size) {
     dbg_print_packet(stdout, ">>", _data, _size);
-    return _size;
 }
 
-int emb_debug_helper_t::on_write_tx(struct input_stream_t* _this, const void* _data, unsigned int _size) {
+void emb_debug_helper_t::on_write_tx(const void* _data, unsigned int _size) {
     dbg_print_packet(stdout, "<<", _data, _size);
-    return _size;
 }

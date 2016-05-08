@@ -2,7 +2,6 @@
 #include <emodbus/protocols/rtu.h>
 #include <emodbus/base/modbus_proto.h>
 #include <emodbus/base/common.h>
-#include <emodbus/base/add/container_of.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -18,6 +17,8 @@
  *
  */
 
+#define read_data_from_port(_mbt_)  emb_rtu_port_event((_mbt_), emb_rtu_data_received_event)
+#define write_data_to_port(_mbt_)   emb_rtu_port_event((_mbt_), emb_rtu_tx_buf_empty_event)
 
 /**
  * @brief Parse packet
@@ -36,8 +37,8 @@ static void parse_packet(struct emb_rtu_t* _mbt) {
         const uint16_t crc2 = MKWORD(buf[size], buf[size+1]);
 #if EMODBUS_PACKETS_DUMPING
         if(_mbt->proto.flags & EMB_PROTO_FLAG_DUMD_PAKETS)
-            //dbg_print_packet(">>", buf, _mbt->rx_buf_counter);
-            stream_write(&emb_dump_rx, _mbt->rx_buffer, _mbt->rx_buf_counter);
+            if(emb_dump_rx_data)
+                emb_dump_rx_data(_mbt->rx_buffer, _mbt->rx_buf_counter);
 #endif // EMODBUS_PACKETS_DUMPING
         if(crc1 != crc2) {
             emb_proto_error(&_mbt->proto, -modbus_bad_crc);
@@ -58,59 +59,6 @@ static void parse_packet(struct emb_rtu_t* _mbt) {
         }
     }
 }
-
-/**
- * @brief input_stream interface
- *
- * This function calls by input_stream, when a new data has been received.
- *
- * @param [in] _this Input stream.
- * @param [in] _data Received data.
- * @param [in] _size Size of received data.
- *
- * @return how much data was received.
- */
-static int modbus_rtu_on_write(struct input_stream_t* _this, const void* _data, unsigned int _size) {
-
-    const unsigned char* data = (unsigned char*)_data;
-    struct emb_rtu_t* mbt = container_of(_this, struct emb_rtu_t, input_stream);
-
-    if((mbt->rx_buf_counter + _size) <= mbt->rx_buf_size) {
-        memcpy(mbt->rx_buffer + mbt->rx_buf_counter, _data, _size);
-        mbt->rx_buf_counter += _size;
-    }
-
-    mbt->emb_rtu_on_char(mbt);
-
-    return _size;
-}
-
-/**
- * @brief output_stream interface
- *
- * This function calls by output_stream, when a some data has beed sent,
- * and hardware transmitter can send a new part of data.
- *
- * @param [in] _this Output stream.
- * @param [in] _data Place for write data, that will be send.
- * @param [in] _size Size of place, pointed by _data.
- *
- * @return how much data written to _data.
- */
-static int modbus_rtu_on_read(struct output_stream_t* _this, void* _data, unsigned int _size) {
-    struct emb_rtu_t* mbt = container_of(_this, struct emb_rtu_t, output_stream);
-    if(mbt->tx_buf_counter < mbt->tx_pkt_size) {
-        const unsigned int remainder = mbt->tx_pkt_size - mbt->tx_buf_counter;
-        const unsigned int sz = _size > remainder ? remainder : _size;
-        memcpy(_data, mbt->tx_buffer + mbt->tx_buf_counter, sz);
-        mbt->tx_buf_counter += sz;
-        return sz;
-    }
-    return 0;
-}
-
-//
-
 
 /**
  * @brief Send a PDU.
@@ -139,13 +87,12 @@ static int modbus_rtu_send_packet(void *_mbt,
         crc = crc16(mbt->tx_buffer, sz);
         memcpy(mbt->tx_buffer + sz, &crc, 2);
         mbt->tx_pkt_size = sz + 2;
-        // write first part
-        mbt->tx_buf_counter = stream_write(&mbt->output_stream,
-                                           mbt->tx_buffer,
-                                           mbt->tx_pkt_size);
+        mbt->tx_buf_counter = 0;
+        write_data_to_port(mbt);
 #if EMODBUS_PACKETS_DUMPING
         if(mbt->proto.flags & EMB_PROTO_FLAG_DUMD_PAKETS)
-            stream_write(&emb_dump_tx, mbt->tx_buffer, mbt->tx_pkt_size);
+            if(emb_dump_tx_data)
+                emb_dump_tx_data(mbt->tx_buffer, mbt->tx_pkt_size);
 #endif // EMODBUS_PACKETS_DUMPING
         return 0;
     }
@@ -154,8 +101,6 @@ static int modbus_rtu_send_packet(void *_mbt,
 }
 
 void emb_rtu_initialize(struct emb_rtu_t* _mbt) {
-    _mbt->input_stream.on_write = modbus_rtu_on_write;
-    _mbt->output_stream.on_read = modbus_rtu_on_read;
     _mbt->rx_buf_counter = 0;
     _mbt->tx_buf_counter = 0;
     _mbt->tx_pkt_size = 0;
@@ -173,19 +118,37 @@ void emb_rtu_on_char_timeout(struct emb_rtu_t* _mbt) {
 }
 
 void emb_rtu_on_error(struct emb_rtu_t* _mbt,
-                         int _errno) {
+                      int _errno) {
     emb_proto_error(&_mbt->proto, _errno);
 }
 
+void emb_rtu_port_event(struct emb_rtu_t* _mbt,
+                        enum emb_rtu_port_event_t _event) {
+
+    switch(_event) {
+    case emb_rtu_data_received_event:
+        _mbt->rx_buf_counter += _mbt->read_from_port(_mbt,
+                                                     _mbt->rx_buffer + _mbt->rx_buf_counter,
+                                                     _mbt->rx_buf_size - _mbt->rx_buf_counter);
+        _mbt->emb_rtu_on_char(_mbt);
+        break;
+
+    case emb_rtu_tx_buf_empty_event:
+        _mbt->tx_buf_counter += _mbt->write_to_port(_mbt,
+                                                    _mbt->tx_buffer + _mbt->tx_buf_counter,
+                                                    _mbt->tx_pkt_size - _mbt->tx_buf_counter);
+        break;
+    }
+}
+
 int emb_rtu_send_packet_sync(struct emb_rtu_t* _mbt,
-                                int _slave_addr,
-                                emb_const_pdu_t *_pdu) {
+                             int _slave_addr,
+                             emb_const_pdu_t *_pdu) {
     int r;
     _mbt->tx_pdu = _pdu;
     if((r = modbus_rtu_send_packet(_mbt, _slave_addr, _pdu)) == 0) {
         while(_mbt->tx_buf_counter < _mbt->tx_pkt_size) {
-            const unsigned int remainder = _mbt->tx_pkt_size - _mbt->tx_buf_counter;
-            _mbt->tx_buf_counter += stream_write(&_mbt->output_stream, _mbt->tx_buffer, remainder);
+            write_data_to_port(_mbt);
         }
         return 0;
     }
