@@ -23,8 +23,6 @@
 #include <emodbus/client/write_file_record.h>
 #include <emodbus/client/read_fifo.h>
 
-#include <astreams/stream.h>
-
 #include <pthread.h>
 
 #include <event2/event.h>
@@ -32,6 +30,7 @@
 #include "timespec_operations.h"
 
 #include "rtu/serial-rtu.hpp"
+#include "rtu/tcp-client-rtu.hpp"
 #include "dumping_helper.hpp"
 
 class cleent_t : public emb::client::client_t {
@@ -74,7 +73,8 @@ private:
 
 emb_debug_helper_t emb_debug_helper;
 
-serial_rtu_t rtu;
+//serial_rtu_t rtu;
+tcp_client_rtu_t rtu;
 
 void* thr_proc(void* p) {
 
@@ -84,8 +84,8 @@ void* thr_proc(void* p) {
 
     struct event_base *base = event_base_new();
 
-    res = rtu.open(base, "/dev/ttyUSB0", 115200);
-    //res = rtu.open_tcp_client(base, "192.168.1.163", 4003);
+    //res = rtu.open(base, "/dev/ttyUSB0", 115200);
+    res = rtu.open(base, "192.168.1.163", 4003);
 
     if(res)
         exit(res);

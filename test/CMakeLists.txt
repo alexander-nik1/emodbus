@@ -30,6 +30,7 @@ target_link_libraries(srv_test
     emodbus-full-cpp
     pthread
     emodbus-serial-rtu
+    emodbus-tcp-client-rtu
 )
 
 
@@ -39,4 +40,5 @@ target_link_libraries(sync_client_test
     emodbus-full-cpp
     pthread
     emodbus-serial-rtu
+    emodbus-tcp-client-rtu
 )

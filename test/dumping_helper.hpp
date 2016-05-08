@@ -2,8 +2,6 @@
 #ifndef EMB_DUMPING_HELPER_H
 #define EMB_DUMPING_HELPER_H
 
-#include <astreams/stream.h>
-
 class emb_debug_helper_t {
 public:
 

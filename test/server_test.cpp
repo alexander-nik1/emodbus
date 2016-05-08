@@ -18,8 +18,6 @@
 #include <emodbus/server/holdings.h>
 #include <emodbus/server/file.h>
 
-#include <astreams/stream.h>
-
 #include <event2/event.h>
 
 #include "timespec_operations.h"
