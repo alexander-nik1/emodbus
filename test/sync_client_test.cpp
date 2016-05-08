@@ -122,12 +122,12 @@ int main(int argc, char* argv[]) {
 
         try {
 
-            printf("v = 0x%04X\n", (int)d8_proxy.holdings[0]);
+            //printf("v = 0x%04X\n", (int)d8_proxy.holdings[0]);
 //            d8_proxy.holdings[0] = 0xC0FE;
 
             printf("==============================================\n");
 
-            //emb::regs_t r = d8_proxy.holdings[emb::range_t(0x40, 0x47)];
+            emb::regs_t r = d8_proxy.holdings[emb::range_t(0x40, 0x47)];
 //            for(int j=0; j<r.size(); ++j)
 //                printf("0x%04X ", r[j]);
 //            printf("\n");

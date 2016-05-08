@@ -119,18 +119,26 @@ int serial_rtu_t::open(event_base *_base,
             break;
         }
 
+        char_pause.tv_sec = 0;
+      //  enum { pause = 100 };
+        char_pause.tv_usec = 1000 * 10; //(1000 * 1000) / (_baudrate / pause);
+
+        char_timeout_timer = event_new(_base,
+                                       -1,
+                                       EV_TIMEOUT/* | EV_PERSIST*/,
+                                       on_timer,
+                                       this);
+        if(!char_timeout_timer) {
+            fprintf(stderr, "Error with event_new() call: %m\n");
+            res = -1;
+            break;
+        }
     } while(0);
 
     if(res)
         return res;
 
     rtu_init();
-
-    char_pause.tv_sec = 0;
-  //  enum { pause = 100 };
-    char_pause.tv_usec = 1000 * 10; //(1000 * 1000) / (_baudrate / pause);
-
-    char_timeout_timer = event_new(_base, -1, EV_TIMEOUT/* | EV_PERSIST*/, on_timer, this);
 
     return 0;
 }
@@ -139,6 +147,7 @@ void serial_rtu_t::close() {
     if(char_timeout_timer) {
         event_del(char_timeout_timer);
         event_free(char_timeout_timer);
+        char_timeout_timer = NULL;
     }
 
     if(read_event) {
@@ -194,10 +203,6 @@ unsigned int serial_rtu_t::read_from_port(struct emb_rtu_t* _mbt,
                                           unsigned int _buf_size) {
 
     serial_rtu_t* _this = container_of(_mbt, serial_rtu_t, modbus_rtu);
-
-    printf("read_from_port(%d)\n", _buf_size);
-    fflush(stdout);
-
     return ::read(_this->fd, _p_buf, _buf_size);
 }
 
@@ -210,9 +215,6 @@ unsigned int serial_rtu_t::write_to_port(struct emb_rtu_t* _mbt,
         event_del(_this->write_event);
         return 0;
     }
-
-    printf("write_to_port(%d)\n", _sz_to_write);
-    fflush(stdout);
 
     int r;
     const int res = ::write(_this->fd, _p_data, _sz_to_write);
