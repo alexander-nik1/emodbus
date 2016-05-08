@@ -10,7 +10,7 @@
  *
  */
 
-#include <emodbus/base/add/stream.h>
+#include <streams/stream.h>
 
 #include <emodbus/base/modbus_proto.h>
 

@@ -2,7 +2,7 @@
 #ifndef EMB_DUMPING_HELPER_H
 #define EMB_DUMPING_HELPER_H
 
-#include <emodbus/base/add/stream.h>
+#include <streams/stream.h>
 
 class emb_debug_helper_t {
 public:

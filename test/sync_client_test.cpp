@@ -23,7 +23,7 @@
 #include <emodbus/client/write_file_record.h>
 #include <emodbus/client/read_fifo.h>
 
-#include <emodbus/base/add/stream.h>
+#include <streams/stream.h>
 
 #include <pthread.h>
 
@@ -81,8 +81,8 @@ void* thr_proc(void* p) {
 
     struct event_base *base = event_base_new();
 
-    //rtu_t psp(base, "/dev/ttyUSB0", 115200);
-    rtu_t psp(base, 4003, "10.1.1.132");
+    rtu_t psp(base, "/dev/ttyUSB0", 115200);
+    //rtu_t psp(base, 4003, "192.168.1.163");
 
     client->set_proto(psp.get_proto());
 
@@ -110,13 +110,13 @@ int main(int argc, char* argv[]) {
 
     emb::client::proxy_t d8_proxy(&mb_client, 48);
 
+    d8_proxy.set_timeout(1000);
+
     for(int i=0; i<100; ++i) {
 
         try {
 
             printf("v = 0x%04X\n", (int)d8_proxy.holdings[0]);
-
-
             d8_proxy.holdings[0] = 0xC0FE;
 
             emb::regs_t r = d8_proxy.holdings[emb::range_t(0x40, 0x47)];

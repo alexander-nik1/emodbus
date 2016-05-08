@@ -2,7 +2,7 @@
 #ifndef STREAM_POSIX_SERIAL_H
 #define STREAM_POSIX_SERIAL_H
 
-#include <emodbus/base/add/stream.h>
+#include <streams/stream.h>
 #include <event2/event.h>
 
 #ifdef __cplusplus

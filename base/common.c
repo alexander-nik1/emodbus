@@ -1,6 +1,6 @@
 
 #include <emodbus/base/common.h>
-#include <emodbus/base/add/stream.h>
+#include <streams/stream.h>
 
 #include <stdint.h>
 

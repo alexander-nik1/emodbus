@@ -3,7 +3,6 @@ set(LIB_EMODBUS_BASE_SRC
     add/crc.c
     add/list.c
     add/s-list.c
-    add/stream.c
     common.c
     modbus_errno.c
     modbus_pdu.c

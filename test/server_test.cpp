@@ -18,7 +18,7 @@
 #include <emodbus/server/holdings.h>
 #include <emodbus/server/file.h>
 
-#include <emodbus/base/add/stream.h>
+#include <streams/stream.h>
 
 #include <event2/event.h>
 
