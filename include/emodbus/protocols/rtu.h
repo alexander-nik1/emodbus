@@ -53,7 +53,12 @@ struct emb_rtu_t {
     /// (RTU Interface) This function calls when a new char was received (must be set by user)
     void (*emb_rtu_on_char)(struct emb_rtu_t* _emb);
 
+    /// (RTU Interface) This function are implemented by physical port.
+    /// By using this call, RTU can read data from physical port.
     unsigned int (*read_from_port)(struct emb_rtu_t* _this, void* _p_buf, unsigned int _buf_size);
+
+    /// (RTU Interface) This function are implemented by physical port.
+    /// By using this call, RTU can write data into physical port.
     unsigned int (*write_to_port)(struct emb_rtu_t* _this, const void* _p_data, unsigned int _sz_to_write);
 };
 
@@ -89,11 +94,25 @@ void emb_rtu_on_char_timeout(struct emb_rtu_t* _mbt);
 void emb_rtu_on_error(struct emb_rtu_t* _mbt,
                          int _errno);
 
+/**
+ * @brief The emb_rtu_port_event_t enum
+ *
+ * An events on port.
+ */
 enum emb_rtu_port_event_t {
-    emb_rtu_data_received_event,
-    emb_rtu_tx_buf_empty_event
+    emb_rtu_data_received_event,    ///< Port tells: I have a received data for you.
+    emb_rtu_tx_buf_empty_event      ///< Port tells: My transmit buffer is empty, you can write to.
 };
 
+/**
+ * @brief Calls by port-implementation.
+ *
+ * (RTU Interface) By this call a port can
+ * say about an events in emb_rtu_port_event_t.
+ *
+ * @param [in] _mbt RTU context
+ * @param [in] _event Event code
+ */
 void emb_rtu_port_event(struct emb_rtu_t* _mbt,
                         enum emb_rtu_port_event_t _event);
 
