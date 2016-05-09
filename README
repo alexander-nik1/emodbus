@@ -1,32 +1,35 @@
 
-Проект: 
-Библиотека, реализующая протокол modbus (master)
+Project:
+A library that implements a modbus protocol.
 
+Prerequisites:
 
-Причины создания:
+1) At the moment, I want to summarize all the experience gained in the modbus.
 
-1) На данный момент хочется подытожить весь олученный опыт в modbus.
-
-2) Есть множество неполных реалзаций этого функционала, и каждая
-реализаци толком не может быть перенесена на разные платформы.
+2) I saw a variety of incomplete implementation of this functional, and each
+implementations plainly can not be moved to different platforms.
 
 3) Хочется создать ПОЛНОЦЕННО переносимые исодники, которые должны уметь
 работать где угодно: ядро Linux, AVR, ARM, на какой угодно ОС и т.д.
 
+3) I want to create a fully portable sources, that can be work anywhere.
+On such platforms like AVR, MSP430, ARM, with OS and without it.
 
-Цели проекта:
+Goals:
 
-1) Реализаци протокола modbus 1.1
+1) Realisation of modbus 1.1 protocol.
 
-2) Исходники должны собираться в любой среде, любым C компилятором, 
-работать под любой ОС, и даже без неё.
+2) A most compilers must be able to build it.
 
-3) Зависимость от внешних библиотек должна быть минимальной.
+3) Dependency of external libraries should be minimised.
 
-4) Структура должна быть гибкой, и одновременно простой. Чтобы можно было
-реализовывать как простые (синхронные) опросы по modbus, так и сложные (асинхронные,
-с планировщиком, отложенными запросами и т.д.)
+4) A structure should be soft and simple.
 
-5) В проекте должен использоваться только язык С, не C++.
+5) In project can be used C language only. (exclude wrappers)
 
-6) Структура должна позволять создание C++ обёрток для этой библиотеки.
+6) Structure should be able to create a simple wrappers.
+
+Alexander Kovylin, alex.northfield@gmail.com
+05.2016.
+
+Thank you.
