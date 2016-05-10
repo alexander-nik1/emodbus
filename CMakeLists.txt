@@ -166,8 +166,8 @@ set(CPACK_PACKAGE_VERSION_PATCH "${PATCH_VERSION}")
 
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "i386")
 #set(CPACK_DEBIAN_PACKAGE_DEPENDS "qwerty")	# common depends
-set(CPACK_PACKAGE_VENDOR "www.eltecom.ru")
-set(CPACK_PACKAGE_CONTACT "Alexander Kovylin alexander-nik1@yandex.ru")
+set(CPACK_PACKAGE_VENDOR "Alexander Kovylin")
+set(CPACK_PACKAGE_CONTACT "Alexander Kovylin alex.northfield@gmail.com")
 
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY " Extended Modbus library")
 set(CPACK_PACKAGE_DESCRIPTION " Library gives full support of Modbus protocol.")
