@@ -48,9 +48,11 @@ set(CPACK_PROTO_RTU_COMPONENTS "proto-rtu")
 
 set(CPACK_PROTO_FULL_COMPONENTS "proto-full;proto-static-full")
 
+set(CPACK_PROTO_IMPL_COMPONENTS "posix-rtu")
+
 set(CPACK_ADD_COMPONENTS "full-cpp")
 
-set(CPACK_PROTOCOL_COMPONENTS "${CPACK_PROTO_RTU_COMPONENTS};${CPACK_PROTO_FULL_COMPONENTS}")
+set(CPACK_PROTOCOL_COMPONENTS "${CPACK_PROTO_RTU_COMPONENTS};${CPACK_PROTO_FULL_COMPONENTS};${CPACK_PROTO_IMPL_COMPONENTS}")
 
 set(CPACK_COMPONENTS_ALL "${CPACK_BASE_COMPONENTS};${CPACK_SERVER_COMPONENTS};${CPACK_CLIENT_COMPONENTS};${CPACK_PROTOCOL_COMPONENTS};${CPACK_ADD_COMPONENTS}")
 
@@ -139,6 +141,12 @@ INSTALL(FILES
 # component client-full
 # set(CPACK_DEBIAN_CLIENT-FULL_PACKAGE_DEPENDS "emodbus-base")
 INSTALL(FILES lib/libemodbus-client-full.so DESTINATION /usr/lib/ COMPONENT client-full)
+
+# component posix-rtu
+INSTALL(FILES
+        lib/libemodbus-serial-rtu.so
+        lib/libemodbus-tcp-client-rtu.so
+        DESTINATION /usr/lib/ COMPONENT posix-rtu)
 
 # component proto-rtu
 # set(CPACK_DEBIAN_PROTO-RTU_PACKAGE_DEPENDS "emodbus-base")

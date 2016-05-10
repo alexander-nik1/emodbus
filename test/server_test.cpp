@@ -9,20 +9,19 @@
 #include <bitset>
 
 #include <emodbus/emodbus.hpp>
-
 #include <emodbus/base/common.h>
 #include <emodbus/base/modbus_errno.h>
-
 #include <emodbus/server/server.h>
 #include <emodbus/server/coils.h>
 #include <emodbus/server/holdings.h>
 #include <emodbus/server/file.h>
+#include <emodbus/protocols/implementations/serial-rtu.hpp>
+#include <emodbus/protocols/implementations/tcp-client-rtu.hpp>
 
 #include <event2/event.h>
 
 #include "timespec_operations.h"
 
-#include "rtu/serial-rtu.hpp"
 #include "dumping_helper.hpp"
 
 class my_coils_t : public emb::server::coils_t {

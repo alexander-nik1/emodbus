@@ -22,6 +22,8 @@
 #include <emodbus/client/read_file_record.h>
 #include <emodbus/client/write_file_record.h>
 #include <emodbus/client/read_fifo.h>
+#include <emodbus/protocols/implementations/serial-rtu.hpp>
+#include <emodbus/protocols/implementations/tcp-client-rtu.hpp>
 
 #include <pthread.h>
 
@@ -29,8 +31,6 @@
 
 #include "timespec_operations.h"
 
-#include "rtu/serial-rtu.hpp"
-#include "rtu/tcp-client-rtu.hpp"
 #include "dumping_helper.hpp"
 
 class cleent_t : public emb::client::client_t {
