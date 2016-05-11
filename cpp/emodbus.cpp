@@ -590,7 +590,7 @@ void client_t::emb_on_error_(struct emb_client_t* _req, int _slave_addr, int _er
 // *******************************************************************************
 // proxy_t
 
-proxy_t::holdings_t::reg_t::operator int() {
+proxy_t::holdings_t::reg_t::operator int() const {
     read_regs_t r;
     r.build_req(addr, 1);
     p->do_transaction(r);
@@ -621,7 +621,7 @@ void proxy_t::holdings_t::reg_t::operator = (const emb::regs_t& _regs) {
     p->do_transaction(r);
 }
 
-proxy_t::holdings_t::reg_t::operator float() {
+proxy_t::holdings_t::reg_t::operator float() const {
     read_regs_t r;
     float res;
     r.build_req(addr, 2);
@@ -641,6 +641,15 @@ void proxy_t::holdings_t::reg_t::set_bit(unsigned char _nbit, bool _value) {
     const uint16_t mask = (1 << _nbit);
     r.build_req(addr, ~mask, _value ? mask : 0);
     p->do_transaction(r);
+}
+
+bool proxy_t::holdings_t::reg_t::get_bit(unsigned char _nbit) {
+    read_regs_t r;
+    uint16_t res;
+    r.build_req(addr, 1);
+    p->do_transaction(r);
+    r.get_answer_regs((uint16_t*)&res, 0, 1);
+    return (res & (1 << _nbit)) != 0;
 }
 
 proxy_t::holdings_t::regs_t::operator emb::regs_t() {

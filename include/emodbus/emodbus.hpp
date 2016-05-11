@@ -347,16 +347,17 @@ class proxy_t {
         struct reg_t {
             friend class holdings_t;
 
-            operator int();
+            operator int() const;
             void operator = (int _v);
             void operator |= (int _v);
             void operator &= (int _v);
             void operator = (const emb::regs_t& _regs);
 
-            operator float();
+            operator float() const;
             void operator = (float _v);
 
             void set_bit(unsigned char _nbit, bool _value);
+            bool get_bit(unsigned char _nbit);
 
         private:
             uint16_t addr;
