@@ -3,9 +3,11 @@
 #define EMB_TCP_CLIENT_RTU
 
 #include <emodbus/protocols/rtu.h>
-#include <event2/event.h>
 #include <emodbus/base/modbus_pdu.h>
+#include <emodbus/protocols/implementations/tcp-client.h>
+#include <event2/event.h>
 #include <vector>
+
 
 class tcp_client_rtu_t {
 public:
@@ -28,20 +30,17 @@ private:
     static unsigned int read_from_port(struct emb_rtu_t* _mbt, void* _p_buf, unsigned int _buf_size);
     static unsigned int write_to_port(struct emb_rtu_t* _mbt, const void* _p_data, unsigned int _sz_to_write);
 
-
-    static void readcb(struct bufferevent *bev, void *ctx);
-    static void writecb(struct bufferevent *bev, void *ctx);
-    static void eventcb(struct bufferevent *bev, short events, void *ptr);
+    static void tcp_cient_notifier(struct tcp_client_t* _ctx,
+                                   enum tcp_client_events_t _event);
 
     std::vector<unsigned char> rx_buffer, tx_buffer;
 
 private:
     struct emb_rtu_t modbus_rtu;
     struct timeval char_pause;
-    struct event *char_timeout_timer;
-    struct event *connect_timeout_timer;
-    struct bufferevent* bev;
-    struct sockaddr_in sin;
+    struct event* char_timeout_timer;
+
+    struct tcp_client_t* tcp_client;
     bool opened_flag;
 };
 

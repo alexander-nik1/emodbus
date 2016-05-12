@@ -19,7 +19,7 @@
 
 tcp_client_rtu_t::tcp_client_rtu_t()
     : char_timeout_timer(NULL)
-    , bev(NULL)
+    , tcp_client(NULL)
     , opened_flag(false)
 { }
 
@@ -30,35 +30,31 @@ tcp_client_rtu_t::~tcp_client_rtu_t() {
 int tcp_client_rtu_t::open(event_base *_base,
                        const char* _ip_addr,
                        unsigned int _port) {
+    int res;
 
     printf("%s: opening TCP connection to %s:%d\n", __PRETTY_FUNCTION__, _ip_addr, _port);
 
-    memset(&sin, 0, sizeof(struct sockaddr_in));
-
-    sin.sin_family = AF_INET;
-    inet_aton(_ip_addr, &sin.sin_addr);
-    sin.sin_port = htons(_port);
-
-    bev = bufferevent_socket_new(_base, -1, BEV_OPT_CLOSE_ON_FREE);
-
-    if(!bev)
-        return -1;
-
-    bufferevent_setcb(bev, readcb, writecb, eventcb, this);
-    bufferevent_enable(bev, EV_READ | EV_WRITE);
-
-    if (bufferevent_socket_connect(bev,
-                                   (struct sockaddr *)&sin,
-                                   sizeof(sin)) < 0) {
-        /* Error starting connection */
-        bufferevent_free(bev);
-        fprintf(stderr, "%s(): error with connection: %m\n", __FUNCTION__);
+    tcp_client = tcp_client_new(_base, tcp_cient_notifier);
+    if(!tcp_client) {
+        fprintf(stderr, "Error: tcp_client_new() returns NULL!: %m\n");
         return -1;
     }
 
+    tcp_client_set_user_data(tcp_client, this);
+    tcp_client_set_reconnection_delay(tcp_client, 5);
+
+    printf("==============\n"); fflush(stdout);
+
+    if((res = tcp_client_start_connection(tcp_client, _ip_addr, _port))) {
+        fprintf(stderr, "Error: with tcp_client_start_connection(): %m\n");
+        return res;
+    }
+
+    printf("==============\n"); fflush(stdout);
+
     char_pause.tv_sec = 0;
   //  enum { pause = 100 };
-    char_pause.tv_usec = 1000 * 10; //(1000 * 1000) / (_baudrate / pause);
+    char_pause.tv_usec = 1000 * 1; //(1000 * 1000) / (_baudrate / pause);
 
     char_timeout_timer = event_new(_base,
                                    -1,
@@ -70,7 +66,11 @@ int tcp_client_rtu_t::open(event_base *_base,
         return -1;
     }
 
+    printf("==============\n"); fflush(stdout);
+
     rtu_init();
+
+    printf("==============\n"); fflush(stdout);
 
     return 0;
 }
@@ -82,9 +82,9 @@ void tcp_client_rtu_t::close() {
         char_timeout_timer = NULL;
     }
 
-    if(bev) {
-        bufferevent_free(bev);
-        bev = NULL;
+    if(tcp_client) {
+        tcp_client_free(tcp_client);
+        tcp_client = NULL;
     }
 
     opened_flag = false;
@@ -113,7 +113,7 @@ void tcp_client_rtu_t::rtu_init() {
 void tcp_client_rtu_t::modbus_rtu_on_char(struct emb_rtu_t* _emb) {
     tcp_client_rtu_t* _this = container_of(_emb, tcp_client_rtu_t, modbus_rtu);
     if(!_this->opened_flag) {
-        emb_rtu_on_error(_emb, -EFAULT);
+        //emb_rtu_on_error(_emb, -EFAULT);
         return;
     }
     event_add(_this->char_timeout_timer, &_this->char_pause);
@@ -129,73 +129,63 @@ unsigned int tcp_client_rtu_t::read_from_port(struct emb_rtu_t* _mbt,
                                           unsigned int _buf_size) {
 
     tcp_client_rtu_t* _this = container_of(_mbt, tcp_client_rtu_t, modbus_rtu);
-    struct evbuffer *input;
-    size_t readed;
 
     if(!_this->opened_flag) {
-        emb_rtu_on_error(_mbt, -EFAULT);
+        //emb_rtu_on_error(_mbt, -EFAULT);
         return 0;
     }
 
-    input = bufferevent_get_input(_this->bev);
-    readed = evbuffer_copyout(input, _p_buf, _buf_size);
-
-    if(readed == (size_t)-1)
-        return 0;
-    evbuffer_drain(input, readed);
-
-    return readed;
+    return tcp_client_read(_this->tcp_client, _p_buf, _buf_size);
 }
 
 unsigned int tcp_client_rtu_t::write_to_port(struct emb_rtu_t* _mbt,
                                          const void* _p_data,
                                          unsigned int _sz_to_write) {
+    int wrote;
     tcp_client_rtu_t* _this = container_of(_mbt, tcp_client_rtu_t, modbus_rtu);
-    struct evbuffer *output;
 
     if(!_this->opened_flag) {
-        emb_rtu_on_error(_mbt, -EFAULT);
+//        emb_rtu_on_error(_mbt, -EFAULT);
         return 0;
     }
-
-    output = bufferevent_get_output(_this->bev);
 
     if(!_sz_to_write)
         return 0;
 
-    evbuffer_add(output, _p_data, _sz_to_write);
+    wrote = tcp_client_write(_this->tcp_client, _p_data, _sz_to_write);
 
-    return _sz_to_write;
+    if(wrote > 0 && wrote < _sz_to_write)
+        tcp_client_enable_write_event(_this->tcp_client);
+
+    return wrote;
 }
 
-void tcp_client_rtu_t::readcb(struct bufferevent *bev, void *ctx) {
-    tcp_client_rtu_t* _this = (tcp_client_rtu_t*)ctx;
-    emb_rtu_port_event(&_this->modbus_rtu, emb_rtu_data_received_event);
-}
+void tcp_client_rtu_t::tcp_cient_notifier(struct tcp_client_t* _ctx,
+                                          enum tcp_client_events_t _event) {
 
-void tcp_client_rtu_t::writecb(struct bufferevent *bev, void *ctx) {
-    tcp_client_rtu_t* _this = (tcp_client_rtu_t*)ctx;
-    emb_rtu_port_event(&_this->modbus_rtu, emb_rtu_tx_buf_empty_event);
-}
+    tcp_client_rtu_t* _this = (tcp_client_rtu_t*)tcp_client_get_user_data(_ctx);
 
-static void set_tcp_no_delay(evutil_socket_t fd) {
-    int one = 1;
-    setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
-               &one, sizeof one);
-}
+    switch(_event) {
+    case tcp_cli_data_received:
+        emb_rtu_port_event(&_this->modbus_rtu, emb_rtu_data_received_event);
+        break;
 
-void tcp_client_rtu_t::eventcb(struct bufferevent *bev, short events, void *ptr) {
+    case tcp_cli_data_sent:
+        emb_rtu_port_event(&_this->modbus_rtu, emb_rtu_tx_buf_empty_event);
+        break;
 
-    tcp_client_rtu_t* _this = (tcp_client_rtu_t*)ptr;
-    printf("%s() events=0x%02X\n", __FUNCTION__, events);
-    fflush(stdout);
-
-    if (events & BEV_EVENT_CONNECTED) {
-        evutil_socket_t fd = bufferevent_getfd(bev);
-        set_tcp_no_delay(fd);
+    case tcp_cli_connected:
+        printf("================> event: tcp_cli_connected\n"); fflush(stdout);
         _this->opened_flag = true;
-    }
-    else if (events & BEV_EVENT_ERROR) {
-        printf("NOT Connected\n");
+        break;
+
+    case tcp_cli_disconnected:
+        printf("================> event: tcp_cli_disconnected\n"); fflush(stdout);
+        _this->opened_flag = false;
+        break;
+
+    case tcp_cli_bad_try_of_reconnection:
+        printf("================> event: tcp_cli_bad_try_of_connection\n"); fflush(stdout);
+        break;
     }
 }

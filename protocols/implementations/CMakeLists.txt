@@ -1,4 +1,6 @@
 
+add_library(tcp-client STATIC tcp-client.c)
+
 add_library(emodbus-serial-rtu SHARED
     serial-rtu.cpp
 )
@@ -9,4 +11,4 @@ add_library(emodbus-tcp-client-rtu SHARED
     tcp-client-rtu.cpp
 )
 
-target_link_libraries(emodbus-tcp-client-rtu emodbus-rtu event_core)
+target_link_libraries(emodbus-tcp-client-rtu emodbus-rtu event_core tcp-client)

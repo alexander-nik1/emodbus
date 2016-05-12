@@ -68,6 +68,7 @@ private:
     }
 
     pthread_mutex_t mutex;
+//    struct event_base* eb;
 
 } mb_client;
 
@@ -90,11 +91,10 @@ void* thr_proc(void* p) {
     if(res)
         exit(res);
 
-    client->set_proto(rtu.get_proto());
-
+    emb_debug_helper.enable_dumping();
     rtu.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
 
-    emb_debug_helper.enable_dumping();
+    client->set_proto(rtu.get_proto());
 
     event_base_dispatch(base);
 }
@@ -116,18 +116,24 @@ int main(int argc, char* argv[]) {
 
     emb::client::proxy_t d8_proxy(&mb_client, 48);
 
+    emb::client::read_regs_t rr;
+
     d8_proxy.set_timeout(100);
 
-    for(int i=0; i<100; ++i) {
+    rr.build_req(0x40, 8);
+
+    for(int i=0; i<10000; ++i) {
 
         try {
 
             //printf("v = 0x%04X\n", (int)d8_proxy.holdings[0]);
 //            d8_proxy.holdings[0] = 0xC0FE;
 
-            printf("==============================================\n");
+            printf("============================================== %d\n", i);
 
-            emb::regs_t r = d8_proxy.holdings[emb::range_t(0x40, 0x47)];
+            d8_proxy.do_transaction(rr);
+
+            //emb::regs_t r = d8_proxy.holdings[emb::range_t(0x40, 0x47)];
 //            for(int j=0; j<r.size(); ++j)
 //                printf("0x%04X ", r[j]);
 //            printf("\n");
