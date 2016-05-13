@@ -41,4 +41,5 @@ target_link_libraries(sync_client_test
     pthread
     emodbus-serial-rtu
     emodbus-tcp-client-rtu
+    event_pthreads
 )

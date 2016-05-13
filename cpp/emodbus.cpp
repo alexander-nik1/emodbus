@@ -54,10 +54,17 @@ regs_t& regs_t::operator >> (float& _v) {
 pdu_t::pdu_t() {
     emb_pdu_t::max_size = 0;
     emb_pdu_t::data_size = 0;
+    emb_pdu_t::data = NULL;
 }
 
 pdu_t::pdu_t(unsigned int _sz) {
     resize(_sz);
+}
+
+pdu_t::~pdu_t() {
+    emb_pdu_t::max_size = 0;
+    emb_pdu_t::data_size = 0;
+    emb_pdu_t::data = NULL;
 }
 
 void pdu_t::resize(unsigned int _size) {
@@ -529,6 +536,7 @@ client_t::client_t()
 int client_t::do_transaction(int _server_addr,
                              unsigned int _timeout,
                              transaction_t &_transaction) {
+
     int res;
 
     curr_transaction = &_transaction;
@@ -545,7 +553,6 @@ int client_t::do_transaction(int _server_addr,
             return result;
         }
         else if(res == 1) {
-            emb_client_wait_timeout(&client);
             return -modbus_resp_timeout;
         }
         else {
@@ -654,9 +661,9 @@ bool proxy_t::holdings_t::reg_t::get_bit(unsigned char _nbit) {
 
 proxy_t::holdings_t::regs_t::operator emb::regs_t() {
     read_regs_t r;
+    emb::regs_t res;
     r.build_req(start, (end - start)+1);
     p->do_transaction(r);
-    emb::regs_t res;
     r.get_answer_regs(res, 0, r.get_answer_quantity());
     return res;
 }

@@ -33,43 +33,80 @@
 
 #include "dumping_helper.hpp"
 
-class cleent_t : public emb::client::client_t {
+class client_t : public emb::client::client_t {
 public:
-    cleent_t() {
+    client_t()
+        : timeout_timer(NULL)
+    {
         pthread_mutex_init(&mutex, NULL);
         pthread_mutex_trylock(&mutex);
 
         emb::client::client_t::set_sync(true);
     }
 
+    ~client_t() {
+        if(timeout_timer) {
+            event_free(timeout_timer);
+            timeout_timer = NULL;
+        }
+    }
+
+    void init_timers(struct event_base* _eb) {
+        timeout_timer = event_new(_eb, -1, EV_TIMEOUT, timeout_cb, this);
+    }
+
 private:
 
     int emb_sync_client_start_wait(unsigned int _timeout) {
-        struct timespec expiry_time;
         int res;
-        timespec_get_clock_realtime(&expiry_time);
-        timespec_add_ms(&expiry_time, _timeout);
-        res = pthread_mutex_timedlock(&mutex, &expiry_time);
+        is_timeout = false;
 
-        if(res == ETIMEDOUT) {
+        struct timeval timeout_time;
+
+        timeout_time.tv_sec = 0;
+        timeout_time.tv_usec = _timeout * 1000;
+
+        if(timeout_timer) {
+            event_add(timeout_timer, &timeout_time);
+        }
+        else {
+            fprintf(stderr, "%s: can't keep timeouts, timeout_timer is NULL!\n", __PRETTY_FUNCTION__);
+            return -1;
+        }
+
+        res = pthread_mutex_lock(&mutex);
+
+        if(is_timeout) {
             return 1;
         }
         else {
-            return res;
+            return result;
         }
     }
 
     void emb_on_response(int _slave_addr) {
+        is_timeout = false;
+        result = 0;
         pthread_mutex_unlock(&mutex);
     }
 
     void emb_on_error(int _slave_addr, int _errno) {
+        is_timeout = false;
+        result = _errno;
         pthread_mutex_unlock(&mutex);
     }
 
-    pthread_mutex_t mutex;
-//    struct event_base* eb;
+    static void timeout_cb(evutil_socket_t, short, void * _arg) {
+        client_t* _this = (client_t*)_arg;
+        _this->is_timeout = true;
+        _this->emb::client::client_t::sync_answer_timeout();
+        pthread_mutex_unlock(&_this->mutex);
+    }
 
+    bool is_timeout;
+
+    pthread_mutex_t mutex;
+    struct event* timeout_timer;
 } mb_client;
 
 emb_debug_helper_t emb_debug_helper;
@@ -77,11 +114,15 @@ emb_debug_helper_t emb_debug_helper;
 //serial_rtu_t rtu;
 tcp_client_rtu_t rtu;
 
+#include <event2/thread.h>
+
 void* thr_proc(void* p) {
 
     int res;
 
-    cleent_t* client = (cleent_t*)p;
+    client_t* client = (client_t*)p;
+
+    evthread_use_pthreads();
 
     struct event_base *base = event_base_new();
 
@@ -95,6 +136,8 @@ void* thr_proc(void* p) {
     rtu.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
 
     client->set_proto(rtu.get_proto());
+
+    client->init_timers(base);
 
     event_base_dispatch(base);
 }
@@ -118,9 +161,7 @@ int main(int argc, char* argv[]) {
 
     emb::client::read_regs_t rr;
 
-    d8_proxy.set_timeout(100);
-
-    rr.build_req(0x40, 8);
+    d8_proxy.set_timeout(500);
 
     for(int i=0; i<10000; ++i) {
 
@@ -129,17 +170,22 @@ int main(int argc, char* argv[]) {
             //printf("v = 0x%04X\n", (int)d8_proxy.holdings[0]);
 //            d8_proxy.holdings[0] = 0xC0FE;
 
-            printf("============================================== %d\n", i);
+            printf("---------------------------------------------<|> %d\n", i);
+
+            rr.build_req(0x40, 8);
 
             d8_proxy.do_transaction(rr);
 
-            //emb::regs_t r = d8_proxy.holdings[emb::range_t(0x40, 0x47)];
+           // emb::regs_t r = d8_proxy.holdings[emb::range_t(0x40, 0x47)];
 //            for(int j=0; j<r.size(); ++j)
 //                printf("0x%04X ", r[j]);
 //            printf("\n");
         }
         catch (int err) {
             fprintf(stderr, "Error: %s\n", emb_strerror(-err));
+        }
+        catch (...) {
+            fprintf(stderr, "XError: %m\n");
         }
 
         usleep(1000 * 100);

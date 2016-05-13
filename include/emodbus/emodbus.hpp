@@ -53,6 +53,8 @@ public:
     pdu_t();
     pdu_t(unsigned int _sz);
 
+    ~pdu_t();
+
     void resize(unsigned int _size);
     operator emb_pdu_t* ();
     operator emb_const_pdu_t* () const;

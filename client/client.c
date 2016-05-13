@@ -3,7 +3,6 @@
 #include <emodbus/base/modbus_errno.h>
 #include <string.h>
 #include <errno.h>
-#include <stdio.h>
 
 /*!
  * \file
@@ -23,11 +22,18 @@ static void emb_client_on_receive_pkt(void* _user_data,
     struct emb_client_transaction_t* req = cli->curr_transaction;
     int res;
 
+    const enum emb_client_state_t prev_state = cli->state;
+
     cli->curr_transaction = (struct emb_client_transaction_t*)0;
 
     cli->state = mt_state_no_task;
 
     do {
+        if(prev_state != mt_state_wait_resp) {
+            // something wrong ...
+            break;
+        }
+
         if(!req) {
             // something wrong ...
             break;
@@ -54,13 +60,15 @@ static void emb_client_on_receive_pkt(void* _user_data,
             break;
         }
 
-        if(cli->on_response)
-            cli->on_response(cli, _slave_addr);
-
         if(req->procs && req->procs->on_response)
             req->procs->on_response(req, _slave_addr);
+
+        if(cli->on_response)
+            cli->on_response(cli, _slave_addr);
     }
     while(0);
+
+    cli->proto->rx_pdu = NULL;
 }
 
 static void emb_client_on_error(void* _user_data, int _errno) {
@@ -82,8 +90,9 @@ void emb_client_init(struct emb_client_t *_cli) {
 
 void emb_client_wait_timeout(struct emb_client_t* _cli) {
     struct emb_client_transaction_t* req = _cli->curr_transaction;
+    _cli->state = mt_state_no_task;
+    _cli->proto->rx_pdu = NULL;
     if(req) {
-        _cli->state = mt_state_no_task;
         _cli->curr_transaction = (struct emb_client_transaction_t*)0;
 //        if(_cli->on_error)
 //            _cli->on_error(_cli, _cli->curr_addr, -modbus_resp_timeout);
