@@ -2,6 +2,7 @@
 For all transacions: remove legacy from transaction_t.
 
 License this library. Read about here: http://www.gnu.org/licenses/gpl-howto.ru.html.
+This library need a LGPL v2 license.
 
 Написать тесты для holding'ов и для file_record'ов, по аналогии с тестами для coils.
 
