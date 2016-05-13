@@ -43,14 +43,10 @@ int tcp_client_rtu_t::open(event_base *_base,
     tcp_client_set_user_data(tcp_client, this);
     tcp_client_set_reconnection_delay(tcp_client, 5);
 
-    printf("==============\n"); fflush(stdout);
-
     if((res = tcp_client_start_connection(tcp_client, _ip_addr, _port))) {
         fprintf(stderr, "Error: with tcp_client_start_connection(): %m\n");
         return res;
     }
-
-    printf("==============\n"); fflush(stdout);
 
     char_pause.tv_sec = 0;
   //  enum { pause = 100 };
@@ -66,11 +62,7 @@ int tcp_client_rtu_t::open(event_base *_base,
         return -1;
     }
 
-    printf("==============\n"); fflush(stdout);
-
     rtu_init();
-
-    printf("==============\n"); fflush(stdout);
 
     return 0;
 }

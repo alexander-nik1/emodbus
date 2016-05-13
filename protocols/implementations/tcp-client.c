@@ -27,11 +27,11 @@ struct tcp_client_t {
     void* user_data;
 };
 
-//#define tcp_client_dbg(...)
-//#define tcp_client_err(...)
+#define tcp_client_dbg(...)
+#define tcp_client_err(...)
 
-#define tcp_client_dbg(...)     fprintf(stdout, __VA_ARGS__); fflush(stdout);
-#define tcp_client_err(...)     fprintf(stderr, __VA_ARGS__); fflush(stderr);
+//#define tcp_client_dbg(...)     fprintf(stdout, __VA_ARGS__); fflush(stdout);
+//#define tcp_client_err(...)     fprintf(stderr, __VA_ARGS__); fflush(stderr);
 
 static void sock_fd_read_cb(evutil_socket_t _fd, short _event, void * _arg);
 static void sock_fd_write_cb(evutil_socket_t _fd, short _event, void * _arg);
