@@ -1,4 +1,6 @@
 
+For all transacions: remove legacy from transaction_t.
+
 Написать тесты для holding'ов и для file_record'ов, по аналогии с тестами для coils.
 
 Добавить очередь в client_t. И если он будет работать в асинхронном режиме,
