@@ -1,6 +1,8 @@
 
 For all transacions: remove legacy from transaction_t.
 
+License this library. Read about here: http://www.gnu.org/licenses/gpl-howto.ru.html.
+
 Написать тесты для holding'ов и для file_record'ов, по аналогии с тестами для coils.
 
 Добавить очередь в client_t. И если он будет работать в асинхронном режиме,
