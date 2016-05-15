@@ -46,8 +46,16 @@ struct regs_t : public std::vector<uint16_t> {
 };
 
 // *******************************************************************************
-// pdu_t
-
+/**
+ * @brief The pdu_t class
+ *
+ * Class - container of the one PDU.
+ *
+ * This class contains a emb_pdu_t instance.
+ * Also this class contains a one dynamically
+ * allocated buffer for this PDU.
+ *
+ */
 class pdu_t : public emb_pdu_t {
 public:
     pdu_t();
@@ -73,8 +81,18 @@ namespace client {
 //  #####  #####   ###   #####  #   #    #
 
 // *******************************************************************************
-// transaction_t
-
+/**
+ * @brief The transaction_t class
+ *
+ * Contains a data buffers for a one transaction.
+ * And a virtual functions for this transaction:
+ * emb_transaction_on_response() called, when a valid response was got.
+ * emb_transaction_on_error() called, when an error has occured.
+ *
+ * This object is a wrapper for struct emb_client_transaction_t.
+ *
+ * @see emb_client_transaction_t
+ */
 class transaction_t {
 public:
 
@@ -98,11 +116,42 @@ private:
 };
 
 // *******************************************************************************
+/**
+ * @brief The transact_base_t class
+ *
+ * This is a base class for each request.
+ * Class provides a transaction_t in two kinds:
+ * If a transact_base_t() constructor was called, then
+ * this object contains its own instance of transaction_t,
+ * in destructor, this instance will destroyed.
+ * Otherwise, if a transact_base_t(transaction_t& _tr) constructor
+ * was called, then this object is just contains a reference to
+ * transaction_t object, that was got in constructor.
+ *
+ */
+class transact_base_t {
+public:
+    transact_base_t();
+    transact_base_t(transaction_t& _tr);
+    ~transact_base_t();
+
+    operator transaction_t& ();
+    operator const transaction_t& () const;
+
+private:
+    transaction_t* self_tr;
+
+public:
+    transaction_t* tr;
+};
+
+// *******************************************************************************
 // read_coils_t
 
-class read_coils_t : public transaction_t {
+class read_coils_t : public transact_base_t {
 public:
     read_coils_t();
+    read_coils_t(transaction_t& _tr);
 
     void build_req(uint16_t _starting_address, uint16_t _quantity);
 
@@ -117,9 +166,10 @@ public:
 // *******************************************************************************
 // write_coil_t
 
-class write_coil_t : public transaction_t {
+class write_coil_t : public transact_base_t {
 public:
     write_coil_t();
+    write_coil_t(transaction_t& _tr);
 
     void build_req(uint16_t _address, bool _value);
 
@@ -129,9 +179,10 @@ public:
 // *******************************************************************************
 // write_coils_t
 
-class write_coils_t : public transaction_t {
+class write_coils_t : public transact_base_t {
 public:
     write_coils_t();
+    write_coils_t(transaction_t& _tr);
 
     void build_req(uint16_t _starting_address, uint16_t _quantity,
                    const bool *_pcoils);
@@ -143,9 +194,10 @@ public:
 // *******************************************************************************
 // read_regs_t
 
-class read_regs_t : public transaction_t {
+class read_regs_t : public transact_base_t {
 public:
     read_regs_t();
+    read_regs_t(transaction_t& _tr);
 
     void build_req(uint16_t _starting_address, uint16_t _quantity);
 
@@ -161,9 +213,10 @@ public:
 // *******************************************************************************
 // write_reg_t
 
-class write_reg_t : public transaction_t {
+class write_reg_t : public transact_base_t {
 public:
     write_reg_t();
+    write_reg_t(transaction_t& _tr);
 
     void build_req(uint16_t _address, uint16_t _value);
 
@@ -177,9 +230,10 @@ public:
 // *******************************************************************************
 // write_regs_t
 
-class write_regs_t : public transaction_t {
+class write_regs_t : public transact_base_t {
 public:
     write_regs_t();
+    write_regs_t(transaction_t& _tr);
 
     void build_req(uint16_t _address, uint16_t _quantity, const uint16_t* _data);
 
@@ -194,9 +248,10 @@ public:
 // *******************************************************************************
 // write_mask_reg_t
 
-class write_mask_reg_t : public transaction_t {
+class write_mask_reg_t : public transact_base_t {
 public:
     write_mask_reg_t();
+    write_mask_reg_t(transaction_t& _tr);
 
     void build_req(uint16_t _address,
                    uint16_t _and_mask,
@@ -214,7 +269,7 @@ public:
 // *******************************************************************************
 // read_file_t
 
-class read_file_t : public transaction_t {
+class read_file_t : public transact_base_t {
 public:
 
     // Read file record for
@@ -254,6 +309,7 @@ public:
     };
 
     read_file_t();
+    read_file_t(transaction_t& _tr);
 
     void build_req(const req_t& _reqs);
 
@@ -268,7 +324,7 @@ public:
 // *******************************************************************************
 // write_file_t
 
-class write_file_t : public transaction_t {
+class write_file_t : public transact_base_t {
 public:
 
     struct subreq_t {
@@ -284,6 +340,7 @@ public:
     typedef vector<subreq_t> req_t;
 
     write_file_t();
+    write_file_t(transaction_t& _tr);
 
     void build_req(const req_t& _req);
 };
@@ -291,9 +348,10 @@ public:
 // *******************************************************************************
 // read_fifo_t
 
-class read_fifo_t : public transaction_t {
+class read_fifo_t : public transact_base_t {
 public:
     read_fifo_t();
+    read_fifo_t(transaction_t& _tr);
 
     void build_req(uint16_t _starting_address);
 
@@ -437,6 +495,7 @@ private:
     client_t* client_;
     int server_addr_;
     unsigned int timeout_;
+    transaction_t transaction;
 };
 
 } // namespace client
