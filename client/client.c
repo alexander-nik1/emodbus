@@ -92,10 +92,10 @@ void emb_client_wait_timeout(struct emb_client_t* _cli) {
     struct emb_client_transaction_t* req = _cli->curr_transaction;
     _cli->state = mt_state_no_task;
     _cli->proto->rx_pdu = NULL;
+    //        if(_cli->on_error)
+    //            _cli->on_error(_cli, _cli->curr_addr, -modbus_resp_timeout);
     if(req) {
         _cli->curr_transaction = (struct emb_client_transaction_t*)0;
-//        if(_cli->on_error)
-//            _cli->on_error(_cli, _cli->curr_addr, -modbus_resp_timeout);
         CLIENT_REQ_ON_ERROR(req, _cli->curr_addr, -modbus_resp_timeout);
     }
 }

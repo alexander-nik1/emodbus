@@ -74,6 +74,8 @@ private:
             return -1;
         }
 
+        pthread_mutex_trylock(&mutex);
+
         res = pthread_mutex_lock(&mutex);
 
         if(is_timeout) {
@@ -99,7 +101,7 @@ private:
     static void timeout_cb(evutil_socket_t, short, void * _arg) {
         client_t* _this = (client_t*)_arg;
         _this->is_timeout = true;
-        _this->emb::client::client_t::sync_answer_timeout();
+        _this->sync_answer_timeout();
         pthread_mutex_unlock(&_this->mutex);
     }
 
@@ -161,7 +163,7 @@ int main(int argc, char* argv[]) {
 
     emb::client::read_regs_t rr;
 
-    d8_proxy.set_timeout(500);
+    d8_proxy.set_timeout(100);
 
     for(int i=0; i<10000; ++i) {
 
@@ -176,7 +178,7 @@ int main(int argc, char* argv[]) {
 
             d8_proxy.do_transaction(rr);
 
-           // emb::regs_t r = d8_proxy.holdings[emb::range_t(0x40, 0x47)];
+            emb::regs_t r = d8_proxy.holdings[emb::range_t(0x50, 0x57)];
 //            for(int j=0; j<r.size(); ++j)
 //                printf("0x%04X ", r[j]);
 //            printf("\n");
@@ -188,7 +190,7 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "XError: %m\n");
         }
 
-        usleep(1000 * 100);
+        usleep(1000 * 1);
     }
 
    // pthread_join(pthr, NULL);
