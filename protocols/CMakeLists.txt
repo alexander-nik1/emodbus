@@ -1,6 +1,7 @@
 
 set(LIB_EMODBUS_RTU
     rtu.c
+    tcp.c
 )
 
 add_library(emodbus-rtu SHARED ${LIB_EMODBUS_RTU})
