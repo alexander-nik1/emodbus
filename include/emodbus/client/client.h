@@ -20,17 +20,6 @@ struct emb_client_transaction_t;
 struct emb_client_t;
 
 /**
- * @brief The emb_client_state_t enum
- *
- * A states of a client module.
- */
-enum emb_client_state_t {
-    mt_state_no_task,       ///< Client is free, and user can call the emb_client_do_request() function.
-    mt_state_sending_req,   ///< Indicates a sending phase.
-    mt_state_wait_resp      ///< Indicates a waiting for response phase.
-};
-
-/**
  * @brief The emb_client_req_procs_t struct
  *
  * The callbacks for request.
@@ -69,9 +58,6 @@ struct emb_client_t {
 
     /// Low level context
     struct emb_protocol_t* proto;
-
-    /// The state of the modbus client
-    enum emb_client_state_t state;
 
     /// This variable saves a current-request address
     int curr_addr;

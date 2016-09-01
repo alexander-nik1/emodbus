@@ -22,20 +22,13 @@ static void emb_client_on_receive_pkt(void* _user_data,
     struct emb_client_transaction_t* req = cli->curr_transaction;
     int res;
 
-    const enum emb_client_state_t prev_state = cli->state;
-
     cli->curr_transaction = (struct emb_client_transaction_t*)0;
 
-    cli->state = mt_state_no_task;
-
     do {
-        if(prev_state != mt_state_wait_resp) {
-            // something wrong ...
-            break;
-        }
 
         if(!req) {
             // something wrong ...
+            //printf("emb_client_on_receive_pkt()2\n"); fflush(stdout);
             break;
         }
 
@@ -60,6 +53,8 @@ static void emb_client_on_receive_pkt(void* _user_data,
             break;
         }
 
+        cli->proto->rx_pdu = NULL;
+
         if(req->procs && req->procs->on_response)
             req->procs->on_response(req, _slave_addr);
 
@@ -76,7 +71,6 @@ static void emb_client_on_error(void* _user_data, int _errno) {
     struct emb_client_transaction_t* req = cli->curr_transaction;
     if(req) {
         cli->curr_transaction = (struct emb_client_transaction_t*)0;
-        cli->state = mt_state_no_task;
         if(cli->on_error)
             cli->on_error(cli, cli->curr_addr, _errno);
         CLIENT_REQ_ON_ERROR(req, cli->curr_addr, _errno);
@@ -90,7 +84,6 @@ void emb_client_init(struct emb_client_t *_cli) {
 
 void emb_client_wait_timeout(struct emb_client_t* _cli) {
     struct emb_client_transaction_t* req = _cli->curr_transaction;
-    _cli->state = mt_state_no_task;
     _cli->proto->rx_pdu = NULL;
     //        if(_cli->on_error)
     //            _cli->on_error(_cli, _cli->curr_addr, -modbus_resp_timeout);
@@ -104,15 +97,13 @@ int emb_client_do_transaction(struct emb_client_t* _cli,
                           int _slave_addr,
                           struct emb_client_transaction_t* _transact) {
 
-    if(_cli->state != mt_state_no_task)
+    if(_cli->proto->rx_pdu)
         return -EBUSY;
     _cli->curr_transaction = _transact;
-    _cli->state = mt_state_sending_req;
     _cli->curr_addr = _slave_addr;
     _cli->curr_transaction = _transact;
     _cli->proto->rx_pdu = _transact->resp_pdu;
     emb_proto_send_packet(_cli->proto, _slave_addr, _transact->req_pdu);
-    _cli->state = mt_state_wait_resp;
     return 0;
 }
 
