@@ -16,17 +16,29 @@
 extern "C" {
 #endif
 
-struct emb_tcp_mbap_t {
-    uint16_t transact_id;
-    uint16_t proto_id;
-    uint16_t length;
-    uint8_t unit_id;
-} __attribute__ ((packed));
+enum { emb_tcp_mbap_size = 7 };
+
+enum { emb_tcp_rx_buf_size = MAX_PDU_SIZE + emb_tcp_mbap_size };
+enum { emb_tcp_tx_buf_size = MAX_PDU_SIZE + emb_tcp_mbap_size };
 
 struct emb_tcp_t {
-    struct emb_tcp_mbap_t rx_mbap, tx_mbap;
+
+    unsigned int rx_pkt_counter;
+    unsigned char rx_buf[emb_tcp_rx_buf_size];
+
+    unsigned int tx_pkt_size;
+    unsigned int tx_pkt_counter;
+    unsigned char tx_buf[emb_tcp_tx_buf_size];
 
     struct emb_protocol_t proto;
+
+    /// (modbus-TCP Interface) This function are implemented by physical port.
+    /// By using this call, modbus-TCP can read data from physical port.
+    unsigned int (*read_from_port)(struct emb_tcp_t* _this, void* _p_buf, unsigned int _buf_size);
+
+    /// (modbus-TCP Interface) This function are implemented by physical port.
+    /// By using this call, modbus-TCP can write data into physical port.
+    unsigned int (*write_to_port)(struct emb_tcp_t* _this, const void* _p_data, unsigned int _sz_to_write);
 };
 
 /**
