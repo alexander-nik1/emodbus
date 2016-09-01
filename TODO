@@ -1,4 +1,10 @@
 
+Think about how-to save a client identifier in case of tcp-server.
+
+Make a better names for protocol-implementations.
+
+Carry implementations from main project tree.
+
 Remake a Protocol implementations to clear C instead C++.
 
 License this library. Read about here: http://www.gnu.org/licenses/gpl-howto.ru.html.
