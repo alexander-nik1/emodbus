@@ -119,11 +119,11 @@ void tcp_client_tcp_t::tcp_cient_notifier(struct tcp_client_t* _ctx,
 
     switch(_event) {
     case tcp_cli_data_received:
-        emb_tcp_port_event(&_this->modbus_tcp, emb_tcp_data_received_event);
+        emb_tcp_port_event(&_this->modbus_tcp, NULL, emb_tcp_data_received_event);
         break;
 
     case tcp_cli_data_sent:
-        emb_tcp_port_event(&_this->modbus_tcp, emb_tcp_tx_buf_empty_event);
+        emb_tcp_port_event(&_this->modbus_tcp, NULL, emb_tcp_tx_buf_empty_event);
         break;
 
     case tcp_cli_connected:

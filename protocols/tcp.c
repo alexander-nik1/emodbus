@@ -16,8 +16,8 @@ struct emb_tcp_mbap_t {
     uint8_t unit_id;
 } __attribute__ ((packed));
 
-#define read_data_from_port(_mbt_)  emb_tcp_port_event((_mbt_), emb_tcp_data_received_event)
-#define write_data_to_port(_mbt_)   emb_tcp_port_event((_mbt_), emb_tcp_tx_buf_empty_event)
+#define read_data_from_port(_mbt_)  emb_tcp_port_event((_mbt_), (_mbt_)->tcp_client_id, emb_tcp_data_received_event)
+#define write_data_to_port(_mbt_)   emb_tcp_port_event((_mbt_), (_mbt_)->tcp_client_id, emb_tcp_tx_buf_empty_event)
 
 static void parse_packet(struct emb_tcp_t* _mbt) {
 
@@ -103,7 +103,10 @@ void emb_tcp_initialize(struct emb_tcp_t* _mbt) {
 }
 
 void emb_tcp_port_event(struct emb_tcp_t* _mbt,
+                        void *_tcp_client_id,
                         enum emb_tcp_port_event_t _event) {
+
+    _mbt->tcp_client_id = _tcp_client_id;
 
     switch(_event) {
     case emb_tcp_data_received_event:

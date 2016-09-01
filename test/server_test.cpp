@@ -18,6 +18,7 @@
 #include <emodbus/protocols/implementations/serial-rtu.hpp>
 #include <emodbus/protocols/implementations/tcp-client-rtu.hpp>
 #include <emodbus/protocols/implementations/tcp-client-tcp.hpp>
+#include <emodbus/protocols/implementations/tcp-server-tcp.h>
 
 #include <event2/event.h>
 
@@ -162,7 +163,8 @@ private:
 emb_debug_helper_t emb_debug_helper;
 
 //serial_rtu_t rtu;
-tcp_client_tcp_t tcp;
+//tcp_client_tcp_t tcp;
+
 
 int main(int argc, char* argv[]) {
 
@@ -175,14 +177,17 @@ int main(int argc, char* argv[]) {
     struct event_base *base = event_base_new();
 
     //res = rtu.open(base, "/dev/ttyUSB0", 115200);
-    res = tcp.open(base, "127.0.0.1", 9992);
+    //res = tcp.open(base, "127.0.0.1", 9992);
+    tcp_server_tcp_t* tcp = tcp_server_tcp_new(base, 9992);
 
-    if(res)
-        exit(res);
+    if(!tcp)
+        exit(1);
 
-    ssrv.set_proto(tcp/*rtu*/.get_proto());
+    //ssrv.set_proto(tcp/*rtu*/.get_proto());
+    ssrv.set_proto(tcp_server_tcp_get_proto(tcp));
 
-    tcp/*rtu*/.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
+    //tcp/*rtu*/.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
+    tcp_server_tcp_get_proto(tcp)->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
 
     emb_debug_helper.enable_dumping();
 

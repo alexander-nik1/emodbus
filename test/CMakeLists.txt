@@ -32,6 +32,7 @@ target_link_libraries(srv_test
     emodbus-serial-rtu
     emodbus-tcp-client-rtu
     emodbus-tcp-client-tcp
+    emodbus-tcp-server-tcp
 )
 
 
@@ -45,3 +46,7 @@ target_link_libraries(sync_client_test
     emodbus-tcp-client-tcp
     event_pthreads
 )
+
+add_executable(ev_srv event_server.c)
+
+target_link_libraries(ev_srv event_core)
