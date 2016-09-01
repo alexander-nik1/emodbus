@@ -17,6 +17,7 @@
 #include <emodbus/server/file.h>
 #include <emodbus/protocols/implementations/serial-rtu.hpp>
 #include <emodbus/protocols/implementations/tcp-client-rtu.hpp>
+#include <emodbus/protocols/implementations/tcp-client-tcp.hpp>
 
 #include <event2/event.h>
 
@@ -160,7 +161,8 @@ private:
 
 emb_debug_helper_t emb_debug_helper;
 
-serial_rtu_t rtu;
+//serial_rtu_t rtu;
+tcp_client_tcp_t tcp;
 
 int main(int argc, char* argv[]) {
 
@@ -172,14 +174,15 @@ int main(int argc, char* argv[]) {
 
     struct event_base *base = event_base_new();
 
-    res = rtu.open(base, "/dev/ttyUSB0", 115200);
+    //res = rtu.open(base, "/dev/ttyUSB0", 115200);
+    res = tcp.open(base, "127.0.0.1", 9992);
 
     if(res)
         exit(res);
 
-    ssrv.set_proto(rtu.get_proto());
+    ssrv.set_proto(tcp/*rtu*/.get_proto());
 
-    rtu.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
+    tcp/*rtu*/.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
 
     emb_debug_helper.enable_dumping();
 

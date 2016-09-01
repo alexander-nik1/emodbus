@@ -24,6 +24,7 @@
 #include <emodbus/client/read_fifo.h>
 #include <emodbus/protocols/implementations/serial-rtu.hpp>
 #include <emodbus/protocols/implementations/tcp-client-rtu.hpp>
+#include <emodbus/protocols/implementations/tcp-client-tcp.hpp>
 
 #include <pthread.h>
 
@@ -74,7 +75,7 @@ private:
             return -1;
         }
 
-        pthread_mutex_trylock(&mutex);
+//        pthread_mutex_trylock(&mutex);
 
         res = pthread_mutex_lock(&mutex);
 
@@ -114,7 +115,8 @@ private:
 emb_debug_helper_t emb_debug_helper;
 
 //serial_rtu_t rtu;
-tcp_client_rtu_t rtu;
+//tcp_client_rtu_t rtu;
+tcp_client_tcp_t rtu;
 
 #include <event2/thread.h>
 
@@ -129,7 +131,7 @@ void* thr_proc(void* p) {
     struct event_base *base = event_base_new();
 
     //res = rtu.open(base, "/dev/ttyUSB0", 115200);
-    res = rtu.open(base, "192.168.1.163", 4003);
+    res = rtu.open(base, "127.0.0.1", 8502);
 
     if(res)
         exit(res);
@@ -159,29 +161,29 @@ int main(int argc, char* argv[]) {
 
     sleep(1);
 
-    emb::client::proxy_t d8_proxy(&mb_client, 48);
+    emb::client::proxy_t d8_proxy(&mb_client, 1);
 
     emb::client::read_regs_t rr;
 
     d8_proxy.set_timeout(100);
 
-    for(int i=0; i<10000; ++i) {
+    for(int i=0; i<100; ++i) {
 
         try {
 
-            //printf("v = 0x%04X\n", (int)d8_proxy.holdings[0]);
+            printf("v = 0x%04X\n", (int)d8_proxy.holdings[0]);
 //            d8_proxy.holdings[0] = 0xC0FE;
 
             printf("---------------------------------------------<|> %d\n", i);
 
-            rr.build_req(0x40, 8);
+//            rr.build_req(0, 3);
 
-            d8_proxy.do_transaction(rr);
+//            d8_proxy.do_transaction(rr);
 
-            emb::regs_t r = d8_proxy.holdings[emb::range_t(0x50, 0x57)];
-//            for(int j=0; j<r.size(); ++j)
-//                printf("0x%04X ", r[j]);
-//            printf("\n");
+            emb::regs_t r = d8_proxy.holdings[emb::range_t(0, 3)];
+            for(int j=0; j<r.size(); ++j)
+                printf("0x%04X ", r[j]);
+            printf("\n");
         }
         catch (int err) {
             fprintf(stderr, "Error: %s\n", emb_strerror(-err));

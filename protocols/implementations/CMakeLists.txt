@@ -12,3 +12,9 @@ add_library(emodbus-tcp-client-rtu SHARED
 )
 
 target_link_libraries(emodbus-tcp-client-rtu emodbus-rtu event_core tcp-client)
+
+add_library(emodbus-tcp-client-tcp SHARED
+    tcp-client-tcp.cpp
+)
+
+target_link_libraries(emodbus-tcp-client-tcp emodbus-tcp event_core tcp-client)
