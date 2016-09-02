@@ -74,5 +74,6 @@ void emb_super_server_set_proto(struct emb_super_server_t* _ssrv,
         _proto->recv_packet = emb_super_server_on_receive_req;
         _proto->error = emb_super_server_on_error;
         _proto->rx_pdu = _ssrv->rx_pdu;
+        _proto->flags |= EMB_PROTO_FLAG_IS_SERVER;
     }
 }

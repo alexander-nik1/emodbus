@@ -114,5 +114,6 @@ void emb_client_set_proto(struct emb_client_t* _cli,
         _proto->high_level_context = _cli;
         _proto->recv_packet = emb_client_on_receive_pkt;
         _proto->error = emb_client_on_error;
+        _proto->flags &= (~EMB_PROTO_FLAG_IS_SERVER);
     }
 }
