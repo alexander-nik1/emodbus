@@ -9,9 +9,6 @@ Prerequisites:
 2) I saw a variety of incomplete implementation of this functional, and each
 implementations plainly can not be moved to different platforms.
 
-3) Хочется создать ПОЛНОЦЕННО переносимые исодники, которые должны уметь
-работать где угодно: ядро Linux, AVR, ARM, на какой угодно ОС и т.д.
-
 3) I want to create a fully portable sources, that can be work anywhere.
 On such platforms like AVR, MSP430, ARM, with OS and without it.
 
