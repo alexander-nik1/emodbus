@@ -13,6 +13,3 @@ add_library(emodbus-tcp SHARED ${LIB_EMODBUS_TCP})
 target_link_libraries(emodbus-tcp emodbus-base)
 
 add_library(emodbus-tcp-static STATIC ${LIB_EMODBUS_TCP})
-
-
-add_subdirectory(implementations)
