@@ -2,14 +2,15 @@
 
 require 'rmodbus'
 
-ModBus::RTUClient.new('/dev/ttyS0', 115200) do |cl|
+#ModBus::RTUClient.new('/dev/ttyS0', 115200) do |cl|
+ModBus::TCPClient.new('127.0.0.1', 9992) do |cl|
 	
 	cl.read_retries = 1
 	cl.read_retry_timeout = 1
 	
 	cl.with_slave(16) do |slave|
 		
-		NTimes = 1000
+		NTimes = 10000
 		
 		NTimes.times do |i|
 			

@@ -5,42 +5,31 @@
 #include <emodbus/protocols/implementations/tcp-server.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 struct tcp_server_tcp_t {
     struct emb_tcp_t modbus_tcp;
     struct tcp_server_t* tcp_server;
-    int opened_flag;
 };
 
 static unsigned int read_from_port(struct emb_tcp_t* _mbt,
                                    void* _p_buf,
                                    unsigned int _buf_size) {
-
-    struct tcp_server_tcp_t* _this = container_of(_mbt, struct tcp_server_tcp_t, modbus_tcp);
-
-    if(!_this->opened_flag) {
-        //emb_tcp_on_error(_mbt, -EFAULT);
-        return 0;
+    if(_mbt) {
+        struct tcp_server_tcp_t* _this = container_of(_mbt, struct tcp_server_tcp_t, modbus_tcp);
+        return tcp_server_read(_this->tcp_server, _mbt->tcp_client_id, _p_buf, _buf_size);
     }
-
-    return tcp_server_read(_this->tcp_server, _mbt->tcp_client_id, _p_buf, _buf_size);
+    return 0;
 }
 
 static unsigned int write_to_port(struct emb_tcp_t* _mbt,
                                   const void* _p_data,
                                   unsigned int _sz_to_write) {
-
-    struct tcp_server_tcp_t* _this = container_of(_mbt, struct tcp_server_tcp_t, modbus_tcp);
-
-    if(!_this->opened_flag) {
-        //emb_tcp_on_error(_mbt, -EFAULT);
-        return 0;
+    if(_mbt && _sz_to_write) {
+        struct tcp_server_tcp_t* _this = container_of(_mbt, struct tcp_server_tcp_t, modbus_tcp);
+        return tcp_server_write(_this->tcp_server, _mbt->tcp_client_id, _p_data, _sz_to_write);
     }
-
-    if(!_sz_to_write)
-        return 0;
-
-    return tcp_server_write(_this->tcp_server, _mbt->tcp_client_id, _p_data, _sz_to_write);
+    return 0;
 }
 
 static void tcp_cient_notifier(struct tcp_server_t* _ctx,

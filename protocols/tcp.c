@@ -73,7 +73,17 @@ static int modbus_tcp_send_packet(void *_mbt,
 
         const uint16_t length = _pdu->data_size + 2;
 
-        mbap->transact_id = SWAP_BYTES(0); // TODO Set here transaction id
+        // If we are server, then take a transaction-id from request,
+        // if we are client, then transaction-id is a number, increased by 1 per transaction.
+        if(mbt->proto.flags & EMB_PROTO_FLAG_IS_SERVER) {
+            mbap->transact_id = ((struct emb_tcp_mbap_t*)mbt->rx_buf)->transact_id;
+        }
+        else {
+            uint16_t prev_transaction_id = SWAP_BYTES(mbap->transact_id);
+            ++prev_transaction_id;
+            mbap->transact_id = SWAP_BYTES(prev_transaction_id);
+        }
+
         mbap->proto_id = SWAP_BYTES(0);
         mbap->length = SWAP_BYTES(length);
         mbap->unit_id = _slave_addr;
