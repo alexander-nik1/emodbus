@@ -16,7 +16,7 @@
 #include <event2/bufferevent.h>
 #include <event2/buffer.h>
 
-#include <emodbus/protocols/implementations/tcp-server.h>
+#include <emodbus/proto-implementations/tcp-server.h>
 
 struct tcp_server_t {
     struct event_base* base;
@@ -139,12 +139,6 @@ int tcp_server_write(struct tcp_server_t* _ctx,
     }
     else
         return -EINVAL;
-}
-
-void tcp_server_enable_write_event(struct tcp_server_t* _ctx) {
-//    if(_ctx && _ctx->sock_event_write)
-//        if(event_add(_ctx->sock_event_write, NULL))
-//            tcp_server_err("Error with event_add() call: %m\n");
 }
 
 void tcp_server_set_user_data(struct tcp_server_t* _ctx, void* _user_data) {

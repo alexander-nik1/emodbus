@@ -116,20 +116,27 @@ void emb_tcp_port_event(struct emb_tcp_t* _mbt,
                         void *_tcp_client_id,
                         enum emb_tcp_port_event_t _event) {
 
+    int result;
     _mbt->tcp_client_id = _tcp_client_id;
 
     switch(_event) {
     case emb_tcp_data_received_event:
-        _mbt->rx_pkt_counter += _mbt->read_from_port(_mbt,
-                                                     _mbt->rx_buf + _mbt->rx_pkt_counter,
-                                                     emb_tcp_rx_buf_size - _mbt->rx_pkt_counter);
-        parse_packet(_mbt);
+        result = _mbt->read_from_port(_mbt,
+                                      _mbt->rx_buf + _mbt->rx_pkt_counter,
+                                      emb_tcp_rx_buf_size - _mbt->rx_pkt_counter);
+        if(result > 0) {
+            _mbt->rx_pkt_counter += result;
+            parse_packet(_mbt);
+        }
         break;
 
     case emb_tcp_tx_buf_empty_event:
-        _mbt->tx_pkt_counter += _mbt->write_to_port(_mbt,
-                                                    _mbt->tx_buf + _mbt->tx_pkt_counter,
-                                                    _mbt->tx_pkt_size - _mbt->tx_pkt_counter);
+        result = _mbt->write_to_port(_mbt,
+                                     _mbt->tx_buf + _mbt->tx_pkt_counter,
+                                     _mbt->tx_pkt_size - _mbt->tx_pkt_counter);
+        if(result > 0) {
+            _mbt->tx_pkt_counter += result;
+        }
         break;
     }
 }

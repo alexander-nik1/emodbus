@@ -35,8 +35,6 @@ int tcp_server_write(struct tcp_server_t* _ctx,
                      const void* _p_data,
                      size_t _data_size);
 
-void tcp_server_enable_write_event(struct tcp_server_t* _ctx);
-
 void tcp_server_set_user_data(struct tcp_server_t* _ctx, void* _user_data);
 
 void* tcp_server_get_user_data(struct tcp_server_t* _ctx);

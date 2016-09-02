@@ -15,10 +15,10 @@
 #include <emodbus/server/coils.h>
 #include <emodbus/server/holdings.h>
 #include <emodbus/server/file.h>
-#include <emodbus/protocols/implementations/serial-rtu.hpp>
-#include <emodbus/protocols/implementations/tcp-client-rtu.hpp>
-#include <emodbus/protocols/implementations/tcp-client-tcp.hpp>
-#include <emodbus/protocols/implementations/tcp-server-tcp.h>
+#include <emodbus/proto-implementations/serial-rtu.hpp>
+#include <emodbus/proto-implementations/tcp-client-rtu.hpp>
+#include <emodbus/proto-implementations/tcp-client-tcp.h>
+#include <emodbus/proto-implementations/tcp-server-tcp.h>
 
 #include <event2/event.h>
 

@@ -34,13 +34,13 @@ struct emb_tcp_t {
 
     /// (modbus-TCP Interface) This function are implemented by physical port.
     /// By using this call, modbus-TCP can read data from physical port.
-    unsigned int (*read_from_port)(struct emb_tcp_t* _this,
-                                   void* _p_buf, unsigned int _buf_size);
+    int (*read_from_port)(struct emb_tcp_t* _this,
+                          void* _p_buf, unsigned int _buf_size);
 
     /// (modbus-TCP Interface) This function are implemented by physical port.
     /// By using this call, modbus-TCP can write data into physical port.
-    unsigned int (*write_to_port)(struct emb_tcp_t* _this,
-                                  const void* _p_data, unsigned int _sz_to_write);
+    int (*write_to_port)(struct emb_tcp_t* _this,
+                         const void* _p_data, unsigned int _sz_to_write);
 
     void* tcp_client_id;
 };
