@@ -31,8 +31,7 @@ target_link_libraries(srv_test
     pthread
     emodbus-serial-rtu
     emodbus-tcp-client-rtu
-    emodbus-tcp-client-tcp
-    emodbus-tcp-server-tcp
+    emodbus-impl-posix
 )
 
 
@@ -42,8 +41,7 @@ target_link_libraries(sync_client_test
     emodbus-full-cpp
     pthread
     emodbus-serial-rtu
-    emodbus-tcp-client-rtu
-    emodbus-tcp-client-tcp
+    emodbus-impl-posix
     event_pthreads
 )
 

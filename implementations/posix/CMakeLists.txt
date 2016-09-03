@@ -3,6 +3,8 @@ add_library(tcp-client STATIC tcp-client.c)
 
 add_library(tcp-server STATIC tcp-server.c)
 
+add_library(serail-port STATIC serial-port.c)
+
 add_library(emodbus-serial-rtu SHARED
     serial-rtu.cpp
 )
@@ -15,15 +17,19 @@ add_library(emodbus-tcp-client-rtu SHARED
 
 target_link_libraries(emodbus-tcp-client-rtu emodbus-rtu event_core tcp-client)
 
-add_library(emodbus-tcp-client-tcp SHARED
+add_library(emodbus-impl-posix SHARED
+    mb-rtu-via-serial.c
+    mb-rtu-via-tcp-client.c
+    mb-rtu-via-tcp-server.c
     mb-tcp-via-tcp-client.c
-)
-
-target_link_libraries(emodbus-tcp-client-tcp emodbus-tcp event_core tcp-client)
-
-
-add_library(emodbus-tcp-server-tcp SHARED
     mb-tcp-via-tcp-server.c
 )
 
-target_link_libraries(emodbus-tcp-server-tcp emodbus-tcp event_core tcp-server)
+target_link_libraries(emodbus-impl-posix
+    event_core
+    emodbus-rtu
+    emodbus-tcp
+    tcp-client
+    tcp-server
+    serail-port
+)
