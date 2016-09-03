@@ -23,7 +23,7 @@ add_subdirectory(test)
 
 add_subdirectory(cpp)
 
-add_subdirectory(proto-implementations)
+add_subdirectory(implementations)
 
 FILE(GLOB_RECURSE LibFiles "include/*.hpp" "include/*.h" README TODO)
 add_custom_target(headers SOURCES ${LibFiles})

@@ -15,10 +15,11 @@
 #include <emodbus/server/coils.h>
 #include <emodbus/server/holdings.h>
 #include <emodbus/server/file.h>
-#include <emodbus/proto-implementations/serial-rtu.hpp>
-#include <emodbus/proto-implementations/tcp-client-rtu.hpp>
-#include <emodbus/proto-implementations/tcp-client-tcp.h>
-#include <emodbus/proto-implementations/tcp-server-tcp.h>
+
+#include <emodbus/implementations/posix/serial-rtu.hpp>
+#include <emodbus/implementations/posix/tcp-client-rtu.hpp>
+#include <emodbus/implementations/posix/mb-tcp-via-tcp-client.h>
+#include <emodbus/implementations/posix/mb-tcp-via-tcp-server.h>
 
 #include <event2/event.h>
 
@@ -178,16 +179,16 @@ int main(int argc, char* argv[]) {
 
     //res = rtu.open(base, "/dev/ttyUSB0", 115200);
     //res = tcp.open(base, "127.0.0.1", 9992);
-    tcp_server_tcp_t* tcp = tcp_server_tcp_new(base, 9992);
+    emb_tcp_via_tcp_server_t* tcp = emb_tcp_via_tcp_server_create(base, 9992);
 
     if(!tcp)
         exit(1);
 
     //ssrv.set_proto(tcp/*rtu*/.get_proto());
-    ssrv.set_proto(tcp_server_tcp_get_proto(tcp));
+    ssrv.set_proto(emb_tcp_via_tcp_server_get_proto(tcp));
 
     //tcp/*rtu*/.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
-    tcp_server_tcp_get_proto(tcp)->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
+    emb_tcp_via_tcp_server_get_proto(tcp)->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
 
     emb_debug_helper.enable_dumping();
 

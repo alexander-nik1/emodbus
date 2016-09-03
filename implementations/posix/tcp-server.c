@@ -16,7 +16,7 @@
 #include <event2/bufferevent.h>
 #include <event2/buffer.h>
 
-#include <emodbus/proto-implementations/tcp-server.h>
+#include <emodbus/implementations/posix/tcp-server.h>
 
 struct tcp_server_t {
     struct event_base* base;

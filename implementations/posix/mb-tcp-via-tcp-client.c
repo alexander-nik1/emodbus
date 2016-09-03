@@ -1,22 +1,19 @@
 
-#include <emodbus/proto-implementations/tcp-client-tcp.h>
+#include <emodbus/protocols/tcp.h>
+#include <emodbus/implementations/posix/mb-tcp-via-tcp-client.h>
+#include <emodbus/implementations/posix/tcp-client.h>
 #include <emodbus/base/add/container_of.h>
 #include <emodbus/base/modbus_pdu.h>
+
 #include <string.h>
 #include <stdlib.h>
-#include <termios.h>
-#include <fcntl.h>
-#include <unistd.h>
-
-#include <emodbus/protocols/implementations/tcp-client.h>
+#include <errno.h>
 
 #include <event2/event.h>
 #include <event2/bufferevent.h>
 #include <event2/buffer.h>
 
-#include <errno.h>
-
-struct emb_tcp_over_tcp_client_t {
+struct emb_tcp_via_tcp_client_t {
     struct emb_tcp_t modbus_tcp;
     struct tcp_client_t* tcp_client;
     int opened_flag;
@@ -25,8 +22,8 @@ struct emb_tcp_over_tcp_client_t {
 static void tcp_cient_notifier(struct tcp_client_t* _ctx,
                                enum tcp_client_events_t _event) {
 
-    struct emb_tcp_over_tcp_client_t* _this =
-            (struct emb_tcp_over_tcp_client_t*)tcp_client_get_user_data(_ctx);
+    struct emb_tcp_via_tcp_client_t* _this =
+            (struct emb_tcp_via_tcp_client_t*)tcp_client_get_user_data(_ctx);
 
     switch(_event) {
     case tcp_cli_data_received:
@@ -57,8 +54,8 @@ static int read_from_port(struct emb_tcp_t* _mbt,
                           void* _p_buf,
                           unsigned int _buf_size) {
 
-    struct emb_tcp_over_tcp_client_t* _this =
-            container_of(_mbt, struct emb_tcp_over_tcp_client_t, modbus_tcp);
+    struct emb_tcp_via_tcp_client_t* _this =
+            container_of(_mbt, struct emb_tcp_via_tcp_client_t, modbus_tcp);
 
     if(!_this->opened_flag) {
         return 0;
@@ -71,8 +68,8 @@ static int write_to_port(struct emb_tcp_t* _mbt,
                          const void* _p_data,
                          unsigned int _sz_to_write) {
     int wrote;
-    struct emb_tcp_over_tcp_client_t* _this =
-            container_of(_mbt, struct emb_tcp_over_tcp_client_t, modbus_tcp);
+    struct emb_tcp_via_tcp_client_t* _this =
+            container_of(_mbt, struct emb_tcp_via_tcp_client_t, modbus_tcp);
 
     if(!_this->opened_flag) {
         return 0;
@@ -89,16 +86,16 @@ static int write_to_port(struct emb_tcp_t* _mbt,
     return wrote;
 }
 
-struct emb_tcp_over_tcp_client_t*
-emb_tcp_over_tcp_client_create(struct event_base *_base,
+struct emb_tcp_via_tcp_client_t*
+emb_tcp_via_tcp_client_create(struct event_base *_base,
                                const char* _ip_addr,
                                unsigned int _port) {
     int r;
-    struct emb_tcp_over_tcp_client_t* res =
-        (struct emb_tcp_over_tcp_client_t*)malloc(sizeof(struct emb_tcp_over_tcp_client_t));
+    struct emb_tcp_via_tcp_client_t* res =
+        (struct emb_tcp_via_tcp_client_t*)malloc(sizeof(struct emb_tcp_via_tcp_client_t));
 
     if(res) {
-        memset(res, 0, sizeof(struct emb_tcp_over_tcp_client_t));
+        memset(res, 0, sizeof(struct emb_tcp_via_tcp_client_t));
         emb_tcp_initialize(&res->modbus_tcp);
         res->tcp_client = tcp_client_new(_base, tcp_cient_notifier);
         if(!res->tcp_client) {
@@ -112,7 +109,7 @@ emb_tcp_over_tcp_client_create(struct event_base *_base,
     if((r=tcp_client_start_connection(res->tcp_client, _ip_addr, _port))) {
         fprintf(stderr, "Error: with tcp_client_start_connection(): (%d) %m\n", r);
         fflush(stdout);
-        emb_tcp_over_tcp_client_destroy(res);
+        emb_tcp_via_tcp_client_destroy(res);
         return NULL;
     }
 
@@ -122,7 +119,7 @@ emb_tcp_over_tcp_client_create(struct event_base *_base,
     return res;
 }
 
-void emb_tcp_over_tcp_client_destroy(struct emb_tcp_over_tcp_client_t* _ctx) {
+void emb_tcp_via_tcp_client_destroy(struct emb_tcp_via_tcp_client_t* _ctx) {
     if(_ctx) {
         if(_ctx->tcp_client)
             tcp_client_free(_ctx->tcp_client);
@@ -131,7 +128,7 @@ void emb_tcp_over_tcp_client_destroy(struct emb_tcp_over_tcp_client_t* _ctx) {
 }
 
 struct emb_protocol_t*
-emb_tcp_over_tcp_client_get_proto(struct emb_tcp_over_tcp_client_t* _ctx) {
+emb_tcp_via_tcp_client_get_proto(struct emb_tcp_via_tcp_client_t* _ctx) {
     if(_ctx)
         return &_ctx->modbus_tcp.proto;
     return NULL;

@@ -22,9 +22,10 @@
 #include <emodbus/client/read_file_record.h>
 #include <emodbus/client/write_file_record.h>
 #include <emodbus/client/read_fifo.h>
-#include <emodbus/proto-implementations/serial-rtu.hpp>
-#include <emodbus/proto-implementations/tcp-client-rtu.hpp>
-#include <emodbus/proto-implementations/tcp-client-tcp.h>
+
+#include <emodbus/implementations/posix/serial-rtu.hpp>
+#include <emodbus/implementations/posix/tcp-client-rtu.hpp>
+#include <emodbus/implementations/posix/mb-tcp-via-tcp-client.h>
 
 #include <pthread.h>
 
@@ -130,9 +131,9 @@ void* thr_proc(void* p) {
 
     struct event_base *base = event_base_new();
 
-    struct emb_tcp_over_tcp_client_t* rtu;
+    struct emb_tcp_via_tcp_client_t* rtu;
 
-    rtu = emb_tcp_over_tcp_client_create(base, "127.0.0.1", 8502);
+    rtu = emb_tcp_via_tcp_client_create(base, "127.0.0.1", 8502);
 
     //res = rtu.open(base, "/dev/ttyUSB0", 115200);
     //res = rtu.open(base, "127.0.0.1", 8502);
@@ -141,15 +142,15 @@ void* thr_proc(void* p) {
         exit(res);
 
     emb_debug_helper.enable_dumping();
-    emb_tcp_over_tcp_client_get_proto(rtu)->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
+    emb_tcp_via_tcp_client_get_proto(rtu)->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
 
-    client->set_proto(emb_tcp_over_tcp_client_get_proto(rtu));
+    client->set_proto(emb_tcp_via_tcp_client_get_proto(rtu));
 
     client->init_timers(base);
 
     event_base_dispatch(base);
 
-    emb_tcp_over_tcp_client_destroy(rtu);
+    emb_tcp_via_tcp_client_destroy(rtu);
 }
 
 void print_all_read_file_answer_data(const emb::client::read_file_t &ans);

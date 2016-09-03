@@ -12,7 +12,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include <emodbus/protocols/implementations/tcp-client.h>
+#include <emodbus/implementations/posix/tcp-client.h>
 
 struct tcp_client_t {
     int sock_fd;
