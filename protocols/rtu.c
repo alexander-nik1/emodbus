@@ -125,7 +125,7 @@ void emb_rtu_on_error(struct emb_rtu_t* _mbt,
 void emb_rtu_port_event(struct emb_rtu_t* _mbt,
                         enum emb_rtu_port_event_t _event) {
 
-    switch(_event) {
+    switch(_event) {    /// TODO: Check returned value for < 0
     case emb_rtu_data_received_event:
         _mbt->rx_buf_counter += _mbt->read_from_port(_mbt,
                                                      _mbt->rx_buffer + _mbt->rx_buf_counter,
@@ -133,7 +133,7 @@ void emb_rtu_port_event(struct emb_rtu_t* _mbt,
         _mbt->emb_rtu_on_char(_mbt);
         break;
 
-    case emb_rtu_tx_buf_empty_event:
+    case emb_rtu_tx_buf_empty_event: /// TODO: Check returned value for < 0
         _mbt->tx_buf_counter += _mbt->write_to_port(_mbt,
                                                     _mbt->tx_buffer + _mbt->tx_buf_counter,
                                                     _mbt->tx_pkt_size - _mbt->tx_buf_counter);

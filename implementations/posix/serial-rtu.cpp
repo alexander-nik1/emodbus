@@ -198,7 +198,7 @@ void serial_rtu_t::on_timer(evutil_socket_t fd, short what, void *arg) {
     emb_rtu_on_char_timeout(&_this->modbus_rtu);
 }
 
-unsigned int serial_rtu_t::read_from_port(struct emb_rtu_t* _mbt,
+int serial_rtu_t::read_from_port(struct emb_rtu_t* _mbt,
                                           void* _p_buf,
                                           unsigned int _buf_size) {
 
@@ -206,7 +206,7 @@ unsigned int serial_rtu_t::read_from_port(struct emb_rtu_t* _mbt,
     return ::read(_this->fd, _p_buf, _buf_size);
 }
 
-unsigned int serial_rtu_t::write_to_port(struct emb_rtu_t* _mbt,
+int serial_rtu_t::write_to_port(struct emb_rtu_t* _mbt,
                                          const void* _p_data,
                                          unsigned int _sz_to_write) {
     serial_rtu_t* _this = container_of(_mbt, serial_rtu_t, modbus_rtu);

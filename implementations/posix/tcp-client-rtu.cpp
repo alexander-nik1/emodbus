@@ -116,7 +116,7 @@ void tcp_client_rtu_t::on_timer(evutil_socket_t fd, short what, void *arg) {
     emb_rtu_on_char_timeout(&_this->modbus_rtu);
 }
 
-unsigned int tcp_client_rtu_t::read_from_port(struct emb_rtu_t* _mbt,
+int tcp_client_rtu_t::read_from_port(struct emb_rtu_t* _mbt,
                                           void* _p_buf,
                                           unsigned int _buf_size) {
 
@@ -130,7 +130,7 @@ unsigned int tcp_client_rtu_t::read_from_port(struct emb_rtu_t* _mbt,
     return tcp_client_read(_this->tcp_client, _p_buf, _buf_size);
 }
 
-unsigned int tcp_client_rtu_t::write_to_port(struct emb_rtu_t* _mbt,
+int tcp_client_rtu_t::write_to_port(struct emb_rtu_t* _mbt,
                                          const void* _p_data,
                                          unsigned int _sz_to_write) {
     int wrote;
