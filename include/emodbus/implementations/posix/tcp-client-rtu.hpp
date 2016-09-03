@@ -28,8 +28,8 @@ private:
     static void modbus_rtu_on_char(struct emb_rtu_t *_emb);
     static void on_timer(evutil_socket_t fd, short what, void *arg);
 
-    static unsigned int read_from_port(struct emb_rtu_t* _mbt, void* _p_buf, unsigned int _buf_size);
-    static unsigned int write_to_port(struct emb_rtu_t* _mbt, const void* _p_data, unsigned int _sz_to_write);
+    static int read_from_port(struct emb_rtu_t* _mbt, void* _p_buf, unsigned int _buf_size);
+    static int write_to_port(struct emb_rtu_t* _mbt, const void* _p_data, unsigned int _sz_to_write);
 
     static void tcp_cient_notifier(struct tcp_client_t* _ctx,
                                    enum tcp_client_events_t _event);
