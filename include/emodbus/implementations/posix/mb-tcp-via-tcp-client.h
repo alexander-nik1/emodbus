@@ -2,6 +2,7 @@
 #ifndef EMB_TCP_VIA_TCP_CLIENT_H
 #define EMB_TCP_VIA_TCP_CLIENT_H
 
+#include <emodbus/base/modbus_proto.h>
 #include <event2/event.h>
 
 #ifdef __cplusplus
