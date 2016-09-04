@@ -53,8 +53,6 @@ static void emb_client_on_receive_pkt(void* _user_data,
             break;
         }
 
-        cli->proto->rx_pdu = NULL;
-
         if(req->procs && req->procs->on_response)
             req->procs->on_response(req, _slave_addr);
 
