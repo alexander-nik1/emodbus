@@ -31,7 +31,8 @@ const char* emb_strerror(int _errno) {
             EMB_CASE_ERROR_STRING(modbus_resp_wrong_address, "Server returns incorrect address about itself")
             EMB_CASE_ERROR_STRING(modbus_resp_wrong_func, "Server returns incorrect function number")
             EMB_CASE_ERROR_STRING(modbus_resp_timeout, "Timeout of response waiting")
-            EMB_CASE_ERROR_STRING(modbus_resp_buffer_ovf, "Response buffer is too short");
+            EMB_CASE_ERROR_STRING(modbus_resp_buffer_ovf, "Response buffer is too short")
+            EMB_CASE_ERROR_STRING(modbus_resp_wrong_transaction_id, "Incorrect transaction Id in received response");
             default: return (const char*)0;
         }
     }
