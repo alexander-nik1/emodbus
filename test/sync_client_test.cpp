@@ -57,6 +57,16 @@ public:
         timeout_timer = event_new(_eb, -1, EV_TIMEOUT, timeout_cb, this);
     }
 
+    int do_transaction(int _server_addr,
+                                 unsigned int _timeout,
+                                 emb::client::transaction_t &_transaction) {
+        int r;
+        while((r = emb::client::client_t::do_transaction(_server_addr, _timeout, _transaction)) == -16) {
+            usleep(1);
+        }
+        return r;
+    }
+
 private:
 
     int emb_sync_client_start_wait(unsigned int _timeout) {
@@ -92,6 +102,7 @@ private:
         is_timeout = false;
         result = 0;
         pthread_mutex_unlock(&mutex);
+        fflush(stdout);
     }
 
     void emb_on_error(int _slave_addr, int _errno) {
@@ -142,7 +153,7 @@ void* thr_proc(void* p) {
         exit(res);
 
     emb_debug_helper.enable_dumping();
-    emb_tcp_via_tcp_client_get_proto(rtu)->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
+    //emb_tcp_via_tcp_client_get_proto(rtu)->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
 
     client->set_proto(emb_tcp_via_tcp_client_get_proto(rtu));
 
@@ -168,39 +179,7 @@ int main(int argc, char* argv[]) {
 
     sleep(1);
 
-    emb::client::proxy_t d8_proxy(&mb_client, 1);
-
-    emb::client::read_regs_t rr;
-
-    d8_proxy.set_timeout(100);
-
-    for(int i=0; i<100; ++i) {
-
-        try {
-
-            printf("v = 0x%04X\n", (int)d8_proxy.holdings[0]);
-//            d8_proxy.holdings[0] = 0xC0FE;
-
-            printf("---------------------------------------------<|> %d\n", i);
-
-//            rr.build_req(0, 3);
-
-//            d8_proxy.do_transaction(rr);
-
-            emb::regs_t r = d8_proxy.holdings[emb::range_t(0, 3)];
-            for(int j=0; j<r.size(); ++j)
-                printf("0x%04X ", r[j]);
-            printf("\n");
-        }
-        catch (int err) {
-            fprintf(stderr, "Error: %s\n", emb_strerror(-err));
-        }
-        catch (...) {
-            fprintf(stderr, "XError: %m\n");
-        }
-
-        usleep(1000 * 1);
-    }
+    coils_test();
 
    // pthread_join(pthr, NULL);
 
@@ -229,11 +208,17 @@ void coils_test() {
     emb::client::write_coils_t wr;
     emb::client::write_coil_t wc;
 
+    const int slave_id = 1;
+    const int timeout = 1000;
+
+    // 124 for ruby server.
+    const int max_coils_size_per_req = 0x07B0;
+
     std::vector<char> to_write, to_read;
 
-    for(i=0; i<1000; ++i) {
+    for(i=0; i<10000; ++i) {
 
-        const unsigned int coils_size = (rand() % 0x07B0) + 1;
+        const unsigned int coils_size = (rand() % max_coils_size_per_req) + 1;
         const uint16_t coil_address = rand() % ((1 << 16) - coils_size - 1);
 
         to_write.resize(coils_size);
@@ -243,24 +228,24 @@ void coils_test() {
 
         // Write data
         wr.build_req(coil_address, coils_size, (const bool*)(&to_write[0]));
-        res = mb_client.do_transaction(16, 100, wr);
-        if(res) printf("Error (write): %d \"%s\"\n", res, emb_strerror(-res));
+        res = mb_client.do_transaction(slave_id, timeout, wr);
+        if(res) printf("Error (write): %d \"%s\"\n", res, emb_strerror(-res)), fflush(stdout);
 
         const int single_writes = rand() % 10 + 1;
         for(int z=0; z<single_writes; ++z) {
             const bool x = (rand() & 1) != 0;
             const uint16_t pos = rand() % coils_size;
             wc.build_req(coil_address + pos, x);
-            res = mb_client.do_transaction(16, 100, wc);
-            if(res) printf("Error (read): %d \"%s\"\n", res, emb_strerror(-res));
+            res = mb_client.do_transaction(slave_id, timeout, wc);
+            if(res) printf("Error (read): %d \"%s\"\n", res, emb_strerror(-res)), fflush(stdout);
             to_write[pos] = x;
         }
 
 
         // read coils
         rr.build_req(coil_address, coils_size);
-        res = mb_client.do_transaction(16, 100, rr);
-        if(res) printf("Error (read): %d \"%s\"\n", res, emb_strerror(-res));
+        res = mb_client.do_transaction(slave_id, timeout, rr);
+        if(res) printf("Error (read): %d \"%s\"\n", res, emb_strerror(-res)), fflush(stdout);
 
 
         to_read.resize(rr.get_req_quantity());
@@ -278,10 +263,12 @@ void coils_test() {
             print_boolean_array((bool*)(&to_read[0]), coils_size);
             puts("\n");
 
+            fflush(stdout);
+
             ++errors;
         }
 
-        usleep(1000*10);
+        //usleep(1000*10);
         //printf("---------------> do_request() := %d\n", res);
     }
     printf("Coils test: errors = %d\n", errors);

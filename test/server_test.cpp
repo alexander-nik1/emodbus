@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
 
     //res = rtu.open(base, "/dev/ttyUSB0", 115200);
     //res = tcp.open(base, "127.0.0.1", 9992);
-    emb_tcp_via_tcp_server_t* tcp = emb_tcp_via_tcp_server_create(base, 9992);
+    emb_tcp_via_tcp_server_t* tcp = emb_tcp_via_tcp_server_create(base, 8502);
 
     if(!tcp)
         exit(1);
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
     my_holdings_t h;
     my_file_t f;
 
-    emb::server::server_t srv1(16);
+    emb::server::server_t srv1(1);
 
     srv1.add_function(0x01, emb_srv_read_coils);
     srv1.add_function(0x05, emb_srv_write_coil);

@@ -3,18 +3,18 @@
 require 'rmodbus'
 
 #ModBus::RTUClient.new('/dev/ttyS0', 115200) do |cl|
-ModBus::TCPClient.new('127.0.0.1', 9992) do |cl|
+ModBus::TCPClient.new('127.0.0.1', 8502) do |cl|
 	
 	cl.read_retries = 1
 	cl.read_retry_timeout = 1
 	
-	cl.with_slave(16) do |slave|
+	cl.with_slave(1) do |slave|
 		
 		NTimes = 10000
 		
 		NTimes.times do |i|
-			
-			nCoils = rand(0x7B0) + 1
+			# rand(0x7B0)
+			nCoils = 124 + 1
 			startCoil = rand(65535 - nCoils)
 			endCoil = startCoil + nCoils
 			
