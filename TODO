@@ -1,9 +1,12 @@
 
-Think about how-to save a client identifier in case of tcp-server.
+A server must return a MBE_SLAVE_BUSY(0x06) error, when it busy by another request.
+A client, when got a MBE_SLAVE_BUSY error must perfom one from two deals:
+1) Send this error to the high level.
+2) Try to resend the transaction N times, with M period.
+And if all retries got the same error, then send it to the high level.
+All this behaviour must be set by some options, that client should get from high level.
 
-Make a better names for protocol-implementations.
-
-Carry implementations from main project tree.
+Rename a protocol* level names to the transport* names.
 
 Remake a Protocol implementations to clear C instead C++.
 
@@ -15,11 +18,11 @@ This library need a LGPL v2 license.
 Добавить очередь в client_t. И если он будет работать в асинхронном режиме,
 то использовать эту очередь.
 
-Разобраться с именами функций, регистров, катушек, файлов и прочим.
+Think about function-names, register, coils, and so on.
 
-Сделать клеиентскую и серверную функции 0x17. (Read/Write multiple registers)
+Make a cilend and server function 0x17. (Read/Write multiple registers)
 
-Сделать серверную функцию 0x18. (Read FIFO)
+Make a server-side function 0x18. (Read FIFO)
 
 Разработать прокси для сервера, как в rmodbus.
 Заметки по прокси:
