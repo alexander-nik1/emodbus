@@ -24,29 +24,44 @@ static void parse_packet(struct emb_tcp_t* _mbt) {
     // TODO: Maybe I need to loop-based searching in receive buffer ?
     if(_mbt->rx_pkt_counter > (emb_tcp_mbap_size + 2)) {
         struct emb_tcp_mbap_t* mbap = (struct emb_tcp_mbap_t*)_mbt->rx_buf;
-        // TODO Check here transaction id
         const uint16_t pkt_length = SWAP_BYTES(mbap->length) - 1;
-        if(_mbt->rx_pkt_counter >= emb_tcp_mbap_size + pkt_length) {
-            emb_pdu_t* const rx_pdu = _mbt->proto.rx_pdu;
+
+        // If we are received not all packet, then skip processing, and
+        // wait for data remainder.
+        if(_mbt->rx_pkt_counter < emb_tcp_mbap_size + pkt_length)
+            return;
+
 #if EMODBUS_PACKETS_DUMPING
-            if(_mbt->proto.flags & EMB_PROTO_FLAG_DUMD_PAKETS)
-                if(emb_dump_rx_data)
-                    emb_dump_rx_data(_mbt->rx_buf, _mbt->rx_pkt_counter);
+        if(_mbt->proto.flags & EMB_PROTO_FLAG_DUMD_PAKETS)
+            if(emb_dump_rx_data)
+                emb_dump_rx_data(_mbt->rx_buf, _mbt->rx_pkt_counter);
 #endif // EMODBUS_PACKETS_DUMPING
-            if(rx_pdu) {
+
+        do {
+            // If we are server's side, then we need to check a transaction id.
+            // The transaction id must be the same as in sent packet.
+            if(!(_mbt->proto.flags & EMB_PROTO_FLAG_IS_SERVER)) {
+                struct emb_tcp_mbap_t* tx_mbap = (struct emb_tcp_mbap_t*)_mbt->tx_buf;
+                if(tx_mbap->transact_id != mbap->transact_id) {
+                    emb_proto_error(&_mbt->proto, -modbus_resp_wrong_transaction_id);
+                    break;
+                }
+            }
+            if(_mbt->proto.rx_pdu) {
+                emb_pdu_t* const rx_pdu = _mbt->proto.rx_pdu;
                 const int pkt_data_length = pkt_length - 1;
                 if(rx_pdu->max_size < pkt_data_length) {
                     emb_proto_error(&_mbt->proto, -modbus_resp_buffer_ovf);
+                    break;
                 }
-                else {
-                    rx_pdu->function = _mbt->rx_buf[emb_tcp_mbap_size];
-                    rx_pdu->data_size = pkt_data_length;
-                    memcpy(rx_pdu->data, _mbt->rx_buf + (emb_tcp_mbap_size+1), pkt_data_length);
-                    emb_proto_recv_packet(&_mbt->proto, mbap->unit_id, MB_CONST_PDU(rx_pdu));
-                }
+                rx_pdu->function = _mbt->rx_buf[emb_tcp_mbap_size];
+                rx_pdu->data_size = pkt_data_length;
+                memcpy(rx_pdu->data, _mbt->rx_buf + (emb_tcp_mbap_size+1), pkt_data_length);
+                emb_proto_recv_packet(&_mbt->proto, mbap->unit_id, MB_CONST_PDU(rx_pdu));
             }
-            _mbt->rx_pkt_counter = 0;
-        }
+
+        } while(0);
+        _mbt->rx_pkt_counter = 0;
     }
 }
 
@@ -108,8 +123,13 @@ static int modbus_tcp_send_packet(void *_mbt,
 }
 
 void emb_tcp_initialize(struct emb_tcp_t* _mbt) {
-    _mbt->proto.send_packet = modbus_tcp_send_packet;
-    _mbt->proto.low_level_context = _mbt;
+    if(_mbt) {
+        struct emb_tcp_mbap_t* mbap = (struct emb_tcp_mbap_t*)_mbt->tx_buf;
+        // Set first transaction_id to zero.
+        mbap->transact_id = SWAP_BYTES(0);
+        _mbt->proto.send_packet = modbus_tcp_send_packet;
+        _mbt->proto.low_level_context = _mbt;
+    }
 }
 
 void emb_tcp_port_event(struct emb_tcp_t* _mbt,
