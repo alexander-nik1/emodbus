@@ -4,7 +4,7 @@
 
 #include <emodbus/protocols/rtu.h>
 #include <emodbus/base/modbus_pdu.h>
-#include <emodbus/implementations/posix/tcp-client.h>
+#include "tcp-client.h"
 
 #include <event2/event.h>
 #include <vector>

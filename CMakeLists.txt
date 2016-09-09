@@ -3,29 +3,29 @@ project(emodbus)
 
 cmake_minimum_required(VERSION 2.8)
 
+set( PACKAGE_ARCH i386 )
+#set( CMAKE_C_COMPILER gcc )
+#set( CMAKE_CXX_COMPILER g++ )
+
 set( EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin )
 set( LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib )
 
-#aux_source_directory(include HEADERS_SRC)
-
-include_directories(include)
+include_directories(emodbus/include)
+include_directories(cpp-wrap/include)
 
 add_definitions(-DEMODBUS_PACKETS_DUMPING=1)
 
 set(HEADERS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-add_subdirectory(base)
-add_subdirectory(client)
-add_subdirectory(server)
-add_subdirectory(protocols)
+add_subdirectory(emodbus)
 
-add_subdirectory(test)
-
-add_subdirectory(cpp)
+add_subdirectory(cpp-wrap)
 
 add_subdirectory(implementations)
 
-FILE(GLOB_RECURSE LibFiles "include/*.hpp" "include/*.h" README TODO)
+add_subdirectory(tests)
+
+FILE(GLOB_RECURSE LibFiles "*.hpp" "*.h" README TODO)
 add_custom_target(headers SOURCES ${LibFiles})
 
 # ==========================================================================================
@@ -63,7 +63,7 @@ set(CPACK_COMPONENTS_ALL "${CPACK_BASE_COMPONENTS};${CPACK_SERVER_COMPONENTS};${
 
 # component dev
 # set(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS "emodbus-client-full, emodbus-server-full")
-INSTALL(DIRECTORY include DESTINATION /usr/ COMPONENT dev)
+INSTALL(DIRECTORY emodbus/include DESTINATION /usr/ COMPONENT dev)
 
 # component base
 # set(CPACK_DEBIAN_BASE_PACKAGE_DEPENDS "")
@@ -177,12 +177,12 @@ set(CPACK_PACKAGE_VERSION_MAJOR "${MAJOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_MINOR "${MINOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_PATCH "${PATCH_VERSION}")
 
-set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "i386")
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "${PACKAGE_ARCH}")
 #set(CPACK_DEBIAN_PACKAGE_DEPENDS "qwerty")	# common depends
 set(CPACK_PACKAGE_VENDOR "Alexander Kovylin")
 set(CPACK_PACKAGE_CONTACT "Alexander Kovylin alex.northfield@gmail.com")
 
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY " Extended Modbus library")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY " Extendable Modbus library")
 set(CPACK_PACKAGE_DESCRIPTION " Library gives full support of Modbus protocol.")
 
 set(PROJECT_VERSION "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}")
@@ -190,4 +190,3 @@ set(PROJECT_VERSION "${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}")
 set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}_${PROJECT_VERSION}_${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}")
 
 include(CPack)
-

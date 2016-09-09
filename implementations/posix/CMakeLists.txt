@@ -1,4 +1,6 @@
 
+include_directories(../include)
+
 add_library(tcp-client STATIC tcp-client.c)
 
 add_library(tcp-server STATIC tcp-server.c)
@@ -19,8 +21,8 @@ target_link_libraries(emodbus-tcp-client-rtu emodbus-rtu event_core tcp-client)
 
 add_library(emodbus-impl-posix SHARED
     mb-rtu-via-serial.c
-    mb-rtu-via-tcp-client.c
-    mb-rtu-via-tcp-server.c
+#    mb-rtu-via-tcp-client.c
+#    mb-rtu-via-tcp-server.c
     mb-tcp-via-tcp-client.c
     mb-tcp-via-tcp-server.c
 )

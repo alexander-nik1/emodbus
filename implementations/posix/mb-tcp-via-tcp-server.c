@@ -1,6 +1,6 @@
 
-#include <emodbus/implementations/posix/mb-tcp-via-tcp-server.h>
-#include <emodbus/implementations/posix/tcp-server.h>
+#include <emodbus/impl/posix/mb-tcp-via-tcp-server.h>
+#include <emodbus/impl/posix/tcp-server.h>
 #include <emodbus/base/add/container_of.h>
 #include <emodbus/protocols/tcp.h>
 #include <emodbus/base/modbus_pdu.h>

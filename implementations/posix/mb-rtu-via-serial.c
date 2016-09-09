@@ -1,6 +1,6 @@
 
-#include <emodbus/implementations/posix/mb-rtu-via-serial.h>
-#include <emodbus/implementations/posix/serial-port.h>
+#include <emodbus/impl/posix/mb-rtu-via-serial.h>
+#include <emodbus/impl/posix/serial-port.h>
 #include <emodbus/protocols/rtu.h>
 #include <emodbus/base/add/container_of.h>
 

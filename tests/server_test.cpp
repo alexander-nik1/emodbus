@@ -8,6 +8,8 @@
 #include <string.h>
 #include <bitset>
 
+#include <stdlib.h>
+
 #include <emodbus/emodbus.hpp>
 #include <emodbus/base/common.h>
 #include <emodbus/base/modbus_errno.h>
@@ -16,10 +18,10 @@
 #include <emodbus/server/holdings.h>
 #include <emodbus/server/file.h>
 
-#include <emodbus/implementations/posix/serial-rtu.hpp>
-#include <emodbus/implementations/posix/tcp-client-rtu.hpp>
-#include <emodbus/implementations/posix/mb-tcp-via-tcp-client.h>
-#include <emodbus/implementations/posix/mb-tcp-via-tcp-server.h>
+#include <emodbus/impl/posix/serial-rtu.hpp>
+#include <emodbus/impl/posix/tcp-client-rtu.hpp>
+#include <emodbus/impl/posix/mb-tcp-via-tcp-client.h>
+#include <emodbus/impl/posix/mb-tcp-via-tcp-server.h>
 
 #include <event2/event.h>
 

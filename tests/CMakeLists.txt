@@ -13,12 +13,14 @@ SET(SRV_TEST_SRC
     dumping_helper.cpp
 )
 
-SET(CXXSTANDARD "-std=c++11")
+#SET(CXXSTANDARD "-std=c++11")
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXSTANDARD}")
 
 #add_subdirectory(posix_serial_rtu)
 #add_subdirectory(rtu)
+
+include_directories(../implementations/include)
 
 add_executable(sync_client_test ${SYNC_CLI_TEST_SRC})
 

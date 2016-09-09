@@ -334,7 +334,7 @@ public:
 
         uint16_t file_number;
         uint16_t record_number;
-        const regs_t regs;
+        regs_t regs;
     };
 
     typedef vector<subreq_t> req_t;

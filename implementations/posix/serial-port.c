@@ -1,5 +1,5 @@
 
-#include <emodbus/implementations/posix/serial-port.h>
+#include <emodbus/impl/posix/serial-port.h>
 #include <emodbus/base/add/container_of.h>
 #include <emodbus/base/modbus_pdu.h>
 #include <string.h>

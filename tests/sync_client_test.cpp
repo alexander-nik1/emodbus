@@ -23,9 +23,9 @@
 #include <emodbus/client/write_file_record.h>
 #include <emodbus/client/read_fifo.h>
 
-#include <emodbus/implementations/posix/serial-rtu.hpp>
-#include <emodbus/implementations/posix/tcp-client-rtu.hpp>
-#include <emodbus/implementations/posix/mb-tcp-via-tcp-client.h>
+#include <emodbus/impl/posix/serial-rtu.hpp>
+#include <emodbus/impl/posix/tcp-client-rtu.hpp>
+#include <emodbus/impl/posix/mb-tcp-via-tcp-client.h>
 
 #include <pthread.h>
 
