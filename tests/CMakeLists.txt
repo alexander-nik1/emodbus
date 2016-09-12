@@ -29,7 +29,7 @@ add_executable(srv_test ${SRV_TEST_SRC})
 target_link_libraries(srv_test
     emodbus-base
     emodbus-server-full
-    emodbus-full-cpp
+    emodbus-cpp
     pthread
     emodbus-serial-rtu
     emodbus-tcp-client-rtu
@@ -40,7 +40,7 @@ target_link_libraries(srv_test
 target_link_libraries(sync_client_test
     emodbus-base
     emodbus-client-full
-    emodbus-full-cpp
+    emodbus-cpp
     pthread
     emodbus-serial-rtu
     emodbus-impl-posix

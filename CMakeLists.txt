@@ -62,7 +62,7 @@ set(CPACK_PROTO_FULL_COMPONENTS "proto-full;proto-static-full")
 
 set(CPACK_PROTO_IMPL_COMPONENTS "posix-rtu")
 
-set(CPACK_ADD_COMPONENTS "full-cpp")
+set(CPACK_ADD_COMPONENTS "cpp")
 
 set(CPACK_PROTOCOL_COMPONENTS "${CPACK_PROTO_RTU_COMPONENTS};${CPACK_PROTO_FULL_COMPONENTS};${CPACK_PROTO_IMPL_COMPONENTS}")
 
@@ -71,6 +71,7 @@ set(CPACK_COMPONENTS_ALL "${CPACK_BASE_COMPONENTS};${CPACK_SERVER_COMPONENTS};${
 # component dev
 # set(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS "emodbus-client-full, emodbus-server-full")
 INSTALL(DIRECTORY emodbus/include DESTINATION /usr/ COMPONENT dev)
+INSTALL(DIRECTORY cpp-wrap/include DESTINATION /usr/ COMPONENT dev)
 
 # component base
 # set(CPACK_DEBIAN_BASE_PACKAGE_DEPENDS "")
@@ -172,8 +173,8 @@ INSTALL(FILES lib/libemodbus-rtu.so DESTINATION /usr/lib/ COMPONENT proto-full)
 # set(CPACK_DEBIAN_PROTO-STATIC-FULL_PACKAGE_DEPENDS "emodbus-base-static")
 INSTALL(FILES lib/libemodbus-rtu-static.a DESTINATION /usr/lib/ COMPONENT proto-static-full)
 
-# component full-cpp
-INSTALL(FILES lib/libemodbus-full-cpp.so DESTINATION /usr/lib/ COMPONENT full-cpp)
+# component cpp
+INSTALL(FILES lib/libemodbus-cpp.so DESTINATION /usr/lib/ COMPONENT cpp)
 
 set(MAJOR_VERSION "0")
 set(MINOR_VERSION "1")
