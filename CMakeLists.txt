@@ -64,14 +64,17 @@ set(CPACK_PROTO_IMPL_COMPONENTS "posix-rtu")
 
 set(CPACK_ADD_COMPONENTS "cpp")
 
+set(CPACK_IMPL_COMPONENTS "impl-posix")
+
 set(CPACK_PROTOCOL_COMPONENTS "${CPACK_PROTO_RTU_COMPONENTS};${CPACK_PROTO_FULL_COMPONENTS};${CPACK_PROTO_IMPL_COMPONENTS}")
 
-set(CPACK_COMPONENTS_ALL "${CPACK_BASE_COMPONENTS};${CPACK_SERVER_COMPONENTS};${CPACK_CLIENT_COMPONENTS};${CPACK_PROTOCOL_COMPONENTS};${CPACK_ADD_COMPONENTS}")
+set(CPACK_COMPONENTS_ALL "${CPACK_BASE_COMPONENTS};${CPACK_SERVER_COMPONENTS};${CPACK_CLIENT_COMPONENTS};${CPACK_PROTOCOL_COMPONENTS};${CPACK_ADD_COMPONENTS};${CPACK_IMPL_COMPONENTS}")
 
 # component dev
 # set(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS "emodbus-client-full, emodbus-server-full")
 INSTALL(DIRECTORY emodbus/include DESTINATION /usr/ COMPONENT dev)
 INSTALL(DIRECTORY cpp-wrap/include DESTINATION /usr/ COMPONENT dev)
+INSTALL(DIRECTORY implementations/include DESTINATION /usr/ COMPONENT dev)
 
 # component base
 # set(CPACK_DEBIAN_BASE_PACKAGE_DEPENDS "")
@@ -132,7 +135,7 @@ INSTALL(FILES
 		lib/libemodbus-client-write-multi-reg.so
 		lib/libemodbus-client-write-single-reg.so
 		DESTINATION /usr/lib/ 
-		COMPONENT client-libs)
+                COMPONENT client-libs)
 
 # component client-libs-static
 # set(CPACK_DEBIAN_CLIENT-LIBS-STATIC_PACKAGE_DEPENDS "emodbus-base-static")
@@ -175,6 +178,9 @@ INSTALL(FILES lib/libemodbus-rtu-static.a DESTINATION /usr/lib/ COMPONENT proto-
 
 # component cpp
 INSTALL(FILES lib/libemodbus-cpp.so DESTINATION /usr/lib/ COMPONENT cpp)
+
+# component impl-posix
+INSTALL(FILES lib/libemodbus-impl-posix.so DESTINATION /usr/lib/ COMPONENT impl-posix)
 
 set(MAJOR_VERSION "0")
 set(MINOR_VERSION "1")
