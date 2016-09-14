@@ -1,4 +1,9 @@
 
+Suppose: we have a server, that works via modbus-tcp transport.
+And each new client need to pass an authentication. In this case, user take care of saving a client-id, and authentication info.
+What user need to do, for know about which of clients make a current request.
+Can we add a possibility to get client-ID from emb_server_t ?
+
 A server must return a MBE_SLAVE_BUSY(0x06) error, when it busy by another request.
 A client, when got a MBE_SLAVE_BUSY error must perfom one from two deals:
 1) Send this error to the high level.
@@ -8,7 +13,7 @@ All this behaviour must be set by some options, that client should get from high
 
 Rename a protocol* level names to the transport* names.
 
-Remake a Protocol implementations to clear C instead C++.
+Remake an implementations to clear C instead C++.
 
 License this library. Read about here: http://www.gnu.org/licenses/gpl-howto.ru.html.
 This library need a LGPL v2 license.
