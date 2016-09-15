@@ -88,3 +88,19 @@ emb_tcp_via_tcp_server_get_proto(struct emb_tcp_via_tcp_server_t* _ctx) {
     }
     return NULL;
 }
+
+void* emb_tcp_via_tcp_server_get_curr_client_id(
+        struct emb_tcp_via_tcp_server_t* _ctx) {
+    if(_ctx) {
+        return _ctx->modbus_tcp.tcp_client_id;
+    }
+    return NULL;
+}
+
+struct tcp_server_t* emb_tcp_via_tcp_server_get_srv(
+        struct emb_tcp_via_tcp_server_t* _ctx) {
+    if(_ctx) {
+        return _ctx->tcp_server;
+    }
+    return NULL;
+}
