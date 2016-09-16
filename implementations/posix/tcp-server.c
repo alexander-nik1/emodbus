@@ -22,8 +22,10 @@ struct tcp_server_t {
     struct event_base* base;
     struct sockaddr_in sin;
     struct evconnlistener *listener;
-    tcp_cient_notifier_t event_notifier;
+    tcp_server_notifier_t event_notifier;
     void* user_data;
+    int n_clients_limit;
+    int clients_counter;
 };
 
 //#define tcp_server_dbg(...)
@@ -32,27 +34,30 @@ struct tcp_server_t {
 #define tcp_server_dbg(...)     fprintf(stdout, __VA_ARGS__); fflush(stdout);
 #define tcp_server_err(...)     fprintf(stderr, __VA_ARGS__); fflush(stderr);
 
-static void echo_read_cb(struct bufferevent *_bev, void *_ctx)
+static void read_callback(struct bufferevent *_bev, void *_ctx)
 {
     struct tcp_server_t* ctx = (struct tcp_server_t*)_ctx;
     if(ctx->event_notifier)
         ctx->event_notifier(ctx, _bev, tcp_srv_data_received);
 }
 
-static void echo_write_cb(struct bufferevent *_bev, void *_ctx)
+static void write_callback(struct bufferevent *_bev, void *_ctx)
 {
     struct tcp_server_t* ctx = (struct tcp_server_t*)_ctx;
     if(ctx->event_notifier)
         ctx->event_notifier(ctx, _bev, tcp_srv_data_received);
 }
 
-static void echo_event_cb(struct bufferevent *bev, short events, void *ctx)
+static void event_callback(struct bufferevent *bev, short events, void *_ctx)
 {
+    struct tcp_server_t* ctx = (struct tcp_server_t*)_ctx;
+
     if (events & BEV_EVENT_ERROR)
         perror("Error from bufferevent");
     if (events & (BEV_EVENT_EOF | BEV_EVENT_ERROR)) {
         bufferevent_free(bev);
-        printf("Disconnect\n"); fflush(stdout);
+        --ctx->clients_counter;
+        printf("Disconnect, number of clients = %d\n", ctx->clients_counter); fflush(stdout);
     }
 }
 
@@ -64,12 +69,27 @@ static void accept_conn_cb(struct evconnlistener *listener,
                            void *_ctx)
 {
     struct tcp_server_t* ctx = (struct tcp_server_t*)_ctx;
+    struct bufferevent *bev;
+
+    ++ctx->clients_counter;
+
+    if(ctx->n_clients_limit > 0) {
+        if(ctx->clients_counter > ctx->n_clients_limit) {
+            printf("The clients number is exceed a limit number of clients (%d), closing connection\n",
+                   ctx->n_clients_limit);
+            fflush(stdout);
+            close(fd);
+            --ctx->clients_counter;
+            return;
+        }
+    }
+
     /* We got a new connection! Set up a bufferevent for it. */
-    struct bufferevent *bev = bufferevent_socket_new(ctx->base, fd, BEV_OPT_CLOSE_ON_FREE);
+    bev = bufferevent_socket_new(ctx->base, fd, BEV_OPT_CLOSE_ON_FREE);
 
-    printf("Connect\n"); fflush(stdout);
+    printf("Connect, number of clients = %d\n", ctx->clients_counter); fflush(stdout);
 
-    bufferevent_setcb(bev, echo_read_cb, echo_write_cb, echo_event_cb, _ctx);
+    bufferevent_setcb(bev, read_callback, write_callback, event_callback, _ctx);
 
     bufferevent_enable(bev, EV_READ|EV_WRITE);
 }
@@ -82,7 +102,7 @@ static void accept_error_cb(struct evconnlistener *listener, void *ctx)
 }
 
 struct tcp_server_t* tcp_server_new(struct event_base* _base,
-                                    tcp_cient_notifier_t _event_notifier,
+                                    tcp_server_notifier_t _event_notifier,
                                     int _port) {
 
     struct tcp_server_t* res = (struct tcp_server_t*)malloc(sizeof(struct tcp_server_t));
@@ -95,6 +115,9 @@ struct tcp_server_t* tcp_server_new(struct event_base* _base,
         res->sin.sin_family = AF_INET;
         res->sin.sin_addr.s_addr = htonl(0);
         res->sin.sin_port = htons(_port);
+
+        res->clients_counter = 0;
+        res->n_clients_limit = -1;
 
         res->listener = evconnlistener_new_bind(res->base, accept_conn_cb, res,
               LEV_OPT_CLOSE_ON_FREE|LEV_OPT_REUSEABLE, -1,
@@ -149,3 +172,14 @@ void* tcp_server_get_user_data(struct tcp_server_t* _ctx) {
     return _ctx->user_data;
 }
 
+void tcp_server_set_clients_limit(struct tcp_server_t* _ctx,
+                                  int _clients_limit) {
+    if(_ctx)
+        _ctx->n_clients_limit = _clients_limit;
+}
+
+int tcp_server_clients_limit(const struct tcp_server_t* _ctx) {
+    if(_ctx)
+        return _ctx->n_clients_limit;
+    return -EINVAL;
+}

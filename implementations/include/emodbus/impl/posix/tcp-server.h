@@ -15,12 +15,12 @@ enum tcp_server_events_t {
 
 struct tcp_server_t;
 
-typedef void (*tcp_cient_notifier_t)(struct tcp_server_t* _ctx,
+typedef void (*tcp_server_notifier_t)(struct tcp_server_t* _ctx,
                                      void* _client_id,
                                      enum tcp_server_events_t _event);
 
 struct tcp_server_t* tcp_server_new(struct event_base* _base,
-                                    tcp_cient_notifier_t _event_notifier,
+                                    tcp_server_notifier_t _event_notifier,
                                     int _port);
 
 void tcp_server_free(struct tcp_server_t* _ctx);
@@ -38,6 +38,13 @@ int tcp_server_write(struct tcp_server_t* _ctx,
 void tcp_server_set_user_data(struct tcp_server_t* _ctx, void* _user_data);
 
 void* tcp_server_get_user_data(struct tcp_server_t* _ctx);
+
+enum { tcp_server_unlimited_clients = -1 };
+
+void tcp_server_set_clients_limit(struct tcp_server_t* _ctx,
+                                  int _clients_limit);
+
+int tcp_server_clients_limit(const struct tcp_server_t* _ctx);
 
 #ifdef __cplusplus
 };
