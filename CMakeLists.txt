@@ -38,6 +38,11 @@ add_custom_target(headers SOURCES ${LibFiles})
 # ==========================================================================================
 # DEB packages generation
 
+if(NOT DEFINED PREFIX)
+set( PREFIX "" )
+message(WARNING "A 'PREFIX' variable was NOT set, defaulting it to '${PREFIX}'.")
+endif()
+
 EXECUTE_PROCESS(COMMAND "date" "+%Y.%m.%d.%H.%M" OUTPUT_VARIABLE CURR_DATETIME)
 string(REGEX MATCH "(....).(..).(..).(..).(..)" CURR_DATETIME ${CURR_DATETIME}) # remove newline
 message(STATUS "Compilation date = ${CURR_DATETIME}")
@@ -72,17 +77,17 @@ set(CPACK_COMPONENTS_ALL "${CPACK_BASE_COMPONENTS};${CPACK_SERVER_COMPONENTS};${
 
 # component dev
 # set(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS "emodbus-client-full, emodbus-server-full")
-INSTALL(DIRECTORY emodbus/include DESTINATION /usr/ COMPONENT dev)
-INSTALL(DIRECTORY cpp-wrap/include DESTINATION /usr/ COMPONENT dev)
-INSTALL(DIRECTORY implementations/include DESTINATION /usr/ COMPONENT dev)
+INSTALL(DIRECTORY emodbus/include DESTINATION ${PREFIX}/ COMPONENT dev)
+INSTALL(DIRECTORY cpp-wrap/include DESTINATION ${PREFIX}/ COMPONENT dev)
+INSTALL(DIRECTORY implementations/include DESTINATION ${PREFIX}/ COMPONENT dev)
 
 # component base
 # set(CPACK_DEBIAN_BASE_PACKAGE_DEPENDS "")
-INSTALL(FILES lib/libemodbus-base.so   DESTINATION /usr/lib/ COMPONENT base)
+INSTALL(FILES lib/libemodbus-base.so   DESTINATION ${PREFIX}/lib/ COMPONENT base)
 
 # component base-static
 # set(CPACK_DEBIAN_BASE-STATIC_PACKAGE_DEPENDS "")
-INSTALL(FILES lib/libemodbus-base-static.a   DESTINATION /usr/lib/ COMPONENT base-static)
+INSTALL(FILES lib/libemodbus-base-static.a   DESTINATION ${PREFIX}/lib/ COMPONENT base-static)
 
 # component srerver-libs
 # set(CPACK_DEBIAN_SERVER-LIBS_PACKAGE_DEPENDS "emodbus-base")
@@ -97,7 +102,7 @@ INSTALL(FILES
 		lib/libemodbus-server-write-file.so
 		lib/libemodbus-server-write-reg.so
 		lib/libemodbus-server-write-regs.so
-		DESTINATION /usr/lib/ 
+		DESTINATION ${PREFIX}/lib/
 		COMPONENT server-libs)
 
 # component srerver-libs-static
@@ -113,12 +118,12 @@ INSTALL(FILES
 		lib/libemodbus-server-write-file-static.a
 		lib/libemodbus-server-write-reg-static.a
 		lib/libemodbus-server-write-regs-static.a
-		DESTINATION /usr/lib/ 
+		DESTINATION ${PREFIX}/lib/
 		COMPONENT server-libs-static)
 
 # component srerver-full
 # set(CPACK_DEBIAN_SERVER-FULL_PACKAGE_DEPENDS "emodbus-base")
-INSTALL(FILES lib/libemodbus-server-full.so   DESTINATION /usr/lib/ COMPONENT server-full)
+INSTALL(FILES lib/libemodbus-server-full.so   DESTINATION ${PREFIX}/lib/ COMPONENT server-full)
 
 # component client-libs
 # set(CPACK_DEBIAN_CLIENT-LIBS_PACKAGE_DEPENDS "emodbus-base")
@@ -134,7 +139,7 @@ INSTALL(FILES
 		lib/libemodbus-client-write-file-record.so
 		lib/libemodbus-client-write-multi-reg.so
 		lib/libemodbus-client-write-single-reg.so
-		DESTINATION /usr/lib/ 
+		DESTINATION ${PREFIX}/lib/
                 COMPONENT client-libs)
 
 # component client-libs-static
@@ -151,36 +156,42 @@ INSTALL(FILES
 		lib/libemodbus-client-write-file-record-static.a
 		lib/libemodbus-client-write-multi-reg-static.a
 		lib/libemodbus-client-write-single-reg-static.a
-		DESTINATION /usr/lib/ 
+		DESTINATION ${PREFIX}/lib/
 		COMPONENT client-libs-static)
 
 # component client-full
 # set(CPACK_DEBIAN_CLIENT-FULL_PACKAGE_DEPENDS "emodbus-base")
-INSTALL(FILES lib/libemodbus-client-full.so DESTINATION /usr/lib/ COMPONENT client-full)
+INSTALL(FILES lib/libemodbus-client-full.so DESTINATION ${PREFIX}/lib/ COMPONENT client-full)
 
 # component posix-rtu
 INSTALL(FILES
         lib/libemodbus-serial-rtu.so
         lib/libemodbus-tcp-client-rtu.so
-        DESTINATION /usr/lib/ COMPONENT posix-rtu)
+        DESTINATION ${PREFIX}/lib/ COMPONENT posix-rtu)
 
 # component proto-rtu
 # set(CPACK_DEBIAN_PROTO-RTU_PACKAGE_DEPENDS "emodbus-base")
-INSTALL(FILES lib/libemodbus-rtu.so DESTINATION /usr/lib/ COMPONENT proto-rtu)
+INSTALL(FILES lib/libemodbus-rtu.so DESTINATION ${PREFIX}/lib/ COMPONENT proto-rtu)
 
 # component proto-full
 # set(CPACK_DEBIAN_PROTO-FULL_PACKAGE_DEPENDS "emodbus-base")
-INSTALL(FILES lib/libemodbus-rtu.so DESTINATION /usr/lib/ COMPONENT proto-full)
+INSTALL(FILES
+        lib/libemodbus-rtu.so
+        lib/libemodbus-tcp.so
+        DESTINATION ${PREFIX}/lib/ COMPONENT proto-full)
 
 # component proto-static-full
 # set(CPACK_DEBIAN_PROTO-STATIC-FULL_PACKAGE_DEPENDS "emodbus-base-static")
-INSTALL(FILES lib/libemodbus-rtu-static.a DESTINATION /usr/lib/ COMPONENT proto-static-full)
+INSTALL(FILES
+        lib/libemodbus-rtu-static.a
+        lib/libemodbus-tcp-static.a
+        DESTINATION ${PREFIX}/lib/ COMPONENT proto-static-full)
 
 # component cpp
-INSTALL(FILES lib/libemodbus-cpp.so DESTINATION /usr/lib/ COMPONENT cpp)
+INSTALL(FILES lib/libemodbus-cpp.so DESTINATION ${PREFIX}/lib/ COMPONENT cpp)
 
 # component impl-posix
-INSTALL(FILES lib/libemodbus-impl-posix.so DESTINATION /usr/lib/ COMPONENT impl-posix)
+INSTALL(FILES lib/libemodbus-impl-posix.so DESTINATION ${PREFIX}/lib/ COMPONENT impl-posix)
 
 set(MAJOR_VERSION "0")
 set(MINOR_VERSION "1")
