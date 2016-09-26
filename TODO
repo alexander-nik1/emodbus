@@ -11,8 +11,6 @@ A client, when got a MBE_SLAVE_BUSY error must perfom one from two deals:
 And if all retries got the same error, then send it to the high level.
 All this behaviour must be set by some options, that client should get from high level.
 
-Rename a protocol* level names to the transport* names.
-
 Remake an implementations to clear C instead C++.
 
 License this library. Read about here: http://www.gnu.org/licenses/gpl-howto.ru.html.
