@@ -107,7 +107,7 @@ void emb_rtu_initialize(struct emb_rtu_t* _mbt) {
 
     // Setup transport
     _mbt->transport.send_packet = modbus_rtu_send_packet;
-    _mbt->transport.low_level_context = _mbt;
+    _mbt->transport.transport_context = _mbt;
 
     _mbt->tx_pdu = NULL;
 }

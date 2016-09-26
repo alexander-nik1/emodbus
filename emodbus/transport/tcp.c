@@ -128,7 +128,7 @@ void emb_tcp_initialize(struct emb_tcp_t* _mbt) {
         // Set first transaction_id to zero.
         mbap->transact_id = SWAP_BYTES(0);
         _mbt->transport.send_packet = modbus_tcp_send_packet;
-        _mbt->transport.low_level_context = _mbt;
+        _mbt->transport.transport_context = _mbt;
     }
 }
 

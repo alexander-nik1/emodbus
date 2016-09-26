@@ -63,7 +63,7 @@ struct emb_transport_t {
     /**
      * @brief This is a pointer to low level context.
      */
-    void* low_level_context;
+    void* transport_context;
 
     /**
      * @brief Send packet to device
@@ -126,7 +126,7 @@ struct emb_transport_t {
         [high_level_context, recv_packet, error] variables
         are filled by high level.
 
-        [low_level_context, send_packet, tx_pdu] variables
+        [transport_context, send_packet, tx_pdu] variables
         are filled by low level.
 */
 };
@@ -145,7 +145,7 @@ struct emb_transport_t {
  */
 
 #define emb_transport_send_packet(_transport_, _slave_addr_, _pkt_) \
-    (_transport_)->send_packet((_transport_)->low_level_context, _slave_addr_, _pkt_)
+    (_transport_)->send_packet((_transport_)->transport_context, _slave_addr_, _pkt_)
 
 /**
  * @brief Receive one PDU
