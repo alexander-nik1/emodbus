@@ -10,7 +10,7 @@
 
 #include <emodbus/client/client.h>
 #include <emodbus/base/common.h>
-#include <emodbus/protocols/rtu.h>
+#include <emodbus/transport/rtu.h>
 #include <emodbus/base/add/container_of.h>
 #include <emodbus/base/modbus_errno.h>
 
@@ -155,7 +155,7 @@ void* thr_proc(void* p) {
     emb_debug_helper.enable_dumping();
     //emb_tcp_via_tcp_client_get_proto(rtu)->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
 
-    client->set_proto(emb_tcp_via_tcp_client_get_proto(rtu));
+    client->set_transport(emb_tcp_via_tcp_client_get_transport(rtu));
 
     client->init_timers(base);
 

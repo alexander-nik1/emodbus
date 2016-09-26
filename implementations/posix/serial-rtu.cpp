@@ -168,8 +168,8 @@ void serial_rtu_t::close() {
     }
 }
 
-struct emb_protocol_t* serial_rtu_t::get_proto() {
-    return &modbus_rtu.proto;
+struct emb_transport_t* serial_rtu_t::get_transport() {
+    return &modbus_rtu.transport;
 }
 
 void serial_rtu_t::rtu_init() {

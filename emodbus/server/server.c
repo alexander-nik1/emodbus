@@ -56,7 +56,7 @@ static void emb_super_server_on_receive_req(void* _user_data,
 
     } while(0);
 
-    emb_proto_send_packet(ssrv->proto, _slave_addr, MB_CONST_PDU(ssrv->tx_pdu));
+    emb_transport_send_packet(ssrv->transport, _slave_addr, MB_CONST_PDU(ssrv->tx_pdu));
     DO_EVENT(ssrv, embsev_resp_sent, 0);
 }
 
@@ -66,14 +66,14 @@ static void emb_super_server_on_error(void* _user_data, int _errno) {
 
 void emb_super_server_init(struct emb_super_server_t* _ssrv) { }
 
-void emb_super_server_set_proto(struct emb_super_server_t* _ssrv,
-                                struct emb_protocol_t* _proto) {
-    if(_proto) {
-        _ssrv->proto = _proto;
-        _proto->high_level_context = _ssrv;
-        _proto->recv_packet = emb_super_server_on_receive_req;
-        _proto->error = emb_super_server_on_error;
-        _proto->rx_pdu = _ssrv->rx_pdu;
-        _proto->flags |= EMB_PROTO_FLAG_IS_SERVER;
+void emb_super_server_set_transport(struct emb_super_server_t* _ssrv,
+                                    struct emb_transport_t *_transport) {
+    if(_transport) {
+        _ssrv->transport = _transport;
+        _transport->high_level_context = _ssrv;
+        _transport->recv_packet = emb_super_server_on_receive_req;
+        _transport->error = emb_super_server_on_error;
+        _transport->rx_pdu = _ssrv->rx_pdu;
+        _transport->flags |= EMB_TRANSPORT_FLAG_IS_SERVER;
     }
 }

@@ -82,8 +82,8 @@ void tcp_client_rtu_t::close() {
     opened_flag = false;
 }
 
-struct emb_protocol_t* tcp_client_rtu_t::get_proto() {
-    return &modbus_rtu.proto;
+struct emb_transport_t* tcp_client_rtu_t::get_transport() {
+    return &modbus_rtu.transport;
 }
 
 void tcp_client_rtu_t::rtu_init() {

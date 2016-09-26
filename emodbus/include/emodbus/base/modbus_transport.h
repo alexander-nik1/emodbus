@@ -1,6 +1,6 @@
 
-#ifndef MODBUS_MASTER_PROTOCOL_H
-#define MODBUS_MASTER_PROTOCOL_H
+#ifndef EMODBUS_TRANSPORT_H
+#define EMODBUS_TRANSPORT_H
 
 #include <emodbus/base/modbus_pdu.h>
 
@@ -10,9 +10,9 @@ extern "C" {
 
 /*!
  * \file
- * \brief The protocol abstractions.
+ * \brief The transport abstractions.
  *
- * This file contains an abstractions of modbus protocols
+ * This file contains an abstractions of modbus transport
  * like: RTU, ASCII, TCP and so on.
  *
  */
@@ -26,7 +26,7 @@ extern "C" {
       |    |
    ___V____|___
   |            |
-  |   proto    | <-- this level
+  | transport  | <-- this level
   |____________|
       |    ^
       |    |
@@ -41,19 +41,19 @@ extern "C" {
 #if EMODBUS_PACKETS_DUMPING
 
 /// Flag, that enables a dumping all packets into a dbg_print_packet function.
-#define EMB_PROTO_FLAG_DUMD_PAKETS (1 << 0)
+#define EMB_TRANSPORT_FLAG_DUMD_PAKETS (1 << 0)
 
 /// Flag, that tells from high level to low level, about this is a modbus-server.
-#define EMB_PROTO_FLAG_IS_SERVER   (1 << 1)
+#define EMB_TRANSPORT_FLAG_IS_SERVER   (1 << 1)
 
 #endif // EMODBUS_PACKETS_DUMPING
 
 /**
- * @brief Interface of modbus protocol
+ * @brief Interface of modbus transport
  *
  * This interface connects high and low level of modbus.
  */
-struct emb_protocol_t {
+struct emb_transport_t {
 
     /**
      * @brief This is a pointer to high-level context.
@@ -69,7 +69,7 @@ struct emb_protocol_t {
      * @brief Send packet to device
      *
      * This function calls from high to low level.
-     * This function calls for send a PDU via this protocol.
+     * This function calls for send a PDU via this transport.
      *
      * \param[in] _user_data Low level context.
      * \param[in] _slave_addr Address of modbus device.
@@ -85,7 +85,7 @@ struct emb_protocol_t {
      *
      * This function calls from low to high level.
      * This function calls by low level when, a new PDU has
-     * received via this protocol.
+     * received via this transport.
      *
      * \param[in] _user_data High level context.
      * \param[in] _slave_addr Address of modbus device.
@@ -136,50 +136,50 @@ struct emb_protocol_t {
  *
  * This function calls from high level to low level.
  * This function is simple wrapper of call:
- * _proto->send_packet(...)
+ * _transport_->send_packet(...)
  *
- * \param[in] _proto_ Protocol context.
+ * \param[in] _transport_ Transport context.
  * \param[in] _slave_addr_ Address of modbus device.
  * \param[in] _pkt_ PDU, that will be sent to modbus device.
  * \return Zero on success or error code.
  */
 
-#define emb_proto_send_packet(_proto_, _slave_addr_, _pkt_) \
-    (_proto_)->send_packet((_proto_)->low_level_context, _slave_addr_, _pkt_)
+#define emb_transport_send_packet(_transport_, _slave_addr_, _pkt_) \
+    (_transport_)->send_packet((_transport_)->low_level_context, _slave_addr_, _pkt_)
 
 /**
  * @brief Receive one PDU
  *
  * This function calls from low level to high level.
  * This function is simple wrapper of call:
- * _proto->recv_packet(...)
+ * _transport_->recv_packet(...)
  *
- * \param[in] _proto_ Protocol context.
+ * \param[in] _transport_ Transport context.
  * \param[in] _slave_addr_ Address of modbus device.
  * \param[in] _pkt_ PDU, that was received by low level.
  */
 
-#define emb_proto_recv_packet(_proto_, _slave_addr_, _pkt_) \
-    (_proto_)->recv_packet((_proto_)->high_level_context, _slave_addr_, _pkt_)
+#define emb_transport_recv_packet(_transport_, _slave_addr_, _pkt_) \
+    (_transport_)->recv_packet((_transport_)->high_level_context, _slave_addr_, _pkt_)
 
 /**
  * @brief Send low-level errors to high-level
  *
  * This function calls from low level to high level.
  * This function is simple wrapper of call:
- * _proto->error(...)
+ * _transport_->error(...)
  *
- * \param[in] _proto_ Protocol context.
+ * \param[in] _transport_ Transport context.
  * \param[in] _errno_ Number of error (may be error from system's
  * errno.h or from modbus_errno.h files).
  */
 
-#define emb_proto_error(_proto_, _errno_)   \
-    if((_proto_)->error)   \
-        (_proto_)->error((_proto_)->high_level_context, (_errno_))
+#define emb_transport_error(_transport_, _errno_)   \
+    if((_transport_)->error)   \
+        (_transport_)->error((_transport_)->high_level_context, (_errno_))
 
 #ifdef __cplusplus
 }   // extern "C"
 #endif
 
-#endif // MODBUS_MASTER_PROTOCOL_H
+#endif // EMODBUS_TRANSPORT_H

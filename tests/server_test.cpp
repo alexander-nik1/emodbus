@@ -187,10 +187,10 @@ int main(int argc, char* argv[]) {
         exit(1);
 
     //ssrv.set_proto(tcp/*rtu*/.get_proto());
-    ssrv.set_proto(emb_tcp_via_tcp_server_get_proto(tcp));
+    ssrv.set_transport(emb_tcp_via_tcp_server_get_transport(tcp));
 
     //tcp/*rtu*/.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
-    emb_tcp_via_tcp_server_get_proto(tcp)->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
+    emb_tcp_via_tcp_server_get_transport(tcp)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
 
     emb_debug_helper.enable_dumping();
 

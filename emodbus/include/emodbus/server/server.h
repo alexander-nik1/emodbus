@@ -2,7 +2,7 @@
 #ifndef EMODBUS_SERVER_BASE_H
 #define EMODBUS_SERVER_BASE_H
 
-#include <emodbus/base/modbus_proto.h>
+#include <emodbus/base/modbus_transport.h>
 #include <emodbus/server/coils.h>
 #include <emodbus/server/holdings.h>
 #include <emodbus/server/file.h>
@@ -38,7 +38,7 @@ struct emb_server_t {
 struct emb_super_server_t {
 
     /// Low level context
-    struct emb_protocol_t* proto;
+    struct emb_transport_t* transport;
 
     /// The state of the modbus server
     //enum emb_super_server_state_t state;
@@ -58,8 +58,8 @@ int emb_build_exception_pdu(emb_pdu_t* _result,
                             uint8_t _func,
                             uint8_t _errno);
 
-void emb_super_server_set_proto(struct emb_super_server_t* _ssrv,
-                                struct emb_protocol_t* _proto);
+void emb_super_server_set_transport(struct emb_super_server_t* _ssrv,
+                                    struct emb_transport_t* _transport);
 
 //**********************************************************************
 // Coils

@@ -2,7 +2,7 @@
 #ifndef MODBUS_CLIENT_H
 #define MODBUS_CLIENT_H
 
-#include <emodbus/base/modbus_proto.h>
+#include <emodbus/base/modbus_transport.h>
 #include <emodbus/client/client_base.h>
 #include <stdint.h>
 
@@ -57,7 +57,7 @@ struct emb_client_transaction_t {
 struct emb_client_t {
 
     /// Low level context
-    struct emb_protocol_t* proto;
+    struct emb_transport_t* transport;
 
     /// This variable saves a current-request address
     int curr_addr;
@@ -112,10 +112,10 @@ int emb_client_do_transaction(struct emb_client_t* _cli,
  * This function set's a new low-level context for this client.
  *
  * @param _cli a pointer to client.
- * @param _proto a new protocol.
+ * @param _transport a new transport.
  */
-void emb_client_set_proto(struct emb_client_t* _cli,
-                          struct emb_protocol_t* _proto);
+void emb_client_set_transport(struct emb_client_t* _cli,
+                              struct emb_transport_t* _transport);
 
 #ifdef __cplusplus
 }   // extern "C"

@@ -2,7 +2,7 @@
 #ifndef EMB_TCP_CLIENT_RTU
 #define EMB_TCP_CLIENT_RTU
 
-#include <emodbus/protocols/rtu.h>
+#include <emodbus/transport/rtu.h>
 #include <emodbus/base/modbus_pdu.h>
 #include "tcp-client.h"
 
@@ -21,7 +21,7 @@ public:
 
     void close();
 
-    struct emb_protocol_t* get_proto();
+    struct emb_transport_t* get_transport();
 
 private:
     void rtu_init();

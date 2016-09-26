@@ -61,7 +61,7 @@ static void emb_client_on_receive_pkt(void* _user_data,
     }
     while(0);
 
-    cli->proto->rx_pdu = NULL;
+    cli->transport->rx_pdu = NULL;
 }
 
 static void emb_client_on_error(void* _user_data, int _errno) {
@@ -76,13 +76,13 @@ static void emb_client_on_error(void* _user_data, int _errno) {
 }
 
 void emb_client_init(struct emb_client_t *_cli) {
-    emb_client_set_proto(_cli, _cli->proto);
+    emb_client_set_transport(_cli, _cli->transport);
     _cli->curr_transaction = (struct emb_client_transaction_t*)0;
 }
 
 void emb_client_wait_timeout(struct emb_client_t* _cli) {
     struct emb_client_transaction_t* req = _cli->curr_transaction;
-    _cli->proto->rx_pdu = NULL;
+    _cli->transport->rx_pdu = NULL;
     //        if(_cli->on_error)
     //            _cli->on_error(_cli, _cli->curr_addr, -modbus_resp_timeout);
     if(req) {
@@ -95,23 +95,23 @@ int emb_client_do_transaction(struct emb_client_t* _cli,
                           int _slave_addr,
                           struct emb_client_transaction_t* _transact) {
 
-    if(_cli->proto->rx_pdu)
+    if(_cli->transport->rx_pdu)
         return -EBUSY;
     _cli->curr_transaction = _transact;
     _cli->curr_addr = _slave_addr;
     _cli->curr_transaction = _transact;
-    _cli->proto->rx_pdu = _transact->resp_pdu;
-    emb_proto_send_packet(_cli->proto, _slave_addr, _transact->req_pdu);
+    _cli->transport->rx_pdu = _transact->resp_pdu;
+    emb_transport_send_packet(_cli->transport, _slave_addr, _transact->req_pdu);
     return 0;
 }
 
-void emb_client_set_proto(struct emb_client_t* _cli,
-                          struct emb_protocol_t* _proto) {
-    if(_proto) {
-        _cli->proto = _proto;
-        _proto->high_level_context = _cli;
-        _proto->recv_packet = emb_client_on_receive_pkt;
-        _proto->error = emb_client_on_error;
-        _proto->flags &= (~EMB_PROTO_FLAG_IS_SERVER);
+void emb_client_set_transport(struct emb_client_t* _cli,
+                              struct emb_transport_t *_transport) {
+    if(_transport) {
+        _cli->transport = _transport;
+        _transport->high_level_context = _cli;
+        _transport->recv_packet = emb_client_on_receive_pkt;
+        _transport->error = emb_client_on_error;
+        _transport->flags &= (~EMB_TRANSPORT_FLAG_IS_SERVER);
     }
 }

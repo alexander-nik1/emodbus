@@ -4,13 +4,13 @@
 
 /*!
  * \file
- * \brief TCP Protocol.
+ * \brief TCP Transport.
  *
- * This file contains an TCP protocol decalrations.
+ * This file contains an TCP transport decalrations.
  *
  */
 
-#include <emodbus/base/modbus_proto.h>
+#include <emodbus/base/modbus_transport.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,7 +30,7 @@ struct emb_tcp_t {
     unsigned int tx_pkt_counter;
     unsigned char tx_buf[emb_tcp_tx_buf_size];
 
-    struct emb_protocol_t proto;
+    struct emb_transport_t transport;
 
     /// (modbus-TCP Interface) This function are implemented by physical port.
     /// By using this call, modbus-TCP can read data from physical port.

@@ -372,7 +372,7 @@ public:
                        unsigned int _timeout,
                        transaction_t& _transaction);
 
-    void set_proto(struct emb_protocol_t* _proto);
+    void set_transport(struct emb_transport_t* _transport);
 
     void set_sync(bool _is_sync);
     bool get_sync() const;
@@ -667,7 +667,7 @@ private:
 class super_server_t {
 public:
     super_server_t();
-    void set_proto(struct emb_protocol_t* _proto);
+    void set_transport(struct emb_transport_t* _transport);
 
     bool add_server(server_t& _srv);
 

@@ -593,8 +593,8 @@ int client_t::do_transaction(int _server_addr,
     }
 }
 
-void client_t::set_proto(struct emb_protocol_t* _proto) {
-    emb_client_set_proto(&client, _proto);
+void client_t::set_transport(struct emb_transport_t* _transport) {
+    emb_client_set_transport(&client, _transport);
 }
 
 void client_t::set_sync(bool _is_sync) { is_sync = _is_sync; }
@@ -1117,8 +1117,8 @@ super_server_t::super_server_t() {
     ssrv.tx_pdu = &tx_pdu;
 }
 
-void super_server_t::set_proto(struct emb_protocol_t* _proto) {
-    emb_super_server_set_proto(&ssrv, _proto);
+void super_server_t::set_transport(struct emb_transport_t* _transport) {
+    emb_super_server_set_transport(&ssrv, _transport);
 }
 
 bool super_server_t::add_server(server_t& _srv) {

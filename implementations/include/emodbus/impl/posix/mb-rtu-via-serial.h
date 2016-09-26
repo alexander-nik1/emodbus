@@ -2,7 +2,7 @@
 #ifndef EMODBUS_RTU_VIA_SERIAL_H
 #define EMODBUS_RTU_VIA_SERIAL_H
 
-#include <emodbus/base/modbus_proto.h>
+#include <emodbus/base/modbus_transport.h>
 #include <event2/event.h>
 
 #ifdef __cplusplus
@@ -19,8 +19,8 @@ emb_rtu_via_serial_create(struct event_base *_base,
 
 void emb_rtu_via_serial_destroy(struct emb_rtu_via_serial_t* _ctx);
 
-struct emb_protocol_t*
-emb_rtu_via_serial_get_proto(struct emb_rtu_via_serial_t* _ctx);
+struct emb_transport_t*
+emb_rtu_via_serial_get_transport(struct emb_rtu_via_serial_t* _ctx);
 
 #ifdef __cplusplus
 };

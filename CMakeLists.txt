@@ -61,19 +61,19 @@ set(CPACK_BASE_COMPONENTS "dev;base;base-static")
 set(CPACK_SERVER_COMPONENTS "server-libs;server-libs-static;server-full")
 set(CPACK_CLIENT_COMPONENTS "client-libs;client-libs-static;client-full")
 
-set(CPACK_PROTO_RTU_COMPONENTS "proto-rtu")
+set(CPACK_TRANSPORT_RTU_COMPONENTS "transport-rtu")
 
-set(CPACK_PROTO_FULL_COMPONENTS "proto-full;proto-static-full")
+set(CPACK_TRANSPORT_FULL_COMPONENTS "transport-full;transport-static-full")
 
-set(CPACK_PROTO_IMPL_COMPONENTS "posix-rtu")
+set(CPACK_TRANSPORT_IMPL_COMPONENTS "posix-rtu")
 
 set(CPACK_ADD_COMPONENTS "cpp")
 
 set(CPACK_IMPL_COMPONENTS "impl-posix")
 
-set(CPACK_PROTOCOL_COMPONENTS "${CPACK_PROTO_RTU_COMPONENTS};${CPACK_PROTO_FULL_COMPONENTS};${CPACK_PROTO_IMPL_COMPONENTS}")
+set(CPACK_TRANSPORTCOL_COMPONENTS "${CPACK_TRANSPORT_RTU_COMPONENTS};${CPACK_TRANSPORT_FULL_COMPONENTS};${CPACK_TRANSPORT_IMPL_COMPONENTS}")
 
-set(CPACK_COMPONENTS_ALL "${CPACK_BASE_COMPONENTS};${CPACK_SERVER_COMPONENTS};${CPACK_CLIENT_COMPONENTS};${CPACK_PROTOCOL_COMPONENTS};${CPACK_ADD_COMPONENTS};${CPACK_IMPL_COMPONENTS}")
+set(CPACK_COMPONENTS_ALL "${CPACK_BASE_COMPONENTS};${CPACK_SERVER_COMPONENTS};${CPACK_CLIENT_COMPONENTS};${CPACK_TRANSPORTCOL_COMPONENTS};${CPACK_ADD_COMPONENTS};${CPACK_IMPL_COMPONENTS}")
 
 # component dev
 # set(CPACK_DEBIAN_DEV_PACKAGE_DEPENDS "emodbus-client-full, emodbus-server-full")
@@ -169,23 +169,23 @@ INSTALL(FILES
         lib/libemodbus-tcp-client-rtu.so
         DESTINATION ${PREFIX}/lib/ COMPONENT posix-rtu)
 
-# component proto-rtu
-# set(CPACK_DEBIAN_PROTO-RTU_PACKAGE_DEPENDS "emodbus-base")
-INSTALL(FILES lib/libemodbus-rtu.so DESTINATION ${PREFIX}/lib/ COMPONENT proto-rtu)
+# component transport-rtu
+# set(CPACK_DEBIAN_TRANSPORT-RTU_PACKAGE_DEPENDS "emodbus-base")
+INSTALL(FILES lib/libemodbus-rtu.so DESTINATION ${PREFIX}/lib/ COMPONENT transport-rtu)
 
-# component proto-full
-# set(CPACK_DEBIAN_PROTO-FULL_PACKAGE_DEPENDS "emodbus-base")
+# component transport-full
+# set(CPACK_DEBIAN_TRANSPORT-FULL_PACKAGE_DEPENDS "emodbus-base")
 INSTALL(FILES
         lib/libemodbus-rtu.so
         lib/libemodbus-tcp.so
-        DESTINATION ${PREFIX}/lib/ COMPONENT proto-full)
+        DESTINATION ${PREFIX}/lib/ COMPONENT transport-full)
 
-# component proto-static-full
-# set(CPACK_DEBIAN_PROTO-STATIC-FULL_PACKAGE_DEPENDS "emodbus-base-static")
+# component transport-static-full
+# set(CPACK_DEBIAN_TRANSPORT-STATIC-FULL_PACKAGE_DEPENDS "emodbus-base-static")
 INSTALL(FILES
         lib/libemodbus-rtu-static.a
         lib/libemodbus-tcp-static.a
-        DESTINATION ${PREFIX}/lib/ COMPONENT proto-static-full)
+        DESTINATION ${PREFIX}/lib/ COMPONENT transport-static-full)
 
 # component cpp
 INSTALL(FILES lib/libemodbus-cpp.so DESTINATION ${PREFIX}/lib/ COMPONENT cpp)

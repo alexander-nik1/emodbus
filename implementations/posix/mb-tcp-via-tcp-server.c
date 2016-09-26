@@ -2,7 +2,7 @@
 #include <emodbus/impl/posix/mb-tcp-via-tcp-server.h>
 #include <emodbus/impl/posix/tcp-server.h>
 #include <emodbus/base/add/container_of.h>
-#include <emodbus/protocols/tcp.h>
+#include <emodbus/transport/tcp.h>
 #include <emodbus/base/modbus_pdu.h>
 
 #include <stdlib.h>
@@ -81,10 +81,10 @@ void emb_tcp_via_tcp_server_destroy(struct emb_tcp_via_tcp_server_t* _ctx) {
     }
 }
 
-struct emb_protocol_t*
-emb_tcp_via_tcp_server_get_proto(struct emb_tcp_via_tcp_server_t* _ctx) {
+struct emb_transport_t*
+emb_tcp_via_tcp_server_get_transport(struct emb_tcp_via_tcp_server_t* _ctx) {
     if(_ctx) {
-        return &_ctx->modbus_tcp.proto;
+        return &_ctx->modbus_tcp.transport;
     }
     return NULL;
 }

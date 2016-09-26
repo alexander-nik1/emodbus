@@ -1,6 +1,6 @@
 
-#include <emodbus/protocols/tcp.h>
-#include <emodbus/base/modbus_proto.h>
+#include <emodbus/transport/tcp.h>
+#include <emodbus/base/modbus_transport.h>
 #include <emodbus/base/common.h>
 #include <emodbus/base/byte-word.h>
 #include <emodbus/base/modbus_errno.h>
@@ -32,7 +32,7 @@ static void parse_packet(struct emb_tcp_t* _mbt) {
             return;
 
 #if EMODBUS_PACKETS_DUMPING
-        if(_mbt->proto.flags & EMB_PROTO_FLAG_DUMD_PAKETS)
+        if(_mbt->transport.flags & EMB_TRANSPORT_FLAG_DUMD_PAKETS)
             if(emb_dump_rx_data)
                 emb_dump_rx_data(_mbt->rx_buf, _mbt->rx_pkt_counter);
 #endif // EMODBUS_PACKETS_DUMPING
@@ -40,24 +40,24 @@ static void parse_packet(struct emb_tcp_t* _mbt) {
         do {
             // If we are server's side, then we need to check a transaction id.
             // The transaction id must be the same as in sent packet.
-            if(!(_mbt->proto.flags & EMB_PROTO_FLAG_IS_SERVER)) {
+            if(!(_mbt->transport.flags & EMB_TRANSPORT_FLAG_IS_SERVER)) {
                 struct emb_tcp_mbap_t* tx_mbap = (struct emb_tcp_mbap_t*)_mbt->tx_buf;
                 if(tx_mbap->transact_id != mbap->transact_id) {
-                    emb_proto_error(&_mbt->proto, -modbus_resp_wrong_transaction_id);
+                    emb_transport_error(&_mbt->transport, -modbus_resp_wrong_transaction_id);
                     break;
                 }
             }
-            if(_mbt->proto.rx_pdu) {
-                emb_pdu_t* const rx_pdu = _mbt->proto.rx_pdu;
+            if(_mbt->transport.rx_pdu) {
+                emb_pdu_t* const rx_pdu = _mbt->transport.rx_pdu;
                 const int pkt_data_length = pkt_length - 1;
                 if(rx_pdu->max_size < pkt_data_length) {
-                    emb_proto_error(&_mbt->proto, -modbus_resp_buffer_ovf);
+                    emb_transport_error(&_mbt->transport, -modbus_resp_buffer_ovf);
                     break;
                 }
                 rx_pdu->function = _mbt->rx_buf[emb_tcp_mbap_size];
                 rx_pdu->data_size = pkt_data_length;
                 memcpy(rx_pdu->data, _mbt->rx_buf + (emb_tcp_mbap_size+1), pkt_data_length);
-                emb_proto_recv_packet(&_mbt->proto, mbap->unit_id, MB_CONST_PDU(rx_pdu));
+                emb_transport_recv_packet(&_mbt->transport, mbap->unit_id, MB_CONST_PDU(rx_pdu));
             }
 
         } while(0);
@@ -68,7 +68,7 @@ static void parse_packet(struct emb_tcp_t* _mbt) {
 /**
  * @brief Send a PDU.
  *
- * (Protocol interface) This function will send packet (CRC suffix automatically added).
+ * (Transport interface) This function will send packet (CRC suffix automatically added).
  *
  * @param [in] _mbt TCP context
  * @param [in] _slave_addr Address of slave
@@ -90,7 +90,7 @@ static int modbus_tcp_send_packet(void *_mbt,
 
         // If we are server, then take a transaction-id from request,
         // if we are client, then transaction-id is a number, increased by 1 per transaction.
-        if(mbt->proto.flags & EMB_PROTO_FLAG_IS_SERVER) {
+        if(mbt->transport.flags & EMB_TRANSPORT_FLAG_IS_SERVER) {
             mbap->transact_id = ((struct emb_tcp_mbap_t*)mbt->rx_buf)->transact_id;
         }
         else {
@@ -111,7 +111,7 @@ static int modbus_tcp_send_packet(void *_mbt,
         mbt->tx_pkt_counter = 0;
 
 #if EMODBUS_PACKETS_DUMPING
-        if(mbt->proto.flags & EMB_PROTO_FLAG_DUMD_PAKETS)
+        if(mbt->transport.flags & EMB_TRANSPORT_FLAG_DUMD_PAKETS)
             if(emb_dump_tx_data)
                 emb_dump_tx_data(mbt->tx_buf, mbt->tx_pkt_size);
 #endif // EMODBUS_PACKETS_DUMPING
@@ -127,8 +127,8 @@ void emb_tcp_initialize(struct emb_tcp_t* _mbt) {
         struct emb_tcp_mbap_t* mbap = (struct emb_tcp_mbap_t*)_mbt->tx_buf;
         // Set first transaction_id to zero.
         mbap->transact_id = SWAP_BYTES(0);
-        _mbt->proto.send_packet = modbus_tcp_send_packet;
-        _mbt->proto.low_level_context = _mbt;
+        _mbt->transport.send_packet = modbus_tcp_send_packet;
+        _mbt->transport.low_level_context = _mbt;
     }
 }
 

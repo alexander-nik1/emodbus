@@ -4,24 +4,24 @@
 
 /*!
  * \file
- * \brief RTU Protocol.
+ * \brief RTU Transport.
  *
- * This file contains an RTU protocol decalrations.
+ * This file contains an RTU transport decalrations.
  *
  */
 
-#include <emodbus/base/modbus_proto.h>
+#include <emodbus/base/modbus_transport.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @brief RTU Protocol context.
+ * @brief RTU Transport context.
  *
- * Object of this structure is a one RTU protocol context.
+ * Object of this structure is a one RTU transport context.
  * Here we have twoo interfaces:
- * 1) modbus_protocol_t - interface for connect to high level
+ * 1) modbus_transport_t - interface for connect to high level
  * 2) RTU Interface - interface for connect to hardware transceiver.
  */
 struct emb_rtu_t {
@@ -47,8 +47,8 @@ struct emb_rtu_t {
     /// This PDU contains a packet, that will be sent (internal variable)
     emb_const_pdu_t* tx_pdu;
 
-    ///< Protocol (abstract connector to high level)
-    struct emb_protocol_t proto;
+    ///< Transport (abstract connector to high level)
+    struct emb_transport_t transport;
 
     /// (RTU Interface) This function calls when a new char was received (must be set by user)
     void (*emb_rtu_on_char)(struct emb_rtu_t* _emb);

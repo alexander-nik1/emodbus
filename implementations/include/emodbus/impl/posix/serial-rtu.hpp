@@ -2,7 +2,7 @@
 #ifndef EMB_POSIX_SERIAL_RTU
 #define EMB_POSIX_SERIAL_RTU
 
-#include <emodbus/protocols/rtu.h>
+#include <emodbus/transport/rtu.h>
 #include <event2/event.h>
 #include <emodbus/base/modbus_pdu.h>
 #include <vector>
@@ -20,7 +20,7 @@ public:
 
     void close();
 
-    struct emb_protocol_t* get_proto();
+    struct emb_transport_t* get_transport();
 
 private:
     void rtu_init();
