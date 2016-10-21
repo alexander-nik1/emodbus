@@ -11,7 +11,7 @@
 
 
 #define EMB_CASE_ERROR_STRING_MB_CODE(_errno, ...)      \
-    EMB_CASE_ERROR_STRING(_errno, "Returned modbus error code: '" __VA_ARGS__ "'")
+    EMB_CASE_ERROR_STRING(_errno, "The server returned error code: '" __VA_ARGS__ "'")
 
 const char* emb_strerror(int _errno) {
 
