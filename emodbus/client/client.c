@@ -69,6 +69,7 @@ static void emb_client_on_error(void* _user_data, int _errno) {
     struct emb_client_transaction_t* req = cli->curr_transaction;
     if(req) {
         cli->curr_transaction = (struct emb_client_transaction_t*)0;
+        cli->transport->rx_pdu = (emb_pdu_t*)0;
         if(cli->on_error)
             cli->on_error(cli, cli->curr_addr, _errno);
         CLIENT_REQ_ON_ERROR(req, cli->curr_addr, _errno);
@@ -97,7 +98,6 @@ int emb_client_do_transaction(struct emb_client_t* _cli,
 
     if(_cli->transport->rx_pdu)
         return -EBUSY;
-    _cli->curr_transaction = _transact;
     _cli->curr_addr = _slave_addr;
     _cli->curr_transaction = _transact;
     _cli->transport->rx_pdu = _transact->resp_pdu;
