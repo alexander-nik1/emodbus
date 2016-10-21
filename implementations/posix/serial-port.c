@@ -146,6 +146,17 @@ serial_port_create(struct event_base *_base,
     return NULL;
 }
 
+int serial_port_set_notifier(struct serial_port_t* _ctx,
+                             serial_port_notifier_t _notifier,
+                             void* _param) {
+    if(_ctx) {
+        _ctx->notifier = _notifier;
+        _ctx->notifier_parameter = _param;
+        return 0;
+    }
+    return -EINVAL;
+}
+
 void serial_port_destroy(struct serial_port_t* _ctx) {
     if(_ctx) {
         close(_ctx->fd);
@@ -255,9 +266,7 @@ int serial_port_write(struct serial_port_t* _ctx,
             fprintf(stderr, "%s: Error with event_add() call: %m (%d)\n", __FUNCTION__, r);
             fflush(stderr);
         }
-
         return res;
     }
-
     return -EINVAL;
 }

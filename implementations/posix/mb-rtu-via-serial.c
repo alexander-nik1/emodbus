@@ -57,7 +57,7 @@ static int read_from_port(struct emb_rtu_t* _mbt,
 static int write_to_port(struct emb_rtu_t* _mbt,
                          const void* _p_data,
                          unsigned int _sz_to_write) {
-    if(_mbt && _sz_to_write) {
+    if(_mbt) {
         struct emb_rtu_via_serial_t* _this = container_of(_mbt, struct emb_rtu_via_serial_t, modbus_rtu);
         return serial_port_write(_this->serial, _p_data, _sz_to_write);
     }
@@ -96,6 +96,8 @@ emb_rtu_via_serial_create(struct event_base *_base,
             return NULL;
         }
 
+        serial_port_set_notifier(ctx->serial, serial_port_notifier, ctx);
+
         ctx->char_pause.tv_sec = 0;
         ctx->char_pause.tv_usec = 1000 * _timeout_ms;
 
@@ -121,4 +123,12 @@ void emb_rtu_via_serial_destroy(struct emb_rtu_via_serial_t* _ctx) {
             serial_port_destroy(_ctx->serial);
         free(_ctx);
     }
+}
+
+struct emb_transport_t*
+emb_rtu_via_serial_get_transport(struct emb_rtu_via_serial_t* _ctx) {
+    if(_ctx) {
+        return &_ctx->modbus_rtu.transport;
+    }
+    return NULL;
 }
