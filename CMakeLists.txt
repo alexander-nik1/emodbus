@@ -32,6 +32,8 @@ add_subdirectory(implementations)
 
 add_subdirectory(tests)
 
+add_subdirectory(examples)
+
 FILE(GLOB_RECURSE LibFiles "*.hpp" "*.h" README TODO)
 add_custom_target(headers SOURCES ${LibFiles})
 
