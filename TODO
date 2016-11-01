@@ -1,4 +1,6 @@
 
+Add a checking for the maximum quantity in 0x03 function of the server.
+
 Make accessible the 0xFFFF holding, coil, file's register.
 
 Suppose: we have a server, that works via modbus-tcp transport.
