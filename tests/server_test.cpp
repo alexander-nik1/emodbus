@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <string.h>
 #include <bitset>
+#include <signal.h>
 
 #include <stdlib.h>
 
@@ -102,19 +103,19 @@ public:
 
         memcpy(_pvalues, &regs[_offset], _quantity*2);
 
-        printf("Read Holdings: start:0x%04X, length:0x%04X\n", _offset, _quantity);
-        fflush(stdout);
+//        printf("Read Holdings: start:0x%04X, length:0x%04X\n", _offset, _quantity);
+//        fflush(stdout);
         return 0;
     }
 
     uint8_t on_write_regs(uint16_t _offset,
                           uint16_t _quantity, const uint16_t* _pvalues) {
 
-        printf("Write Holdings: start:0x%04X, length:0x%04X\nData:", _offset, _quantity);
-        for(int i=0; i<_quantity; ++i)
-            printf("0x%04X ", _pvalues[i]);
-        printf("\n");
-        fflush(stdout);
+//        printf("Write Holdings: start:0x%04X, length:0x%04X\nData:", _offset, _quantity);
+//        for(int i=0; i<_quantity; ++i)
+//            printf("0x%04X ", _pvalues[i]);
+//        printf("\n");
+//        fflush(stdout);
 
         memcpy(&regs[_offset], _pvalues, _quantity*2);
 
@@ -141,19 +142,19 @@ public:
 
         memcpy(_pvalues, &regs[_offset], _quantity*2);
 
-        printf("Read File: start:0x%04X, length:0x%04X\n", _offset, _quantity);
-        fflush(stdout);
+//        printf("Read File: start:0x%04X, length:0x%04X\n", _offset, _quantity);
+//        fflush(stdout);
         return 0;
     }
 
     uint8_t on_write_file(uint16_t _offset,
                           uint16_t _quantity, const uint16_t* _pvalues) {
 
-        printf("Write File: start:0x%04X, length:0x%04X\nData:", _offset, _quantity);
-        for(int i=0; i<_quantity; ++i)
-            printf("0x%04X ", _pvalues[i]);
-        printf("\n");
-        fflush(stdout);
+//        printf("Write File: start:0x%04X, length:0x%04X\nData:", _offset, _quantity);
+//        for(int i=0; i<_quantity; ++i)
+//            printf("0x%04X ", _pvalues[i]);
+//        printf("\n");
+//        fflush(stdout);
 
         memcpy(&regs[_offset], _pvalues, _quantity*2);
 
@@ -168,16 +169,57 @@ emb_debug_helper_t emb_debug_helper;
 //serial_rtu_t rtu;
 //tcp_client_tcp_t tcp;
 
+class my_server_t : public emb::server::server_t {
+public:
+    my_server_t(int _address) : emb::server::server_t(_address) {
+        add_function(0x01, emb_srv_read_coils);
+        add_function(0x05, emb_srv_write_coil);
+        add_function(0x0F, emb_srv_write_coils);
+
+        add_function(0x03, emb_srv_read_holdings);
+        add_function(0x06, emb_srv_write_reg);
+        add_function(0x10, emb_srv_write_regs);
+        add_function(0x16, emb_srv_mask_reg);
+
+        add_function(0x14, emb_srv_read_file);
+        add_function(0x15, emb_srv_write_file);
+
+        add_coils(coils);
+        add_holdings(holdings);
+        add_file(file);
+    }
+
+private:
+    my_coils_t coils;
+    my_holdings_t holdings;
+    my_file_t file;
+};
+
+static void signal_cb(evutil_socket_t sig, short events, void *user_data) {
+    struct event_base *base = (struct event_base*)user_data;
+    printf("Caught an interrupt signal; exiting cleanly.\n");
+    event_base_loopexit(base, NULL);
+}
+
+enum { SERVERS_FIRST_ADDRESS = 1 };
+enum { SERVERS_LAST_ADDRESS = 255 };
+enum { SERVERS_NUMBER = SERVERS_LAST_ADDRESS - SERVERS_FIRST_ADDRESS };
 
 int main(int argc, char* argv[]) {
 
     printf("emodbus server test\n");
 
-    int res;
+    struct event *signal_event;
 
     emb::server::super_server_t ssrv;
 
     struct event_base *base = event_base_new();
+
+    signal_event = evsignal_new(base, SIGINT, signal_cb, (void *)base);
+    if (!signal_event || event_add(signal_event, NULL)<0) {
+        fprintf(stderr, "Could not create/add a signal event!\n");
+        fflush(stderr);
+    }
 
     //res = rtu.open(base, "/dev/ttyUSB0", 115200);
     //res = tcp.open(base, "127.0.0.1", 9992);
@@ -196,31 +238,25 @@ int main(int argc, char* argv[]) {
 
     sleep(1);
 
-    my_coils_t c;
-    my_holdings_t h;
-    my_file_t f;
+    std::vector<my_server_t*> servers;
 
-    emb::server::server_t srv1(1);
-
-    srv1.add_function(0x01, emb_srv_read_coils);
-    srv1.add_function(0x05, emb_srv_write_coil);
-    srv1.add_function(0x0F, emb_srv_write_coils);
-
-    srv1.add_function(0x03, emb_srv_read_holdings);
-    srv1.add_function(0x06, emb_srv_write_reg);
-    srv1.add_function(0x10, emb_srv_write_regs);
-    srv1.add_function(0x16, emb_srv_mask_reg);
-
-    srv1.add_function(0x14, emb_srv_read_file);
-    srv1.add_function(0x15, emb_srv_write_file);
-
-    srv1.add_coils(c);
-    srv1.add_holdings(h);
-    srv1.add_file(f);
-
-    ssrv.add_server(srv1);
+    printf("Creating %d servers ...\n", SERVERS_NUMBER);
+    for(int i=SERVERS_FIRST_ADDRESS; i<=SERVERS_LAST_ADDRESS; ++i) {
+        servers.push_back(new my_server_t(i));
+        ssrv.add_server(*servers.back());
+    }
+    printf("OK, Starting of the dispatcher\n");
 
     event_base_dispatch(base);
+
+    printf("Cleaning ...\n");
+
+    for(int i=0; i<servers.size(); ++i) {
+        if(servers[i])
+            delete servers[i];
+    }
+
+    printf("OK, Buy.\n");
 
     return 0;
 }
