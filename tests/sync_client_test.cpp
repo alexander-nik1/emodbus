@@ -271,18 +271,141 @@ void coils_test() {
         //usleep(1000*10);
         //printf("---------------> do_request() := %d\n", res);
     }
+
+
+
     printf("Coils test: errors = %d\n", errors);
 }
 
-void registers_test() {
-    const uint16_t rr_begin = 0x1000;
-    const uint16_t rr_size = 0x1000;
-    const uint16_t rr_end = rr_begin + rr_size;
 
-    const int n_tests = 100;
-}
+class holdings_tester_t {
+public:
 
-void write_and_read_file_record_test() {
+    void initialize(uint16_t _rr_begin,
+                    uint32_t _rr_size,
+                    int _servers_begin,
+                    int _servers_size,
+                    int _tests_number) {
+
+        rr_begin = _rr_begin;
+        rr_size = _rr_size;
+
+        servers_begin = _servers_begin;
+        servers_size = _servers_size;
+
+        tests_number = _tests_number;
+
+        rr_end = rr_begin + rr_size;
+        servers_end = servers_begin + servers_size;
+        tests_counter = 0;
+
+        timeout = 1000;
+
+        tr.ans.resize(MAX_PDU_DATA_SIZE);
+        tr.req.resize(MAX_PDU_DATA_SIZE);
+
+        holdings.resize(servers_size);
+        for(int i=0; i<servers_size; ++i) {
+            holdings[i].resize(rr_size);
+        }
+    }
+
+    void schedule_0x03() {
+        int res;
+        const int srv_addr = servers_begin + (rand() % servers_size);
+        const int begin_addr = rr_begin + (rand() % rr_size);
+        const int quantity = (rand() % 125) + 1;
+
+        emb::client::read_regs_t rr(tr);
+
+        uint16_t* p_data;
+
+        rr.build_req(begin_addr, quantity);
+
+        res = mb_client.do_transaction(srv_addr, timeout, rr);
+        if(res) printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, res, emb_strerror(-res)), fflush(stdout);
+
+        p_data = &holdings[srv_addr-servers_begin][begin_addr-rr_begin];
+
+        rr.get_answer_regs(p_data, 0, rr.get_answer_quantity());
+    }
+
+    void schedule_0x06() {
+        int res;
+        const int srv_addr = servers_begin + (rand() % servers_size);
+        const int addr = rr_begin + (rand() % rr_size);
+
+        emb::client::write_reg_t wr(tr);
+
+        const uint16_t data = rand();
+
+        holdings[srv_addr-servers_begin][addr-rr_begin] = data;
+
+        wr.build_req(addr, data);
+
+        res = mb_client.do_transaction(srv_addr, timeout, wr);
+        if(res) printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, res, emb_strerror(-res)), fflush(stdout);
+    }
+
+    void schedule_0x10() {
+        int res;
+        const int srv_addr = servers_begin + (rand() % servers_size);
+        const int begin_addr = rr_begin + (rand() % rr_size);
+        const int quantity = (rand() % 123) + 1;
+
+        emb::client::write_regs_t wr(tr);
+
+        uint16_t* p_data;
+
+        p_data = &holdings[srv_addr-servers_begin][begin_addr-rr_begin];
+
+        for(int i=0; i<quantity; ++i)
+            p_data[i] = rand();
+
+        wr.build_req(begin_addr, quantity, p_data);
+
+        res = mb_client.do_transaction(srv_addr, timeout, wr);
+        if(res) printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, res, emb_strerror(-res)), fflush(stdout);
+    }
+
+    void schedule_0x16() {
+        int res;
+        const int srv_addr = servers_begin + (rand() % servers_size);
+        const int addr = rr_begin + (rand() % rr_size);
+
+        emb::client::write_mask_reg_t wm(tr);
+
+        const uint16_t and_mask = rand();
+        const uint16_t or_mask = rand();
+
+        holdings[srv_addr-servers_begin][addr-rr_begin] = data;
+
+        wm.build_req(addr, data);
+
+        res = mb_client.do_transaction(srv_addr, timeout, wm);
+        if(res) printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, res, emb_strerror(-res)), fflush(stdout);
+    }
+
+    uint16_t rr_begin;
+    uint32_t rr_size;
+    uint32_t rr_end;
+
+    int servers_begin;
+    int servers_size;
+    int servers_end;
+
+    int tests_counter;
+    int tests_number;
+
+    int timeout;
+
+    emb::client::transaction_t tr;
+
+    std::vector<std::vector< uint16_t > > holdings;
+};
+
+void write_and_read_file_record_test()
+{
 
     using namespace emb;
     using namespace emb::client;
