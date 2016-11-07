@@ -89,8 +89,8 @@ private:
 class my_holdings_t : public emb::server::holdings_t {
 public:
 
-    enum { START = 0x0000 };
-    enum { SIZE = 0xFFFF };
+    enum { START = 0xF000 };
+    enum { SIZE = 0x0FFF+1 };
 
     my_holdings_t() : emb::server::holdings_t(START, SIZE) {
 
@@ -242,8 +242,11 @@ int main(int argc, char* argv[]) {
 
     printf("Creating %d servers ...\n", SERVERS_NUMBER);
     for(int i=SERVERS_FIRST_ADDRESS; i<=SERVERS_LAST_ADDRESS; ++i) {
-        servers.push_back(new my_server_t(i));
-        ssrv.add_server(*servers.back());
+        my_server_t* srv = new my_server_t(i);
+        servers.push_back(srv);
+        ssrv.add_server(*srv);
+        printf("srv(%d) addr: %p\n", i, srv);
+        fflush(stdout);
     }
     printf("OK, Starting of the dispatcher\n");
 
@@ -252,8 +255,11 @@ int main(int argc, char* argv[]) {
     printf("Cleaning ...\n");
 
     for(int i=0; i<servers.size(); ++i) {
-        if(servers[i])
+        if(servers[i]) {
+            printf("srv(%d) addr: %p\n", i+SERVERS_FIRST_ADDRESS, servers[i]);
+            fflush(stdout);
             delete servers[i];
+        }
     }
 
     printf("OK, Buy.\n");
