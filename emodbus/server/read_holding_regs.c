@@ -18,7 +18,7 @@ uint8_t emb_srv_read_holdings(struct emb_super_server_t* _ssrv,
     const uint16_t
             start_addr = GET_BIG_END16(rx_data + 0),
             quantity = GET_BIG_END16(rx_data + 2),
-            end = start_addr + quantity;
+            end = start_addr + quantity - 1;
 
     if(!_srv->get_holdings)
         return MBE_SLAVE_FAILURE;
@@ -31,7 +31,7 @@ uint8_t emb_srv_read_holdings(struct emb_super_server_t* _ssrv,
     if(start_addr > end)
         return MBE_ILLEGAL_DATA_ADDR;
 
-    if(end > (r->start + r->size))
+    if((r->start + r->size - 1) < end)
         return MBE_ILLEGAL_DATA_ADDR;
 
     if(!r->read_regs)
