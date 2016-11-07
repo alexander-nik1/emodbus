@@ -12,3 +12,11 @@ target_link_libraries(client-example
     emodbus-client-full
     emodbus-impl-posix
 )
+
+target_link_libraries(server-example
+    event_pthreads
+    pthread
+    emodbus-base
+    emodbus-server-full
+    emodbus-impl-posix
+)
