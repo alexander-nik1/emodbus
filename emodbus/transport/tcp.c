@@ -22,7 +22,7 @@ struct emb_tcp_mbap_t {
 static void parse_packet(struct emb_tcp_t* _mbt) {
 
     // TODO: Maybe I need to loop-based searching in receive buffer ?
-    if(_mbt->rx_pkt_counter > (emb_tcp_mbap_size + 2)) {
+    if(_mbt->rx_pkt_counter >= (emb_tcp_mbap_size + 2)) {
         struct emb_tcp_mbap_t* mbap = (struct emb_tcp_mbap_t*)_mbt->rx_buf;
         const uint16_t pkt_length = SWAP_BYTES(mbap->length) - 1;
 
