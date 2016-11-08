@@ -30,6 +30,9 @@ uint8_t emb_srv_write_regs(struct emb_super_server_t* _ssrv,
     if(!r)
         return MBE_ILLEGAL_DATA_ADDR;
 
+    if((start_addr+quantity) > (r->start+r->size))
+        return MBE_ILLEGAL_DATA_ADDR;
+
     if(!r->write_regs)
         return MBE_ILLEGAL_DATA_ADDR;
 
