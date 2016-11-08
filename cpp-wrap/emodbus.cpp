@@ -1014,15 +1014,15 @@ bool server_t::add_function(uint8_t _func_no, emb_srv_function_t _func) {
 }
 
 #define IS_POINT_IN_RANGE(_range_start_, _range_end_, _point_) \
-    (((_range_start_) <= (_point_)) && ((_point_) < (_range_end_)))
+    (((_range_start_) < (_point_)) && ((_point_) < (_range_end_)))
 
 static bool emb_is_ranges_cross(uint16_t _start1,
-                         uint16_t _start2,
                          uint16_t _size1,
+                         uint16_t _start2,
                          uint16_t _size2) {
 
-    const uint16_t end1 = _start1 + _size1;
-    const uint16_t end2 = _start2 + _size2;
+    const uint32_t end1 = _start1 + _size1;
+    const uint32_t end2 = _start2 + _size2;
 
     if( IS_POINT_IN_RANGE(_start1, end1, _start2) ||
         IS_POINT_IN_RANGE(_start1, end1, end2) ||
