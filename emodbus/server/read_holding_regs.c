@@ -30,7 +30,7 @@ uint8_t emb_srv_read_holdings(struct emb_super_server_t* _ssrv,
     if(!(0x0001 <= quantity && quantity <= 0x007D))
         return MBE_ILLEGAL_DATA_VALUE;
 
-    if(!(r->start <= start_addr && (start_addr+quantity) <= (r->start+r->size)))
+    if((start_addr+quantity) > (r->start+r->size))
         return MBE_ILLEGAL_DATA_ADDR;
 
     if(!r->read_regs)
