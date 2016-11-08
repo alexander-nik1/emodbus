@@ -2,6 +2,6 @@
 /bin
 /lib
 
-*.user
+CMakeLists.txt.user*
 
 /docs-gen
