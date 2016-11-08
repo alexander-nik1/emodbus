@@ -41,7 +41,7 @@ add_custom_target(headers SOURCES ${LibFiles})
 # DEB packages generation
 
 if(NOT DEFINED PREFIX)
-set( PREFIX "" )
+set( PREFIX "/usr" )
 message(WARNING "A 'PREFIX' variable was NOT set, defaulting it to '${PREFIX}'.")
 endif()
 
