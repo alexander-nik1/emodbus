@@ -89,13 +89,11 @@ private:
 class my_holdings_t : public emb::server::holdings_t {
 public:
 
-    enum { START = 0xF000 };
-    enum { SIZE = 0x0FFF+1 };
+    my_holdings_t(uint16_t _start, uint16_t _size) :
+        emb::server::holdings_t(_start, _size) {
 
-    my_holdings_t() : emb::server::holdings_t(START, SIZE) {
-
-        regs.resize(SIZE);
-        memset(&regs[0], 0, SIZE*2);
+        regs.resize(_size);
+        memset(&regs[0], 0, _size*2);
     }
 
     uint8_t on_read_regs(uint16_t _offset,
@@ -171,7 +169,14 @@ emb_debug_helper_t emb_debug_helper;
 
 class my_server_t : public emb::server::server_t {
 public:
-    my_server_t(int _address) : emb::server::server_t(_address) {
+    my_server_t(int _address)
+        : emb::server::server_t(_address)
+        , holdings1(0x0000, 0x7FED)
+        , holdings2(0x7FED, 0x0077)
+        , holdings3(0x8065, 0x0001)
+        , holdings4(0xE800, 0x1800)
+
+    {
         add_function(0x01, emb_srv_read_coils);
         add_function(0x05, emb_srv_write_coil);
         add_function(0x0F, emb_srv_write_coils);
@@ -185,13 +190,20 @@ public:
         add_function(0x15, emb_srv_write_file);
 
         add_coils(coils);
-        add_holdings(holdings);
+        if(!add_holdings(holdings1))
+            printf("Error with add_holdings(holdings1)\n");
+        if(!add_holdings(holdings2))
+            printf("Error with add_holdings(holdings2)\n");
+        if(!add_holdings(holdings3))
+            printf("Error with add_holdings(holdings3)\n");
+        if(!add_holdings(holdings4))
+            printf("Error with add_holdings(holdings4)\n");
         add_file(file);
     }
 
 private:
     my_coils_t coils;
-    my_holdings_t holdings;
+    my_holdings_t holdings1,holdings2,holdings3,holdings4;
     my_file_t file;
 };
 

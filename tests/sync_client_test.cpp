@@ -286,18 +286,14 @@ void coils_test() {
 class holdings_tester_t {
 public:
 
-    void initialize(uint16_t _rr_begin,
-                    uint32_t _rr_size,
-                    int _servers_begin,
-                    int _servers_size) {
+    typedef std::pair<uint16_t,uint16_t> reg_range_t;
 
-        rr_begin = _rr_begin;
-        rr_size = _rr_size;
+    void initialize(int _servers_begin,
+                    int _servers_size) {
 
         servers_begin = _servers_begin;
         servers_size = _servers_size;
 
-        rr_end = rr_begin + rr_size;
         servers_end = servers_begin + servers_size;
 
         timeout = 1000;
@@ -311,41 +307,49 @@ public:
         }
     }
 
-    void server_range_read(int _srv_addr) {
-        uint32_t count = 0;
+    uint16_t rand16() const {
+        return rand()+rand();
+    }
+
+    void server_holdings_read(int _srv_addr) {
 
         emb::client::read_regs_t rr(tr);
 
-        do {
-            const uint16_t begin_addr = rr_begin+count;
-            int res, to_read = rr_size-count;
-            if(to_read > 125)
-                to_read = 125;
+        for(int r=0; r<reg_ranges.size(); ++r) {
+            const uint16_t rr_begin = reg_ranges[r].first;
+            const uint16_t rr_size = reg_ranges[r].second;
+            uint32_t count = 0;
+            do {
+                const uint16_t begin_addr = rr_begin+count;
+                int res, to_read = rr_size-count;
+                if(to_read > 125)
+                    to_read = 125;
 
-            rr.build_req(begin_addr, to_read);
+                rr.build_req(begin_addr, to_read);
 
-            res = mb_client.do_transaction(_srv_addr, timeout, rr);
-            if(res) {
-                printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, res, emb_strerror(-res));
-                printf("srv_addr=%d, begin_addr=0x%04X, quantity=0x%04X\n", _srv_addr, begin_addr, to_read);
-                fflush(stdout);
+                res = mb_client.do_transaction(_srv_addr, timeout, rr);
+                if(res) {
+                    printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, res, emb_strerror(-res));
+                    printf("srv_addr=%d, begin_addr=0x%04X, quantity=0x%04X\n", _srv_addr, begin_addr, to_read);
+                    fflush(stdout);
+                }
+
+                rr.get_answer_regs(&holdings[_srv_addr-servers_begin][begin_addr], 0, to_read);
+
+                count += to_read;
             }
-
-            rr.get_answer_regs(&holdings[_srv_addr-servers_begin][begin_addr], 0, to_read);
-
-            count += to_read;
+            while(count < rr_size);
         }
-        while(count < rr_size);
     }
 
-    void range_read() {
+    void holdings_read() {
         for(int i=servers_begin; i<servers_end; ++i) {
-            server_range_read(i);
+            server_holdings_read(i);
         }
     }
 
     void schedule_0x03() {
-        int res;
+        int err;
 
         int srv_addr;
         unsigned int begin_addr;
@@ -353,32 +357,19 @@ public:
 
         bool must_be_error;
 
-        if(out_of_range_0x03) {
-            srv_addr = srv_addr = servers_begin + (rand() % servers_size);
-            begin_addr = (rand()*rand()) & 0xFFFF;
-            quantity = (rand() % 125) + 1;
+        srv_addr = srv_addr = servers_begin + (rand() % servers_size);
+        begin_addr = rand16();
+        quantity = (rand() % 125) + 1;
 
-            if(quantity+begin_addr >= 0x10000) {
-                quantity = 0x10000 - begin_addr;
-            }
+//        if(quantity+begin_addr >= 0x10000) {
+//            quantity = 0x10000 - begin_addr;
+//        }
 
-            if(rr_begin <= begin_addr && begin_addr < rr_end
-                && (begin_addr+quantity) <= rr_end) {
-                must_be_error = false;
-            }
-            else {
-                must_be_error = true;
-            }
+        if(is_range_belongs_t_regs(begin_addr, quantity)) {
+            must_be_error = false;
         }
         else {
-            srv_addr = servers_begin + (rand() % servers_size);
-            begin_addr = rr_begin + (rand() % rr_size);
-            quantity = (rand() % 125) + 1;
-
-            if(quantity+begin_addr >= rr_end) {
-                quantity = rr_end - begin_addr;
-            }
-            must_be_error = false;
+            must_be_error = true;
         }
 
         emb::client::read_regs_t rr(tr);
@@ -387,44 +378,37 @@ public:
 
         rr.build_req(begin_addr, quantity);
 
-        res = mb_client.do_transaction(srv_addr, timeout, rr);
+        err = mb_client.do_transaction(srv_addr, timeout, rr);
 
-        if((res && !must_be_error) || (!res && must_be_error)) {
-            printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, res, emb_strerror(-res));
+        if((must_be_error && !err) || (!must_be_error && err)) {
+            printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, err, emb_strerror(-err));
             printf("must_be_error=%d srv_addr=%d, begin_addr=0x%04X, quantity=0x%04X\n",
                    must_be_error, srv_addr, begin_addr, quantity);
             fflush(stdout);
-            exit(0);
+            //exit(0);
         }
-        else {
+        else if(!err) {
             p_data = &holdings[srv_addr-servers_begin][begin_addr];
             rr.get_answer_regs(p_data, 0, rr.get_answer_quantity());
         }
     }
 
     void schedule_0x06() {
-        int res;
+        int err;
         const int srv_addr = servers_begin + (rand() % servers_size);
 
         int addr;
 
         bool must_be_error;
 
-        if(out_of_range_0x06) {
-            addr = (rand()*rand()) & 0xFFFF;
+        addr = rand16();
 
-            if(rr_begin <= addr && addr < rr_end) {
-                must_be_error = false;
-            }
-            else {
-                must_be_error = true;
-            }
-        }
-        else {
-            addr = rr_begin + (rand() % rr_size);
+        if(is_address_belongs_to_regs(addr)) {
             must_be_error = false;
         }
-
+        else {
+            must_be_error = true;
+        }
 
         emb::client::write_reg_t wr(tr);
 
@@ -432,21 +416,21 @@ public:
 
         wr.build_req(addr, data);
 
-        res = mb_client.do_transaction(srv_addr, timeout, wr);
-        if((res && !must_be_error) || (!res && must_be_error)) {
-            printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, res, emb_strerror(-res));
+        err = mb_client.do_transaction(srv_addr, timeout, wr);
+        if((must_be_error && !err) || (!must_be_error && err)) {
+            printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, err, emb_strerror(-err));
             printf("must_be_error=%d srv_addr=%d, addr=0x%04X,\n",
                    must_be_error, srv_addr, addr);
             fflush(stdout);
-            exit(0);
+            //exit(0);
         }
-        else {
+        else if(!err) {
             holdings[srv_addr-servers_begin][addr] = data;
         }
     }
 
     void schedule_0x10() {
-        int res;
+        int err;
         const int srv_addr = servers_begin + (rand() % servers_size);
 
         unsigned int begin_addr;
@@ -454,32 +438,19 @@ public:
 
         bool must_be_error;
 
-        if(out_of_range_0x10) {
-            begin_addr = (rand()*rand()) & 0xFFFF;
-            quantity = (rand() % 123) + 1;
+        begin_addr = rand16();
+        quantity = (rand() % 123) + 1;
 
-            if(quantity+begin_addr > 0x10000) {
-                quantity = 0x10000 - begin_addr;
-            }
+//        if(quantity+begin_addr > 0x10000) {
+//            quantity = 0x10000 - begin_addr;
+//        }
 
-            if(rr_begin <= begin_addr && begin_addr < rr_end
-                && (begin_addr+quantity) <= rr_end) {
-                must_be_error = false;
-            }
-            else {
-                must_be_error = true;
-            }
-        }
-        else {
-            begin_addr = rr_begin + (rand() % rr_size);
-            quantity = (rand() % 123) + 1;
-
-            if(quantity+begin_addr >= rr_end) {
-                quantity = rr_end - begin_addr;
-            }
-
+        if(is_range_belongs_t_regs(begin_addr, quantity)) {
             must_be_error = false;
         }
+        else {
+            must_be_error = true;
+            }
 
         emb::client::write_regs_t wr(tr);
 
@@ -492,18 +463,16 @@ public:
 
         wr.build_req(begin_addr, quantity, regs.data());
 
-        res = mb_client.do_transaction(srv_addr, timeout, wr);
+        err = mb_client.do_transaction(srv_addr, timeout, wr);
 
-        if(must_be_error) {
-            if(!res) {
-                printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, res, emb_strerror(-res));
-                printf("must_be_error=%d srv_addr=%d, begin_addr=0x%04X, quantity=0x%04X\n",
-                       must_be_error, srv_addr, begin_addr, quantity);
-                fflush(stdout);
-                exit(0);
-            }
+        if((must_be_error && !err) || (!must_be_error && err)) {
+            printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, err, emb_strerror(-err));
+            printf("must_be_error=%d srv_addr=%d, begin_addr=0x%04X, quantity=0x%04X\n",
+                   must_be_error, srv_addr, begin_addr, quantity);
+            fflush(stdout);
+            //exit(0);
         }
-        else {
+        else if(!err) {
             uint16_t* p_data = &holdings[srv_addr-servers_begin][begin_addr];
             //printf("MBE=%d ADDR=0x%04X, Q=0x%04X\n", must_be_error, begin_addr, quantity);
             for(int i=0; i<quantity; ++i) {
@@ -513,24 +482,19 @@ public:
     }
 
     void schedule_0x16() {
-        int res;
+        int err;
         const int srv_addr = servers_begin + (rand() % servers_size);
         int addr;
 
         bool must_be_error;
 
-        if(out_of_range_0x16) {
-            addr = (rand()*rand()) & 0xFFFF;
+        addr = rand16();
 
-            if(rr_begin <= addr && addr < rr_end) {
-                must_be_error = false;
-            }
-            else {
-                must_be_error = true;
-            }
+        if(is_address_belongs_to_regs(addr)) {
+            must_be_error = false;
         }
         else {
-            addr = rr_begin + (rand() % rr_size);
+            must_be_error = true;
         }
 
         emb::client::write_mask_reg_t wm(tr);
@@ -542,59 +506,64 @@ public:
 
         data = (data & and_mask) | (or_mask & ~and_mask);
 
-        holdings[srv_addr-servers_begin][addr] = data;
-
         wm.build_req(addr, and_mask, or_mask);
 
-        res = mb_client.do_transaction(srv_addr, timeout, wm);
-        if((res && !must_be_error) || (!res && must_be_error)) {
-            printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, res, emb_strerror(-res));
-            printf("must_be_error=%d srv_addr=%d, and_mask=0x%04X, or_mask=0x%04X\n",
-                   must_be_error, srv_addr, and_mask, or_mask);
+        err = mb_client.do_transaction(srv_addr, timeout, wm);
+        if((must_be_error && !err) || (!must_be_error && err)) {
+            printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, err, emb_strerror(-err));
+            printf("must_be_error=%d srv_addr=%d, addr=0x%04X and_mask=0x%04X, or_mask=0x%04X\n",
+                   must_be_error, srv_addr, addr, and_mask, or_mask);
             fflush(stdout);
+            //exit(0);
+        }
+        else if(!err) {
+            holdings[srv_addr-servers_begin][addr] = data;
         }
     }
 
     void server_range_verify(int _srv_addr) {
-        uint32_t count = 0;
-
         emb::client::read_regs_t rr(tr);
 
-        do {
-            const uint16_t begin_addr = rr_begin+count;
-            int res, to_read = rr_size-count;
-            if(to_read > 125)
-                to_read = 125;
+        for(int r=0; r<reg_ranges.size(); ++r) {
+            const uint16_t rr_begin = reg_ranges[r].first;
+            const uint16_t rr_size = reg_ranges[r].second;
+            uint32_t count = 0;
+            do {
+                const uint16_t begin_addr = rr_begin+count;
+                int res, to_read = rr_size-count;
+                if(to_read > 125)
+                    to_read = 125;
 
-            rr.build_req(begin_addr, to_read);
+                rr.build_req(begin_addr, to_read);
 
-            res = mb_client.do_transaction(_srv_addr, timeout, rr);
-            if(res) {
-                printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, res, emb_strerror(-res));
-                printf("srv_addr=%d, begin_addr=0x%04X, quantity=0x%04X\n", _srv_addr, begin_addr, to_read);
-                fflush(stdout);
-            }
-
-            bool flag = false;
-
-            for(int i=0; i<to_read; ++i) {
-                const uint16_t addr = begin_addr+i;
-                const uint16_t v1 = rr.get_answer_reg(i);
-                const uint16_t v2 = holdings[_srv_addr-servers_begin][addr];
-                if(v1 != v2) {
-                    printf("%s:%d: server[0x%02X] verify error [0x%04X] 0x%04X != 0x%04X\n",
-                                   __FUNCTION__, __LINE__,
-                                   _srv_addr, addr, v1, v2), fflush(stdout);
-                    flag=true;
+                res = mb_client.do_transaction(_srv_addr, timeout, rr);
+                if(res) {
+                    printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, res, emb_strerror(-res));
+                    printf("srv_addr=%d, begin_addr=0x%04X, quantity=0x%04X\n", _srv_addr, begin_addr, to_read);
+                    fflush(stdout);
                 }
+
+                bool flag = false;
+
+                for(int i=0; i<to_read; ++i) {
+                    const uint16_t addr = begin_addr+i;
+                    const uint16_t v1 = rr.get_answer_reg(i);
+                    const uint16_t v2 = holdings[_srv_addr-servers_begin][addr];
+                    if(v1 != v2) {
+                        printf("%s:%d: server[0x%02X] verify error [0x%04X] 0x%04X != 0x%04X\n",
+                                       __FUNCTION__, __LINE__,
+                                       _srv_addr, addr, v1, v2), fflush(stdout);
+                        flag=true;
+                    }
+                }
+
+                if(flag)
+                    exit(0);
+
+                count += to_read;
             }
-
-            if(flag)
-                exit(0);
-
-            count += to_read;
+            while(count < rr_size);
         }
-        while(count < rr_size);
     }
 
     void range_verify() {
@@ -603,9 +572,26 @@ public:
         }
     }
 
-    uint16_t rr_begin;
-    uint32_t rr_size;
-    uint32_t rr_end;
+    bool is_address_belongs_to_regs(uint16_t _addr) const {
+        for(int r=0; r<reg_ranges.size(); ++r) {
+            const reg_range_t& rr = reg_ranges[r];
+            if(rr.first <= _addr && _addr < rr.first+rr.second)
+                return true;
+        }
+        return false;
+    }
+
+    bool is_range_belongs_t_regs(uint16_t _addr, uint16_t _size) {
+        for(int r=0; r<reg_ranges.size(); ++r) {
+            const reg_range_t& rr = reg_ranges[r];
+            const uint32_t end = rr.first+rr.second;
+            if(rr.first <= _addr && (_addr+_size) <= end)
+                return true;
+        }
+        return false;
+    }
+
+    std::vector<reg_range_t> reg_ranges;
 
     int servers_begin;
     int servers_size;
@@ -613,36 +599,48 @@ public:
 
     int timeout;
 
-    bool out_of_range_0x03;
-    bool out_of_range_0x06;
-    bool out_of_range_0x10;
-    bool out_of_range_0x16;
-
     emb::client::transaction_t tr;
 
     std::vector<std::vector< uint16_t > > holdings;
 };
 
 void holdings_test() {
-    holdings_tester_t ht;
+    holdings_tester_t ht1;
 
-    ht.initialize(0xF000, 0x1000, 16, 1);
+    printf("Holding registers test\n");
+   // printf("Testing range: ");
 
-    ht.out_of_range_0x03 = true;
-    ht.out_of_range_0x06 = true;
-    ht.out_of_range_0x10 = true;
-    ht.out_of_range_0x16 = true;
+    ht1.initialize(1, 1);
 
-    ht.range_read();
+    ht1.reg_ranges.push_back(holdings_tester_t::reg_range_t(0x0000, 0x7FED));
+    ht1.reg_ranges.push_back(holdings_tester_t::reg_range_t(0x7FED, 0x0077));
+    ht1.reg_ranges.push_back(holdings_tester_t::reg_range_t(0x8065, 0x0001));
+    ht1.reg_ranges.push_back(holdings_tester_t::reg_range_t(0xE800, 0x1800));
 
-    for(int i=0; i<10000; ++i) {
-        ht.schedule_0x03();
-        ht.schedule_0x06();
-        ht.schedule_0x10();
-        ht.schedule_0x16();
+    printf("Reading all ..."); fflush(stdout);
+
+    ht1.holdings_read();
+
+    printf("OK\ntesting ... \n"); fflush(stdout);
+
+    enum { N_TESTS = 100000 };
+
+    for(int i=0; i<N_TESTS; ++i) {
+        ht1.schedule_0x03();
+        ht1.schedule_0x06();
+        ht1.schedule_0x10();
+        ht1.schedule_0x16();
+        if(!(i%(N_TESTS/100))) {
+            printf("\rProgress: %d%%", i/(N_TESTS/100));
+            fflush(stdout);
+        }
     }
 
-    ht.range_verify();
+    printf("\nOK\nVerifying ..."); fflush(stdout);
+
+    ht1.range_verify();
+
+    printf("OK\n"); fflush(stdout);
 }
 
 void write_and_read_file_record_test()
