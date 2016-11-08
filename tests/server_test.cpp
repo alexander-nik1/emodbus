@@ -86,11 +86,11 @@ private:
     std::vector<bool> values;
 };
 
-class my_holdings_t : public emb::server::holdings_t {
+class my_holdings_t : public emb::server::holding_regs_t {
 public:
 
     my_holdings_t(uint16_t _start, uint16_t _size) :
-        emb::server::holdings_t(_start, _size) {
+        emb::server::holding_regs_t(_start, _size) {
 
         regs.resize(_size);
         memset(&regs[0], 0, _size*2);

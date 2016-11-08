@@ -887,57 +887,107 @@ uint8_t coils_t::write_coils(struct emb_srv_coils_t* _coils,
 }
 
 // *******************************************************************************
-// server_holdings_t
+// input_regs_t
 
-holdings_t::holdings_t() {
+input_regs_t::input_regs_t() {
     set_funcs();
 }
 
-holdings_t::holdings_t(uint16_t _start, uint16_t _size) {
+input_regs_t::input_regs_t(uint16_t _start, uint16_t _size) {
     h.start = _start;
     h.size = _size;
     set_funcs();
 }
 
-void holdings_t::set_start(uint16_t _start)
+void input_regs_t::set_start(uint16_t _start)
 { h.start = _start; }
 
-void holdings_t::set_size(uint16_t _size)
+void input_regs_t::set_size(uint16_t _size)
 { h.size = _size; }
 
-uint8_t holdings_t::on_read_regs(uint16_t _offset,
+uint8_t input_regs_t::on_read_regs(uint16_t _offset,
                              uint16_t _quantity,
                              uint16_t* _pvalues)
 { return 0; }
 
-uint8_t holdings_t::on_write_regs(uint16_t _offset,
+uint8_t input_regs_t::on_write_regs(uint16_t _offset,
                               uint16_t _quantity,
                               const uint16_t* _pvalues)
 { return 0; }
 
-void holdings_t::set_funcs() {
+void input_regs_t::set_funcs() {
     h.read_regs = read_regs;
     h.write_regs = write_regs;
 }
 
-uint8_t holdings_t::read_regs(struct emb_srv_regs_t* _rr,
+uint8_t input_regs_t::read_regs(struct emb_srv_regs_t* _rr,
                                      uint16_t _offset,
                                      uint16_t _quantity,
                                      uint16_t* _pvalues) {
-    holdings_t* _this = container_of(_rr, holdings_t, h);
+    input_regs_t* _this = container_of(_rr, input_regs_t, h);
     return _this->on_read_regs(_offset, _quantity, _pvalues);
 }
 
-uint8_t holdings_t::write_regs(struct emb_srv_regs_t* _rr,
+uint8_t input_regs_t::write_regs(struct emb_srv_regs_t* _rr,
                                       uint16_t _offset,
                                       uint16_t _quantity,
                                       const uint16_t* _pvalues) {
-    holdings_t* _this = container_of(_rr, holdings_t, h);
+    input_regs_t* _this = container_of(_rr, input_regs_t, h);
     return _this->on_write_regs(_offset, _quantity, _pvalues);
 }
 
 // *******************************************************************************
-// server_file_t
+// holding_regs_t
+
+holding_regs_t::holding_regs_t() {
+    set_funcs();
+}
+
+holding_regs_t::holding_regs_t(uint16_t _start, uint16_t _size) {
+    h.start = _start;
+    h.size = _size;
+    set_funcs();
+}
+
+void holding_regs_t::set_start(uint16_t _start)
+{ h.start = _start; }
+
+void holding_regs_t::set_size(uint16_t _size)
+{ h.size = _size; }
+
+uint8_t holding_regs_t::on_read_regs(uint16_t _offset,
+                             uint16_t _quantity,
+                             uint16_t* _pvalues)
+{ return 0; }
+
+uint8_t holding_regs_t::on_write_regs(uint16_t _offset,
+                              uint16_t _quantity,
+                              const uint16_t* _pvalues)
+{ return 0; }
+
+void holding_regs_t::set_funcs() {
+    h.read_regs = read_regs;
+    h.write_regs = write_regs;
+}
+
+uint8_t holding_regs_t::read_regs(struct emb_srv_regs_t* _rr,
+                                     uint16_t _offset,
+                                     uint16_t _quantity,
+                                     uint16_t* _pvalues) {
+    holding_regs_t* _this = container_of(_rr, holding_regs_t, h);
+    return _this->on_read_regs(_offset, _quantity, _pvalues);
+}
+
+uint8_t holding_regs_t::write_regs(struct emb_srv_regs_t* _rr,
+                                      uint16_t _offset,
+                                      uint16_t _quantity,
+                                      const uint16_t* _pvalues) {
+    holding_regs_t* _this = container_of(_rr, holding_regs_t, h);
+    return _this->on_write_regs(_offset, _quantity, _pvalues);
+}
+
+// *******************************************************************************
+// file_record_t
 
 file_record_t::file_record_t() {
     set_funcs();
@@ -997,7 +1047,7 @@ server_t::server_t(int _address) : address(_address) {
     memset(&srv, 0, sizeof(struct emb_server_t));
     srv.get_function = get_function;
     srv.get_coils = get_coils;
-    srv.get_holding_regs = get_holdings;
+    srv.get_holding_regs = get_holding_regs;
     srv.get_file = get_file;
 }
 
@@ -1042,7 +1092,7 @@ bool server_t::add_coils(coils_t& _coils) {
     return true;
 }
 
-bool server_t::add_holdings(holdings_t& _holdings) {
+bool server_t::add_holdings(holding_regs_t& _holdings) {
     for(holdnigs_iter i=holdings.begin(); i != holdings.end(); ++i) {
         if( emb_is_ranges_cross((*i)->h.start, (*i)->h.size, _holdings.h.start, _holdings.h.size) )
             return false;
@@ -1081,9 +1131,20 @@ struct emb_srv_coils_t* server_t::get_coils(struct emb_server_t* _srv, uint16_t 
     return NULL;
 }
 
-struct emb_srv_regs_t* server_t::get_holdings(struct emb_server_t* _srv, uint16_t _begin) {
+struct emb_srv_regs_t* server_t::get_holding_regs(struct emb_server_t* _srv, uint16_t _begin) {
     server_t* _this = container_of(_srv, server_t, srv);
     for(holdnigs_iter i=_this->holdings.begin(); i != _this->holdings.end(); ++i) {
+        const uint16_t start = (*i)->h.start;
+        const uint16_t end = start + (*i)->h.size - 1;
+        if((start <= _begin) && (_begin <= end))
+            return &((*i)->h);
+    }
+    return NULL;
+}
+
+struct emb_srv_regs_t* server_t::get_input_regs(struct emb_server_t* _srv, uint16_t _begin) {
+    server_t* _this = container_of(_srv, server_t, srv);
+    for(input_regs_itrer i=_this->input_regs.begin(); i != _this->input_regs.end(); ++i) {
         const uint16_t start = (*i)->h.start;
         const uint16_t end = start + (*i)->h.size - 1;
         if((start <= _begin) && (_begin <= end))

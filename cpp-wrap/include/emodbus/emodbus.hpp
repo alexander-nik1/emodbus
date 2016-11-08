@@ -545,13 +545,45 @@ private:
 };
 
 // *******************************************************************************
-// holdings_t
+// input_regs_t
 
-class holdings_t {
+class input_regs_t {
     friend class server_t;
 public:
-    holdings_t();
-    holdings_t(uint16_t _start, uint16_t _size);
+    input_regs_t();
+    input_regs_t(uint16_t _start, uint16_t _size);
+
+    void set_start(uint16_t _start);
+    void set_size(uint16_t _size);
+    virtual uint8_t on_read_regs(uint16_t _offset,
+                                 uint16_t _quantity,
+                                 uint16_t* _pvalues);
+    virtual uint8_t on_write_regs(uint16_t _offset,
+                                  uint16_t _quantity,
+                                  const uint16_t* _pvalues);
+
+private:
+    void set_funcs();
+    static uint8_t read_regs(struct emb_srv_regs_t* _rr,
+                             uint16_t _offset,
+                             uint16_t _quantity,
+                             uint16_t* _pvalues);
+    static uint8_t write_regs(struct emb_srv_regs_t* _rr,
+                              uint16_t _offset,
+                              uint16_t _quantity,
+                              const uint16_t* _pvalues);
+
+    struct emb_srv_regs_t h;
+};
+
+// *******************************************************************************
+// holding_regs_t
+
+class holding_regs_t {
+    friend class server_t;
+public:
+    holding_regs_t();
+    holding_regs_t(uint16_t _start, uint16_t _size);
 
     void set_start(uint16_t _start);
     void set_size(uint16_t _size);
@@ -610,7 +642,7 @@ private:
 };
 
 // *******************************************************************************
-// server_t
+// super_server_t
 
 class super_server_t;
 
@@ -630,7 +662,7 @@ public:
     bool add_function(uint8_t _func_no, emb_srv_function_t _func);
 
     bool add_coils(coils_t& _coils);
-    bool add_holdings(holdings_t& _holdings);
+    bool add_holdings(holding_regs_t& _holdings);
     bool add_file(file_record_t& _file);
 
 private:
@@ -638,7 +670,9 @@ private:
 
     static struct emb_srv_coils_t* get_coils(struct emb_server_t* _srv, uint16_t _begin);
 
-    static struct emb_srv_regs_t* get_holdings(struct emb_server_t* _srv, uint16_t _begin);
+    static struct emb_srv_regs_t* get_holding_regs(struct emb_server_t* _srv, uint16_t _begin);
+
+    static struct emb_srv_regs_t* get_input_regs(struct emb_server_t* _srv, uint16_t _begin);
 
     static struct emb_srv_file_t* get_file(struct emb_server_t* _srv, uint16_t _fileno/*, uint16_t _begin*/);
 
@@ -648,8 +682,11 @@ private:
     typedef std::vector<coils_t*>::iterator coils_iter;
     std::vector<coils_t*> coils;
 
-    typedef std::vector<holdings_t*>::iterator holdnigs_iter;
-    std::vector<holdings_t*> holdings;
+    typedef std::vector<holding_regs_t*>::iterator holdnigs_iter;
+    std::vector<holding_regs_t*> holdings;
+
+    typedef std::vector<input_regs_t*>::iterator input_regs_itrer;
+    std::vector<input_regs_t*> input_regs;
 
     typedef std::vector<file_record_t*>::iterator files_iter;
     std::vector<file_record_t*> files;
