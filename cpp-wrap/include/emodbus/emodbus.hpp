@@ -5,6 +5,7 @@
 #include <emodbus/client/client.h>
 #include <vector>
 #include <list>
+#include <emodbus/client/read_regs.h>
 #include <emodbus/client/read_file_record.h>
 #include <emodbus/client/write_file_record.h>
 
@@ -199,7 +200,8 @@ public:
     read_regs_t();
     read_regs_t(transaction_t& _tr);
 
-    void build_req(uint16_t _starting_address, uint16_t _quantity);
+    void build_req(enum EMB_RR_TYPE _subtype,
+                   uint16_t _starting_address, uint16_t _quantity);
 
     uint16_t get_req_starting_addr() const;
     uint16_t get_req_quantity() const;

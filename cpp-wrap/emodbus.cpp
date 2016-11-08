@@ -6,7 +6,7 @@
 #include <emodbus/client/read_coils.h>
 #include <emodbus/client/write_coil.h>
 #include <emodbus/client/write_coils.h>
-#include <emodbus/client/read_holding_regs.h>
+#include <emodbus/client/read_regs.h>
 #include <emodbus/client/write_mask_reg.h>
 #include <emodbus/client/write_single_reg.h>
 #include <emodbus/client/write_multi_regs.h>
@@ -253,39 +253,44 @@ uint16_t write_coils_t::get_req_quantity() const {
 read_regs_t::read_regs_t() : transact_base_t() { }
 read_regs_t::read_regs_t(transaction_t &_tr) : transact_base_t(_tr) { }
 
-void read_regs_t::build_req(uint16_t _starting_address, uint16_t _quantity) {
+void read_regs_t::build_req(enum EMB_RR_TYPE _subtype,
+                            uint16_t _starting_address,
+                            uint16_t _quantity) {
     int res;
 
-    tr->req.resize(emb_read_hold_regs_calc_req_data_size());
-    tr->ans.resize(emb_read_hold_regs_calc_answer_data_size(_quantity));
+    tr->req.resize(emb_read_regs_calc_req_data_size());
+    tr->ans.resize(emb_read_regs_calc_answer_data_size(_quantity));
 
-    if((res = emb_read_hold_regs_make_req(tr->req, _starting_address, _quantity)))
+    if((res = emb_read_regs_make_req(tr->req,
+                                     _subtype,
+                                     _starting_address,
+                                     _quantity)))
         throw res;
 }
 
 uint16_t read_regs_t::get_req_starting_addr() const {
-    return emb_read_hold_regs_get_starting_addr(tr->req);
+    return emb_read_regs_get_starting_addr(tr->req);
 }
 
 uint16_t read_regs_t::get_req_quantity() const {
-    return emb_read_hold_regs_get_quantity(tr->req);
+    return emb_read_regs_get_quantity(tr->req);
 }
 
 uint16_t read_regs_t::get_answer_reg(uint16_t _offset) const {
-    return emb_read_hold_regs_get_reg(tr->ans, _offset);
+    return emb_read_regs_get_reg(tr->ans, _offset);
 }
 
 uint16_t read_regs_t::get_answer_quantity() const {
-    return emb_read_hold_regs_get_regs_n(tr->ans);
+    return emb_read_regs_get_regs_n(tr->ans);
 }
 
 void read_regs_t::get_answer_regs(uint16_t* _p_data, uint16_t _offset, uint16_t _n_regs) {
-    emb_read_hold_regs_get_regs(tr->ans, _offset, _n_regs, _p_data);
+    emb_read_regs_get_regs(tr->ans, _offset, _n_regs, _p_data);
 }
 
 void read_regs_t::get_answer_regs(regs_t& _res, uint16_t _offset, uint16_t _n_regs) {
     _res.resize(_n_regs);
-    emb_read_hold_regs_get_regs(tr->ans, _offset, _n_regs, &_res[0]);
+    emb_read_regs_get_regs(tr->ans, _offset, _n_regs, &_res[0]);
 }
 
 // *******************************************************************************
@@ -628,7 +633,7 @@ void client_t::emb_on_error_(struct emb_client_t* _req, int _slave_addr, int _er
 
 proxy_t::holdings_t::reg_t::operator int() const {
     read_regs_t r(p->transaction);
-    r.build_req(addr, 1);
+    r.build_req(EMB_RR_HOLDINGS, addr, 1);
     p->do_transaction(p->transaction);
     return r.get_answer_reg(0);
 }
@@ -660,7 +665,7 @@ void proxy_t::holdings_t::reg_t::operator = (const emb::regs_t& _regs) {
 proxy_t::holdings_t::reg_t::operator float() const {
     read_regs_t r(p->transaction);
     float res;
-    r.build_req(addr, 2);
+    r.build_req(EMB_RR_HOLDINGS, addr, 2);
     p->do_transaction(p->transaction);
     r.get_answer_regs((uint16_t*)&res, 0, r.get_answer_quantity());
     return res;
@@ -682,7 +687,7 @@ void proxy_t::holdings_t::reg_t::set_bit(unsigned char _nbit, bool _value) {
 bool proxy_t::holdings_t::reg_t::get_bit(unsigned char _nbit) {
     read_regs_t r(p->transaction);
     uint16_t res;
-    r.build_req(addr, 1);
+    r.build_req(EMB_RR_HOLDINGS, addr, 1);
     p->do_transaction(p->transaction);
     r.get_answer_regs((uint16_t*)&res, 0, 1);
     return (res & (1 << _nbit)) != 0;
@@ -691,7 +696,7 @@ bool proxy_t::holdings_t::reg_t::get_bit(unsigned char _nbit) {
 proxy_t::holdings_t::regs_t::operator emb::regs_t() {
     read_regs_t r(p->transaction);
     emb::regs_t res;
-    r.build_req(start, (end - start)+1);
+    r.build_req(EMB_RR_HOLDINGS, start, (end - start)+1);
     p->do_transaction(p->transaction);
     r.get_answer_regs(res, 0, r.get_answer_quantity());
     return res;
@@ -776,7 +781,7 @@ unsigned int proxy_t::timeout() const
 // Holding registers
 void proxy_t::read_holdings(uint16_t _begin, uint16_t _size, regs_t& _result) {
     read_regs_t r(transaction);
-    r.build_req(_begin, _size);
+    r.build_req(EMB_RR_HOLDINGS, _begin, _size);
     do_transaction(transaction);
     r.get_answer_regs(_result, 0, r.get_answer_quantity());
 }

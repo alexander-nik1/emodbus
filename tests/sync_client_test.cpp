@@ -15,7 +15,7 @@
 #include <emodbus/base/modbus_errno.h>
 
 
-#include <emodbus/client/read_holding_regs.h>
+#include <emodbus/client/read_regs.h>
 #include <emodbus/client/write_mask_reg.h>
 #include <emodbus/client/write_multi_regs.h>
 #include <emodbus/client/write_single_reg.h>
@@ -325,7 +325,7 @@ public:
                 if(to_read > 125)
                     to_read = 125;
 
-                rr.build_req(begin_addr, to_read);
+                rr.build_req(EMB_RR_HOLDINGS, begin_addr, to_read);
 
                 res = mb_client.do_transaction(_srv_addr, timeout, rr);
                 if(res) {
@@ -376,7 +376,7 @@ public:
 
         uint16_t* p_data;
 
-        rr.build_req(begin_addr, quantity);
+        rr.build_req(EMB_RR_HOLDINGS, begin_addr, quantity);
 
         err = mb_client.do_transaction(srv_addr, timeout, rr);
 
@@ -534,7 +534,7 @@ public:
                 if(to_read > 125)
                     to_read = 125;
 
-                rr.build_req(begin_addr, to_read);
+                rr.build_req(EMB_RR_HOLDINGS, begin_addr, to_read);
 
                 res = mb_client.do_transaction(_srv_addr, timeout, rr);
                 if(res) {

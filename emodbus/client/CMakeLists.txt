@@ -55,15 +55,15 @@ add_library(emodbus-client-write-coils SHARED ${EMODBUS_CLIENT_WRITE_COILS_SRC})
 add_library(emodbus-client-write-coils-static STATIC ${EMODBUS_CLIENT_WRITE_COILS_SRC})
 
 # ===================================================
-# client read holding regs
+# client read regs
 
-set(EMODBUS_CLIENT_READ_HOLDING_REGS_SRC
-	read_holding_regs.c
+set(EMODBUS_CLIENT_READ_REGS_SRC
+	read_regs.c
 )
 
-add_library(emodbus-client-read-holdings SHARED ${EMODBUS_CLIENT_READ_HOLDING_REGS_SRC})
+add_library(emodbus-client-read-regs SHARED ${EMODBUS_CLIENT_READ_REGS_SRC})
 
-add_library(emodbus-client-read-holdings-static STATIC ${EMODBUS_CLIENT_READ_HOLDING_REGS_SRC})
+add_library(emodbus-client-read-regs-static STATIC ${EMODBUS_CLIENT_READ_REGS_SRC})
 
 # ===================================================
 # client mask write reg

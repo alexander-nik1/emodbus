@@ -12,7 +12,7 @@
 #include <emodbus/base/modbus_errno.h>
 
 #include <emodbus/client/client.h>
-#include <emodbus/client/read_holding_regs.h>
+#include <emodbus/client/read_regs.h>
 
 #include <emodbus/impl/posix/mb-rtu-via-serial.h>
 
@@ -197,7 +197,7 @@ int main() {
     alloc_pdu_data(&req);
     alloc_pdu_data(&ans);
 
-    emb_read_hold_regs_make_req(&req, 0x0000, 8);
+    emb_read_regs_make_req(&req, EMB_RR_HOLDINGS, 0x0000, 8);
 
     for(i=0; i<1000; ++i) {
         int res;
