@@ -662,7 +662,8 @@ public:
     bool add_function(uint8_t _func_no, emb_srv_function_t _func);
 
     bool add_coils(coils_t& _coils);
-    bool add_holdings(holding_regs_t& _holdings);
+    bool add_holding_regs(holding_regs_t& _holdings);
+    bool add_input_regs(input_regs_t& _holdings);
     bool add_file(file_record_t& _file);
 
 private:
@@ -685,7 +686,7 @@ private:
     typedef std::vector<holding_regs_t*>::iterator holdnigs_iter;
     std::vector<holding_regs_t*> holdings;
 
-    typedef std::vector<input_regs_t*>::iterator input_regs_itrer;
+    typedef std::vector<input_regs_t*>::iterator input_regs_iter;
     std::vector<input_regs_t*> input_regs;
 
     typedef std::vector<file_record_t*>::iterator files_iter;

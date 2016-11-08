@@ -1047,6 +1047,7 @@ server_t::server_t(int _address) : address(_address) {
     memset(&srv, 0, sizeof(struct emb_server_t));
     srv.get_function = get_function;
     srv.get_coils = get_coils;
+    srv.get_input_regs = get_input_regs;
     srv.get_holding_regs = get_holding_regs;
     srv.get_file = get_file;
 }
@@ -1092,12 +1093,21 @@ bool server_t::add_coils(coils_t& _coils) {
     return true;
 }
 
-bool server_t::add_holdings(holding_regs_t& _holdings) {
+bool server_t::add_holding_regs(holding_regs_t& _holdings) {
     for(holdnigs_iter i=holdings.begin(); i != holdings.end(); ++i) {
         if( emb_is_ranges_cross((*i)->h.start, (*i)->h.size, _holdings.h.start, _holdings.h.size) )
             return false;
     }
     holdings.push_back(&_holdings);
+    return true;
+}
+
+bool server_t::add_input_regs(input_regs_t& _holdings) {
+    for(input_regs_iter i=input_regs.begin(); i != input_regs.end(); ++i) {
+        if( emb_is_ranges_cross((*i)->h.start, (*i)->h.size, _holdings.h.start, _holdings.h.size) )
+            return false;
+    }
+    input_regs.push_back(&_holdings);
     return true;
 }
 
@@ -1144,7 +1154,7 @@ struct emb_srv_regs_t* server_t::get_holding_regs(struct emb_server_t* _srv, uin
 
 struct emb_srv_regs_t* server_t::get_input_regs(struct emb_server_t* _srv, uint16_t _begin) {
     server_t* _this = container_of(_srv, server_t, srv);
-    for(input_regs_itrer i=_this->input_regs.begin(); i != _this->input_regs.end(); ++i) {
+    for(input_regs_iter i=_this->input_regs.begin(); i != _this->input_regs.end(); ++i) {
         const uint16_t start = (*i)->h.start;
         const uint16_t end = start + (*i)->h.size - 1;
         if((start <= _begin) && (_begin <= end))

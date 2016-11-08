@@ -123,6 +123,31 @@ private:
     std::vector<uint16_t> regs;
 };
 
+class my_input_regs_t : public emb::server::input_regs_t {
+public:
+
+    my_input_regs_t(uint16_t _start, uint16_t _size) :
+        emb::server::input_regs_t(_start, _size) {
+        regs.resize(_size);
+        for(int i=0; i<_size; ++i)
+            regs[i] = _start + i;
+    }
+
+    uint8_t on_read_regs(uint16_t _offset,
+                         uint16_t _quantity, uint16_t* _pvalues) {
+        memcpy(_pvalues, &regs[_offset], _quantity*2);
+        return 0;
+    }
+
+    uint8_t on_write_regs(uint16_t _offset,
+                          uint16_t _quantity, const uint16_t* _pvalues) {
+        memcpy(&regs[_offset], _pvalues, _quantity*2);
+        return 0;
+    }
+private:
+    std::vector<uint16_t> regs;
+};
+
 class my_file_t : public emb::server::file_record_t {
 public:
     enum { FILENO = 0 };
@@ -137,25 +162,13 @@ public:
 
     uint8_t on_read_file(uint16_t _offset,
                          uint16_t _quantity, uint16_t* _pvalues) {
-
         memcpy(_pvalues, &regs[_offset], _quantity*2);
-
-//        printf("Read File: start:0x%04X, length:0x%04X\n", _offset, _quantity);
-//        fflush(stdout);
         return 0;
     }
 
     uint8_t on_write_file(uint16_t _offset,
                           uint16_t _quantity, const uint16_t* _pvalues) {
-
-//        printf("Write File: start:0x%04X, length:0x%04X\nData:", _offset, _quantity);
-//        for(int i=0; i<_quantity; ++i)
-//            printf("0x%04X ", _pvalues[i]);
-//        printf("\n");
-//        fflush(stdout);
-
         memcpy(&regs[_offset], _pvalues, _quantity*2);
-
         return 0;
     }
 private:
@@ -175,11 +188,14 @@ public:
         , holdings2(0x7FED, 0x0077)
         , holdings3(0x8065, 0x0001)
         , holdings4(0xE800, 0x1800)
-
+        , inputs1(0x0000, 0x8000)
+        , inputs2(0xD000, 0x1000)
     {
         add_function(0x01, emb_srv_read_coils);
         add_function(0x05, emb_srv_write_coil);
         add_function(0x0F, emb_srv_write_coils);
+
+        add_function(0x04, emb_srv_read_regs);
 
         add_function(0x03, emb_srv_read_regs);
         add_function(0x06, emb_srv_write_reg);
@@ -189,21 +205,31 @@ public:
         add_function(0x14, emb_srv_read_file);
         add_function(0x15, emb_srv_write_file);
 
-        add_coils(coils);
-        if(!add_holdings(holdings1))
-            printf("Error with add_holdings(holdings1)\n");
-        if(!add_holdings(holdings2))
-            printf("Error with add_holdings(holdings2)\n");
-        if(!add_holdings(holdings3))
-            printf("Error with add_holdings(holdings3)\n");
-        if(!add_holdings(holdings4))
-            printf("Error with add_holdings(holdings4)\n");
-        add_file(file);
+        if(!add_coils(coils))
+            printf("Error with add_coils(coils)\n");
+
+        if(!add_holding_regs(holdings1))
+            printf("Error with add_holding_regs(holdings1)\n");
+        if(!add_holding_regs(holdings2))
+            printf("Error with add_holding_regs(holdings2)\n");
+        if(!add_holding_regs(holdings3))
+            printf("Error with add_holding_regs(holdings3)\n");
+        if(!add_holding_regs(holdings4))
+            printf("Error with add_holding_regs(holdings4)\n");
+
+        if(!add_input_regs(inputs1))
+            printf("Error with add_input_regsinputs1(inputs1)\n");
+        if(!add_input_regs(inputs2))
+            printf("Error with add_input_regsinputs1(inputs2)\n");
+
+        if(!add_file(file))
+            printf("Error with add_file(file)\n");
     }
 
 private:
     my_coils_t coils;
     my_holdings_t holdings1,holdings2,holdings3,holdings4;
+    my_input_regs_t inputs1,inputs2;
     my_file_t file;
 };
 
