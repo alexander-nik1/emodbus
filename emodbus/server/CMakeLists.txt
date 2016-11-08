@@ -58,12 +58,12 @@ add_library(emodbus-server-write-coils-static STATIC ${EMODBUS_SERVER_WRITE_COIL
 # ===================================================
 # server-read-holdings
 
-set(EMODBUS_SERVER_READ_HOLDINGS
-    read_holding_regs.c
+set(EMODBUS_SERVER_READ_REGS
+    read_regs.c
 )
 
-add_library(emodbus-server-read-holdings SHARED ${EMODBUS_SERVER_READ_HOLDINGS})
-add_library(emodbus-server-read-holdings-static STATIC ${EMODBUS_SERVER_READ_HOLDINGS})
+add_library(emodbus-server-read-regs SHARED ${EMODBUS_SERVER_READ_REGS})
+add_library(emodbus-server-read-regs-static STATIC ${EMODBUS_SERVER_READ_REGS})
 
 # ===================================================
 # server-write-reg

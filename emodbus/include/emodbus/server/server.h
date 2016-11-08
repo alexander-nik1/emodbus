@@ -4,7 +4,7 @@
 
 #include <emodbus/base/modbus_transport.h>
 #include <emodbus/server/coils.h>
-#include <emodbus/server/holdings.h>
+#include <emodbus/server/regs.h>
 #include <emodbus/server/file.h>
 #include <stdint.h>
 
@@ -30,7 +30,9 @@ struct emb_server_t {
 
     struct emb_srv_coils_t* (*get_coils)(struct emb_server_t* _srv, uint16_t _begin);
 
-    struct emb_srv_holdings_t* (*get_holdings)(struct emb_server_t* _srv, uint16_t _begin);
+    struct emb_srv_regs_t* (*get_holding_regs)(struct emb_server_t* _srv, uint16_t _begin);
+
+    struct emb_srv_regs_t* (*get_input_regs)(struct emb_server_t* _srv, uint16_t _begin);
 
     struct emb_srv_file_t* (*get_file)(struct emb_server_t* _srv, uint16_t _fileno/*, uint16_t _begin*/);
 };
@@ -74,10 +76,10 @@ uint8_t emb_srv_write_coils(struct emb_super_server_t* _ssrv,
                             struct emb_server_t* _srv);
 
 //**********************************************************************
-// Holding registers
+// Holding and Input registers
 
-uint8_t emb_srv_read_holdings(struct emb_super_server_t* _ssrv,
-                              struct emb_server_t* _srv);
+uint8_t emb_srv_read_regs(struct emb_super_server_t* _ssrv,
+                          struct emb_server_t* _srv);
 
 uint8_t emb_srv_write_reg(struct emb_super_server_t* _ssrv,
                           struct emb_server_t* _srv);

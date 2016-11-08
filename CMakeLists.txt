@@ -98,7 +98,7 @@ INSTALL(FILES
 		lib/libemodbus-server-mask-reg.so
 		lib/libemodbus-server-read-coils.so
 		lib/libemodbus-server-read-file.so
-		lib/libemodbus-server-read-holdings.so
+                lib/libemodbus-server-read-regs.so
 		lib/libemodbus-server-write-coil.so
 		lib/libemodbus-server-write-coils.so
 		lib/libemodbus-server-write-file.so
@@ -114,7 +114,7 @@ INSTALL(FILES
 		lib/libemodbus-server-mask-reg-static.a
 		lib/libemodbus-server-read-coils-static.a
 		lib/libemodbus-server-read-file-static.a
-		lib/libemodbus-server-read-holdings-static.a
+                lib/libemodbus-server-read-regs-static.a
 		lib/libemodbus-server-write-coil-static.a
 		lib/libemodbus-server-write-coils-static.a
 		lib/libemodbus-server-write-file-static.a

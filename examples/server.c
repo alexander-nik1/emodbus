@@ -10,7 +10,7 @@
 #include <emodbus/server/server.h>
 #include <emodbus/base/modbus_pdu.h>
 
-int is_addr_belongs_to_holdings(uint16_t _addr, const struct emb_srv_holdings_t* _holdings)
+int is_addr_belongs_to_holdings(uint16_t _addr, const struct emb_srv_regs_t* _holdings)
 {
     return ((_holdings->start <= _addr) && (_addr < _holdings->start + _holdings->size));
 }
@@ -26,7 +26,7 @@ int is_addr_belongs_to_holdings(uint16_t _addr, const struct emb_srv_holdings_t*
 
 uint16_t holdings1_regs[0x10];
 
-uint8_t holdings1_read_regs(struct emb_srv_holdings_t* _rr,
+uint8_t holdings1_read_regs(struct emb_srv_regs_t* _rr,
                             uint16_t _offset,
                             uint16_t _quantity,
                             uint16_t* _pvalues)
@@ -35,7 +35,7 @@ uint8_t holdings1_read_regs(struct emb_srv_holdings_t* _rr,
     return 0;
 }
 
-uint8_t holdings1_write_regs(struct emb_srv_holdings_t* _rr,
+uint8_t holdings1_write_regs(struct emb_srv_regs_t* _rr,
                       uint16_t _offset,
                       uint16_t _quantity,
                       const uint16_t* _pvalues)
@@ -44,7 +44,7 @@ uint8_t holdings1_write_regs(struct emb_srv_holdings_t* _rr,
     return 0;
 }
 
-struct emb_srv_holdings_t holdings1 = {
+struct emb_srv_regs_t holdings1 = {
     .start = 0x1000,
     .size = sizeof(holdings1_regs)/sizeof(uint16_t),
     .read_regs = holdings1_read_regs,
@@ -59,7 +59,7 @@ static emb_srv_function_t my_srv_funcs[] = {
     /* 0x00 */ NULL,
     /* 0x01 */ NULL, // emb_srv_read_coils,
     /* 0x02 */ NULL,
-    /* 0x03 */ emb_srv_read_holdings,
+    /* 0x03 */ emb_srv_read_regs,
     /* 0x04 */ NULL,
     /* 0x05 */ NULL, // emb_srv_write_coil,
     /* 0x06 */ emb_srv_write_reg,
@@ -91,7 +91,7 @@ static emb_srv_function_t my_srv_get_function(struct emb_server_t* _srv, uint8_t
         return NULL;
 }
 
-static struct emb_srv_holdings_t* my_srv_get_holdings(struct emb_server_t* _srv, uint16_t _begin)
+static struct emb_srv_regs_t* my_srv_get_holdings(struct emb_server_t* _srv, uint16_t _begin)
 {
     if(is_addr_belongs_to_holdings(_begin, &holdings1)) {
         return &holdings1;
@@ -102,7 +102,7 @@ static struct emb_srv_holdings_t* my_srv_get_holdings(struct emb_server_t* _srv,
 struct emb_server_t my_srv = {
     .get_function = my_srv_get_function,
     .get_coils = NULL,
-    .get_holdings = my_srv_get_holdings,
+    .get_holding_regs = my_srv_get_holdings,
     .get_file = NULL
 };
 

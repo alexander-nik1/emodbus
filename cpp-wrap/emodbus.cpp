@@ -920,7 +920,7 @@ void holdings_t::set_funcs() {
     h.write_regs = write_regs;
 }
 
-uint8_t holdings_t::read_regs(struct emb_srv_holdings_t* _rr,
+uint8_t holdings_t::read_regs(struct emb_srv_regs_t* _rr,
                                      uint16_t _offset,
                                      uint16_t _quantity,
                                      uint16_t* _pvalues) {
@@ -928,7 +928,7 @@ uint8_t holdings_t::read_regs(struct emb_srv_holdings_t* _rr,
     return _this->on_read_regs(_offset, _quantity, _pvalues);
 }
 
-uint8_t holdings_t::write_regs(struct emb_srv_holdings_t* _rr,
+uint8_t holdings_t::write_regs(struct emb_srv_regs_t* _rr,
                                       uint16_t _offset,
                                       uint16_t _quantity,
                                       const uint16_t* _pvalues) {
@@ -997,7 +997,7 @@ server_t::server_t(int _address) : address(_address) {
     memset(&srv, 0, sizeof(struct emb_server_t));
     srv.get_function = get_function;
     srv.get_coils = get_coils;
-    srv.get_holdings = get_holdings;
+    srv.get_holding_regs = get_holdings;
     srv.get_file = get_file;
 }
 
@@ -1081,7 +1081,7 @@ struct emb_srv_coils_t* server_t::get_coils(struct emb_server_t* _srv, uint16_t 
     return NULL;
 }
 
-struct emb_srv_holdings_t* server_t::get_holdings(struct emb_server_t* _srv, uint16_t _begin) {
+struct emb_srv_regs_t* server_t::get_holdings(struct emb_server_t* _srv, uint16_t _begin) {
     server_t* _this = container_of(_srv, server_t, srv);
     for(holdnigs_iter i=_this->holdings.begin(); i != _this->holdings.end(); ++i) {
         const uint16_t start = (*i)->h.start;

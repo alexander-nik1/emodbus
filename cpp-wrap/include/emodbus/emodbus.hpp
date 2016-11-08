@@ -10,7 +10,7 @@
 
 #include <emodbus/server/server.h>
 #include <emodbus/server/coils.h>
-#include <emodbus/server/holdings.h>
+#include <emodbus/server/regs.h>
 #include <emodbus/server/file.h>
 
 namespace emb {
@@ -564,16 +564,16 @@ public:
 
 private:
     void set_funcs();
-    static uint8_t read_regs(struct emb_srv_holdings_t* _rr,
+    static uint8_t read_regs(struct emb_srv_regs_t* _rr,
                              uint16_t _offset,
                              uint16_t _quantity,
                              uint16_t* _pvalues);
-    static uint8_t write_regs(struct emb_srv_holdings_t* _rr,
+    static uint8_t write_regs(struct emb_srv_regs_t* _rr,
                               uint16_t _offset,
                               uint16_t _quantity,
                               const uint16_t* _pvalues);
 
-    struct emb_srv_holdings_t h;
+    struct emb_srv_regs_t h;
 };
 
 // *******************************************************************************
@@ -638,7 +638,7 @@ private:
 
     static struct emb_srv_coils_t* get_coils(struct emb_server_t* _srv, uint16_t _begin);
 
-    static struct emb_srv_holdings_t* get_holdings(struct emb_server_t* _srv, uint16_t _begin);
+    static struct emb_srv_regs_t* get_holdings(struct emb_server_t* _srv, uint16_t _begin);
 
     static struct emb_srv_file_t* get_file(struct emb_server_t* _srv, uint16_t _fileno/*, uint16_t _begin*/);
 

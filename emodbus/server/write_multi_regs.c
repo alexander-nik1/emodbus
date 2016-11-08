@@ -1,6 +1,6 @@
 
 #include <emodbus/server/server.h>
-#include <emodbus/server/holdings.h>
+#include <emodbus/server/regs.h>
 #include <emodbus/base/byte-word.h>
 #include <emodbus/base/modbus_errno.h>
 #include <emodbus/base/calc_pdu_size.h>
@@ -9,7 +9,7 @@
 uint8_t emb_srv_write_regs(struct emb_super_server_t* _ssrv,
                            struct emb_server_t* _srv) {
 
-    struct emb_srv_holdings_t* r;
+    struct emb_srv_regs_t* r;
     uint8_t* rx_data = _ssrv->rx_pdu->data;
     uint8_t* tx_data = _ssrv->tx_pdu->data;
     uint8_t i;
@@ -22,10 +22,10 @@ uint8_t emb_srv_write_regs(struct emb_super_server_t* _ssrv,
     if(!(0x0001 <= quantity && quantity <= 0x007B) || (byte_count != (quantity*2)))
         return MBE_ILLEGAL_DATA_VALUE;
 
-    if(!_srv->get_holdings)
+    if(!_srv->get_holding_regs)
         return MBE_SLAVE_FAILURE;
 
-    r = _srv->get_holdings(_srv, start_addr);
+    r = _srv->get_holding_regs(_srv, start_addr);
 
     if(!r)
         return MBE_ILLEGAL_DATA_ADDR;

@@ -16,7 +16,7 @@
 #include <emodbus/base/modbus_errno.h>
 #include <emodbus/server/server.h>
 #include <emodbus/server/coils.h>
-#include <emodbus/server/holdings.h>
+#include <emodbus/server/regs.h>
 #include <emodbus/server/file.h>
 
 #include <emodbus/impl/posix/serial-rtu.hpp>
@@ -181,7 +181,7 @@ public:
         add_function(0x05, emb_srv_write_coil);
         add_function(0x0F, emb_srv_write_coils);
 
-        add_function(0x03, emb_srv_read_holdings);
+        add_function(0x03, emb_srv_read_regs);
         add_function(0x06, emb_srv_write_reg);
         add_function(0x10, emb_srv_write_regs);
         add_function(0x16, emb_srv_mask_reg);
