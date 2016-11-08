@@ -1,5 +1,8 @@
 
-set(LIB_EMODBUS_RTU rtu.c)
+set(LIB_EMODBUS_RTU
+    rtu.c
+    add/crc.c
+)
 
 add_library(emodbus-rtu SHARED ${LIB_EMODBUS_RTU})
 target_link_libraries(emodbus-rtu emodbus-base)

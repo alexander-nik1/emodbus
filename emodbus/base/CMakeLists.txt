@@ -1,6 +1,5 @@
 
 set(LIB_EMODBUS_BASE_SRC
-    add/crc.c
     add/list.c
     add/s-list.c
     common.c
