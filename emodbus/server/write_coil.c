@@ -1,6 +1,6 @@
 
 #include <emodbus/server/server.h>
-#include <emodbus/server/coils.h>
+#include <emodbus/server/bits.h>
 #include <emodbus/base/byte-word.h>
 #include <emodbus/base/modbus_errno.h>
 #include <emodbus/base/calc_pdu_size.h>
@@ -13,7 +13,7 @@ uint8_t emb_srv_write_coil(struct emb_super_server_t* _ssrv,
     uint8_t* tx_data = _ssrv->tx_pdu->data;
     uint8_t coil_value;
 
-    struct emb_srv_coils_t* coils;
+    struct emb_srv_bits_t* coils;
 
     const uint16_t
             addr = GET_BIG_END16(rx_data + 0),
@@ -40,7 +40,7 @@ uint8_t emb_srv_write_coil(struct emb_super_server_t* _ssrv,
     if(!coils)
         return MBE_ILLEGAL_DATA_ADDR;
 
-    if(!coils->write_coils)
+    if(!coils->write_bits)
         return MBE_ILLEGAL_DATA_ADDR;
 
     _ssrv->tx_pdu->function = 0x05;
@@ -52,7 +52,7 @@ uint8_t emb_srv_write_coil(struct emb_super_server_t* _ssrv,
     ((uint16_t*)(tx_data))[0] = SWAP_BYTES(addr);
     ((uint16_t*)(tx_data))[1] = SWAP_BYTES(value);
 
-    return coils->write_coils(coils,
+    return coils->write_bits(coils,
                               addr - coils->start,
                               1,
                               &coil_value);

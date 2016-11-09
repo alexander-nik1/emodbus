@@ -96,7 +96,7 @@ INSTALL(FILES lib/libemodbus-base-static.a   DESTINATION ${PREFIX}/lib/ COMPONEN
 INSTALL(FILES 
 		lib/libemodbus-server.so
 		lib/libemodbus-server-mask-reg.so
-		lib/libemodbus-server-read-coils.so
+                lib/libemodbus-server-read-bits.so
 		lib/libemodbus-server-read-file.so
                 lib/libemodbus-server-read-regs.so
 		lib/libemodbus-server-write-coil.so
@@ -112,7 +112,7 @@ INSTALL(FILES
 INSTALL(FILES 
 		lib/libemodbus-server-static.a
 		lib/libemodbus-server-mask-reg-static.a
-		lib/libemodbus-server-read-coils-static.a
+                lib/libemodbus-server-read-bits-static.a
 		lib/libemodbus-server-read-file-static.a
                 lib/libemodbus-server-read-regs-static.a
 		lib/libemodbus-server-write-coil-static.a

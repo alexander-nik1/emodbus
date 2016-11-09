@@ -871,11 +871,11 @@ uint8_t coils_t::on_write_coils(uint16_t _offset,
 { return 0; }
 
 void coils_t::set_funcs() {
-    coils.read_coils = read_coils;
-    coils.write_coils = write_coils;
+    coils.read_bits = read_coils;
+    coils.write_bits = write_coils;
 }
 
-uint8_t coils_t::read_coils(struct emb_srv_coils_t* _coils,
+uint8_t coils_t::read_coils(struct emb_srv_bits_t* _coils,
                                      uint16_t _offset,
                                      uint16_t _quantity,
                                      uint8_t* _pvalues) {
@@ -883,12 +883,49 @@ uint8_t coils_t::read_coils(struct emb_srv_coils_t* _coils,
     return _this->on_read_coils(_offset, _quantity, _pvalues);
 }
 
-uint8_t coils_t::write_coils(struct emb_srv_coils_t* _coils,
+uint8_t coils_t::write_coils(struct emb_srv_bits_t* _coils,
                                       uint16_t _offset,
                                       uint16_t _quantity,
                                       const uint8_t* _pvalues) {
     coils_t* _this = container_of(_coils, coils_t, coils);
     return _this->on_write_coils(_offset, _quantity, _pvalues);
+}
+
+// *******************************************************************************
+// discrete_inputs_t
+
+discrete_inputs_t::discrete_inputs_t() {
+    set_funcs();
+}
+
+discrete_inputs_t::discrete_inputs_t(uint16_t _start, uint16_t _size) {
+    discrete_inputs.start = _start;
+    discrete_inputs.size = _size;
+    set_funcs();
+}
+
+void discrete_inputs_t::set_start(uint16_t _start)
+{ discrete_inputs.start = _start; }
+
+void discrete_inputs_t::set_size(uint16_t _size)
+{ discrete_inputs.size = _size; }
+
+uint8_t discrete_inputs_t::on_read_bits(uint16_t _offset,
+                             uint16_t _quantity,
+                             uint8_t* _pvalues)
+{ return 0; }
+
+void discrete_inputs_t::set_funcs() {
+    discrete_inputs.read_bits = read_inputs;
+    discrete_inputs.write_bits = NULL;
+}
+
+uint8_t discrete_inputs_t::read_inputs(struct emb_srv_bits_t* _bits,
+                                     uint16_t _offset,
+                                     uint16_t _quantity,
+                                     uint8_t* _pvalues) {
+    discrete_inputs_t* _this = container_of(_bits, discrete_inputs_t, discrete_inputs);
+    return _this->on_read_bits(_offset, _quantity, _pvalues);
 }
 
 // *******************************************************************************
@@ -1052,6 +1089,7 @@ server_t::server_t(int _address) : address(_address) {
     memset(&srv, 0, sizeof(struct emb_server_t));
     srv.get_function = get_function;
     srv.get_coils = get_coils;
+    srv.get_discrete_inputs = get_discrete_inputs;
     srv.get_input_regs = get_input_regs;
     srv.get_holding_regs = get_holding_regs;
     srv.get_file = get_file;
@@ -1098,6 +1136,16 @@ bool server_t::add_coils(coils_t& _coils) {
     return true;
 }
 
+bool server_t::add_discrete_inputs(discrete_inputs_t& _inputs) {
+    for(discr_inputs_iter i=discrete_inputs.begin(); i != discrete_inputs.end(); ++i) {
+        if( emb_is_ranges_cross((*i)->discrete_inputs.start, (*i)->discrete_inputs.size,
+                                _inputs.discrete_inputs.start, _inputs.discrete_inputs.size) )
+            return false;
+    }
+    discrete_inputs.push_back(&_inputs);
+    return true;
+}
+
 bool server_t::add_holding_regs(holding_regs_t& _holdings) {
     for(holdnigs_iter i=holdings.begin(); i != holdings.end(); ++i) {
         if( emb_is_ranges_cross((*i)->h.start, (*i)->h.size, _holdings.h.start, _holdings.h.size) )
@@ -1135,13 +1183,24 @@ emb_srv_function_t server_t::get_function(struct emb_server_t* _srv, uint8_t _fu
     return NULL;
 }
 
-struct emb_srv_coils_t* server_t::get_coils(struct emb_server_t* _srv, uint16_t _begin) {
+struct emb_srv_bits_t* server_t::get_coils(struct emb_server_t* _srv, uint16_t _begin) {
     server_t* _this = container_of(_srv, server_t, srv);
     for(coils_iter i=_this->coils.begin(); i != _this->coils.end(); ++i) {
         const uint16_t start = (*i)->coils.start;
         const uint16_t end = start + (*i)->coils.size - 1;
         if((start <= _begin) && (_begin <= end))
             return &((*i)->coils);
+    }
+    return NULL;
+}
+
+struct emb_srv_bits_t* server_t::get_discrete_inputs(struct emb_server_t* _srv, uint16_t _begin) {
+    server_t* _this = container_of(_srv, server_t, srv);
+    for(discr_inputs_iter i=_this->discrete_inputs.begin(); i != _this->discrete_inputs.end(); ++i) {
+        const uint16_t start = (*i)->discrete_inputs.start;
+        const uint16_t end = start + (*i)->discrete_inputs.size - 1;
+        if((start <= _begin) && (_begin <= end))
+            return &((*i)->discrete_inputs);
     }
     return NULL;
 }

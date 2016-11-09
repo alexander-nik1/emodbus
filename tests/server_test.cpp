@@ -15,7 +15,7 @@
 #include <emodbus/base/common.h>
 #include <emodbus/base/modbus_errno.h>
 #include <emodbus/server/server.h>
-#include <emodbus/server/coils.h>
+#include <emodbus/server/bits.h>
 #include <emodbus/server/regs.h>
 #include <emodbus/server/file.h>
 
@@ -78,6 +78,36 @@ private:
         }
 //        printf("\n");
 //        fflush(stdout);
+        return 0;
+    }
+
+    std::vector<bool> values;
+};
+
+class my_discrete_inputs_t : public emb::server::discrete_inputs_t {
+public:
+    my_discrete_inputs_t(uint16_t _start, uint16_t _size) :
+        emb::server::discrete_inputs_t(_start, _size) {
+        values.resize(_size);
+        for(int i=0; i<_size; ++i) {
+            values[i] = false;
+        }
+    }
+
+private:
+    uint8_t on_read_bits(uint16_t _offset,
+                         uint16_t _quantity,
+                         uint8_t* _pvalues) {
+        for(int byte=0; _quantity != 0; ++byte) {
+            _pvalues[byte] = 0;
+            const int n_bits = _quantity > 8 ? 8 : _quantity;
+            for(int bit=0; bit<n_bits; ++bit) {
+                if(values[_offset + byte*8 + bit]) {
+                    _pvalues[byte] |= (1 << bit);
+                }
+            }
+            _quantity -= n_bits;
+        }
         return 0;
     }
 
@@ -180,6 +210,8 @@ class my_server_t : public emb::server::server_t {
 public:
     my_server_t(int _address)
         : emb::server::server_t(_address)
+        , di1(0x0000, 0x8000)
+        , di2(0xE800, 0x1800)
         , coils1(0x0000, 0x7FED)
         , coils2(0x7FED, 0x0077)
         , coils3(0x8065, 0x0001)
@@ -191,19 +223,26 @@ public:
         , inputs1(0x0000, 0x8000)
         , inputs2(0xE800, 0x1800)
     {
-        add_function(0x01, emb_srv_read_coils);
+        add_function(0x01, emb_srv_read_bits);
         add_function(0x05, emb_srv_write_coil);
         add_function(0x0F, emb_srv_write_coils);
 
-        add_function(0x04, emb_srv_read_regs);
+        add_function(0x02, emb_srv_read_bits);
 
         add_function(0x03, emb_srv_read_regs);
         add_function(0x06, emb_srv_write_reg);
         add_function(0x10, emb_srv_write_regs);
         add_function(0x16, emb_srv_mask_reg);
 
+        add_function(0x04, emb_srv_read_regs);
+
         add_function(0x14, emb_srv_read_file);
         add_function(0x15, emb_srv_write_file);
+
+        if(!add_discrete_inputs(di1))
+            printf("Error with add_discrete_inputs(di1)\n");
+        if(!add_discrete_inputs(di2))
+            printf("Error with add_discrete_inputs(di2)\n");
 
         if(!add_coils(coils1))
             printf("Error with add_coils(coils1)\n");
@@ -233,6 +272,7 @@ public:
     }
 
 private:
+    my_discrete_inputs_t di1,di2;
     my_coils_t coils1,coils2,coils3,coils4;
     my_holdings_t holdings1,holdings2,holdings3,holdings4;
     my_input_regs_t inputs1,inputs2;

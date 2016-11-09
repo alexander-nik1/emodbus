@@ -3,7 +3,7 @@
 #define EMODBUS_SERVER_BASE_H
 
 #include <emodbus/base/modbus_transport.h>
-#include <emodbus/server/coils.h>
+#include <emodbus/server/bits.h>
 #include <emodbus/server/regs.h>
 #include <emodbus/server/file.h>
 #include <stdint.h>
@@ -28,7 +28,9 @@ struct emb_server_t {
 
     emb_srv_function_t (*get_function)(struct emb_server_t* _srv, uint8_t _func);
 
-    struct emb_srv_coils_t* (*get_coils)(struct emb_server_t* _srv, uint16_t _begin);
+    struct emb_srv_bits_t* (*get_coils)(struct emb_server_t* _srv, uint16_t _begin);
+
+    struct emb_srv_bits_t* (*get_discrete_inputs)(struct emb_server_t* _srv, uint16_t _begin);
 
     struct emb_srv_regs_t* (*get_holding_regs)(struct emb_server_t* _srv, uint16_t _begin);
 
@@ -64,10 +66,10 @@ void emb_super_server_set_transport(struct emb_super_server_t* _ssrv,
                                     struct emb_transport_t* _transport);
 
 //**********************************************************************
-// Coils
+// Coils and Discrete inputs.
 
-uint8_t emb_srv_read_coils(struct emb_super_server_t* _ssrv,
-                           struct emb_server_t* _srv);
+uint8_t emb_srv_read_bits(struct emb_super_server_t* _ssrv,
+                          struct emb_server_t* _srv);
 
 uint8_t emb_srv_write_coil(struct emb_super_server_t* _ssrv,
                            struct emb_server_t* _srv);

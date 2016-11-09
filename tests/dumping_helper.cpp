@@ -6,9 +6,9 @@
 
 emb_debug_helper_t::emb_debug_helper_t() {
     rx_dumping = tx_dumping = false;
+    rx_bytes_ = tx_bytes_ = 0UL;
     emb_dump_rx_data = on_write_rx;
     emb_dump_tx_data = on_write_tx;
-    rx_bytes_ = tx_bytes_ = 0UL;
 }
 
 void emb_debug_helper_t::enable_dumping() {
@@ -30,11 +30,11 @@ void emb_debug_helper_t::disable_rx_dumping() {
 }
 
 void emb_debug_helper_t::enable_tx_dumping() {
-    tx_dumping = false;
+    tx_dumping = true;
 }
 
 void emb_debug_helper_t::disable_tx_dumping() {
-    tx_dumping = true;
+    tx_dumping = false;
 }
 
 void emb_debug_helper_t::dbg_print_packet(void *_f, const char* _prefix, const void* _pkt, unsigned int _size) {

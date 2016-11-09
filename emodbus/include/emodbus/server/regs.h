@@ -1,6 +1,6 @@
 
-#ifndef EMODBUS_SERVER_REGS_H
-#define EMODBUS_SERVER_REGS_H
+#ifndef EMODBUS_SERVER_BITS_H
+#define EMODBUS_SERVER_BITS_H
 
 #include <stdint.h>
 
@@ -28,4 +28,4 @@ struct emb_srv_regs_t {
 }   // extern "C"
 #endif
 
-#endif //EMODBUS_SERVER_REGS_H
+#endif //EMODBUS_SERVER_BITS_H

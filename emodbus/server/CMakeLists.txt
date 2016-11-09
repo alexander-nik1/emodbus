@@ -24,12 +24,12 @@ add_library(emodbus-server-static STATIC ${EMODBUS_SERVER_SRC})
 # ===================================================
 # server-read-coils
 
-set(EMODBUS_SERVER_READ_COILS
-    read_coils.c
+set(EMODBUS_SERVER_READ_BITS
+    read_bits.c
 )
 
-add_library(emodbus-server-read-coils SHARED ${EMODBUS_SERVER_READ_COILS})
-add_library(emodbus-server-read-coils-static STATIC ${EMODBUS_SERVER_READ_COILS})
+add_library(emodbus-server-read-bits SHARED ${EMODBUS_SERVER_READ_BITS})
+add_library(emodbus-server-read-bits-static STATIC ${EMODBUS_SERVER_READ_BITS})
 
 # ===================================================
 # server-write-coil

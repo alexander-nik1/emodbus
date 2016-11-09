@@ -10,7 +10,7 @@
 #include <emodbus/client/write_file_record.h>
 
 #include <emodbus/server/server.h>
-#include <emodbus/server/coils.h>
+#include <emodbus/server/bits.h>
 #include <emodbus/server/regs.h>
 #include <emodbus/server/file.h>
 
@@ -534,16 +534,41 @@ public:
                                    const uint8_t* _pvalues);
 private:
     void set_funcs();
-    static uint8_t read_coils(struct emb_srv_coils_t* _coils,
+    static uint8_t read_coils(struct emb_srv_bits_t* _coils,
                               uint16_t _offset,
                               uint16_t _quantity,
                               uint8_t* _pvalues);
-    static uint8_t write_coils(struct emb_srv_coils_t* _coils,
+    static uint8_t write_coils(struct emb_srv_bits_t* _coils,
                                uint16_t _offset,
                                uint16_t _quantity,
                                const uint8_t* _pvalues);
 
-    struct emb_srv_coils_t coils;
+    struct emb_srv_bits_t coils;
+};
+
+// *******************************************************************************
+// discrete_inputs_t
+
+class discrete_inputs_t {
+    friend class server_t;
+public:
+    discrete_inputs_t();
+    discrete_inputs_t(uint16_t _start, uint16_t _size);
+
+    void set_start(uint16_t _start);
+    void set_size(uint16_t _size);
+
+    virtual uint8_t on_read_bits(uint16_t _offset,
+                                 uint16_t _quantity,
+                                 uint8_t* _pvalues);
+private:
+    void set_funcs();
+    static uint8_t read_inputs(struct emb_srv_bits_t* _bits,
+                               uint16_t _offset,
+                               uint16_t _quantity,
+                               uint8_t* _pvalues);
+
+    struct emb_srv_bits_t discrete_inputs;
 };
 
 // *******************************************************************************
@@ -664,6 +689,7 @@ public:
     bool add_function(uint8_t _func_no, emb_srv_function_t _func);
 
     bool add_coils(coils_t& _coils);
+    bool add_discrete_inputs(discrete_inputs_t& _inputs);
     bool add_holding_regs(holding_regs_t& _holdings);
     bool add_input_regs(input_regs_t& _holdings);
     bool add_file(file_record_t& _file);
@@ -671,7 +697,9 @@ public:
 private:
     static emb_srv_function_t get_function(struct emb_server_t* _srv, uint8_t _func);
 
-    static struct emb_srv_coils_t* get_coils(struct emb_server_t* _srv, uint16_t _begin);
+    static struct emb_srv_bits_t* get_coils(struct emb_server_t* _srv, uint16_t _begin);
+
+    static struct emb_srv_bits_t* get_discrete_inputs(struct emb_server_t* _srv, uint16_t _begin);
 
     static struct emb_srv_regs_t* get_holding_regs(struct emb_server_t* _srv, uint16_t _begin);
 
@@ -684,6 +712,9 @@ private:
 
     typedef std::vector<coils_t*>::iterator coils_iter;
     std::vector<coils_t*> coils;
+
+    typedef std::vector<discrete_inputs_t*>::iterator discr_inputs_iter;
+    std::vector<discrete_inputs_t*> discrete_inputs;
 
     typedef std::vector<holding_regs_t*>::iterator holdnigs_iter;
     std::vector<holding_regs_t*> holdings;
