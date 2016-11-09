@@ -173,8 +173,6 @@ private:
     std::vector<uint16_t> regs;
 };
 
-emb_debug_helper_t emb_debug_helper;
-
 //serial_rtu_t rtu;
 //tcp_client_tcp_t tcp;
 

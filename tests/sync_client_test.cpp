@@ -129,8 +129,6 @@ private:
     struct event* timeout_timer;
 } mb_client;
 
-emb_debug_helper_t emb_debug_helper;
-
 //serial_rtu_t rtu;
 //tcp_client_rtu_t rtu;
 //tcp_client_tcp_t rtu;
@@ -157,8 +155,8 @@ void* thr_proc(void* p) {
     if(res)
         exit(res);
 
-    emb_debug_helper.enable_dumping();
-    //emb_tcp_via_tcp_client_get_transport(rtu)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
+    //emb_debug_helper.enable_dumping();
+    emb_tcp_via_tcp_client_get_transport(rtu)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
 
     client->set_transport(emb_tcp_via_tcp_client_get_transport(rtu));
 
@@ -191,6 +189,9 @@ int main(int argc, char* argv[]) {
     full_test();
 
    // pthread_join(pthr, NULL);
+
+    printf("RX bytes = %ld\n", emb_debug_helper.rx_bytes());
+    printf("TX bytes = %ld\n", emb_debug_helper.tx_bytes());
 
     return 0;
 }
@@ -909,14 +910,14 @@ void full_test() {
 
     printf("OK\n"); fflush(stdout);
 
-    printf("count 0x01 = %d\n", ct.count_0x01);
-    printf("count 0x05 = %d\n", ct.count_0x05);
-    printf("count 0x0F = %d\n", ct.count_0x0F);
+    printf("count 0x01 calls = %d\n", ct.count_0x01);
+    printf("count 0x05 calls = %d\n", ct.count_0x05);
+    printf("count 0x0F calls = %d\n", ct.count_0x0F);
 
-    printf("count 0x03 = %d\n", ht.count_0x03);
-    printf("count 0x06 = %d\n", ht.count_0x06);
-    printf("count 0x10 = %d\n", ht.count_0x10);
-    printf("count 0x16 = %d\n", ht.count_0x16);
+    printf("count 0x03 calls = %d\n", ht.count_0x03);
+    printf("count 0x06 calls = %d\n", ht.count_0x06);
+    printf("count 0x10 calls = %d\n", ht.count_0x10);
+    printf("count 0x16 calls = %d\n", ht.count_0x16);
 }
 
 void write_and_read_file_record_test()
