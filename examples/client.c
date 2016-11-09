@@ -67,6 +67,7 @@ int client_sync_transaction(int _server_addr,
     event_add(timeout_timer, &timeout_time);
 
     pthread_mutex_lock(&mutex);
+    event_del(timeout_timer);
     return transact_result;
 }
 

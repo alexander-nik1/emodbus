@@ -90,6 +90,8 @@ private:
 
         res = pthread_mutex_lock(&mutex);
 
+        event_del(timeout_timer);
+
         if(is_timeout) {
             return 1;
         }
