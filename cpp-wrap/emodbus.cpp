@@ -294,6 +294,24 @@ void read_regs_t::get_answer_regs(regs_t& _res, uint16_t _offset, uint16_t _n_re
 }
 
 // *******************************************************************************
+// read_holding_regs_t
+
+read_holding_regs_t::read_holding_regs_t() { }
+read_holding_regs_t::read_holding_regs_t(transaction_t &_tr) : read_regs_t(_tr) { }
+
+void read_holding_regs_t::build_req(uint16_t _starting_address, uint16_t _quantity)
+{ read_regs_t::build_req(EMB_RR_HOLDINGS, _starting_address, _quantity); }
+
+// *******************************************************************************
+// read_input_regs_t
+
+read_input_regs_t::read_input_regs_t() { }
+read_input_regs_t::read_input_regs_t(transaction_t &_tr) : read_regs_t(_tr) { }
+
+void read_input_regs_t::build_req(uint16_t _starting_address, uint16_t _quantity)
+{ read_regs_t::build_req(EMB_RR_INPUTS, _starting_address, _quantity); }
+
+// *******************************************************************************
 // write_reg_t
 
 write_reg_t::write_reg_t() { }

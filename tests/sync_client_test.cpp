@@ -548,7 +548,7 @@ public:
 
     void server_holdings_read(int _srv_addr) {
 
-        emb::client::read_regs_t rr(tr);
+        emb::client::read_holding_regs_t rr(tr);
 
         for(int r=0; r<reg_ranges.size(); ++r) {
             const uint16_t rr_begin = reg_ranges[r].first;
@@ -560,7 +560,7 @@ public:
                 if(to_read > 125)
                     to_read = 125;
 
-                rr.build_req(EMB_RR_HOLDINGS, begin_addr, to_read);
+                rr.build_req(begin_addr, to_read);
 
                 res = mb_client.do_transaction(_srv_addr, timeout, rr);
                 if(res) {
@@ -607,11 +607,11 @@ public:
             must_be_error = true;
         }
 
-        emb::client::read_regs_t rr(tr);
+        emb::client::read_holding_regs_t rr(tr);
 
         uint16_t* p_data;
 
-        rr.build_req(EMB_RR_HOLDINGS, begin_addr, quantity);
+        rr.build_req(begin_addr, quantity);
 
         err = mb_client.do_transaction(srv_addr, timeout, rr);
 
@@ -765,7 +765,7 @@ public:
     }
 
     void server_range_verify(int _srv_addr) {
-        emb::client::read_regs_t rr(tr);
+        emb::client::read_holding_regs_t rr(tr);
 
         for(int r=0; r<reg_ranges.size(); ++r) {
             const uint16_t rr_begin = reg_ranges[r].first;
@@ -777,7 +777,7 @@ public:
                 if(to_read > 125)
                     to_read = 125;
 
-                rr.build_req(EMB_RR_HOLDINGS, begin_addr, to_read);
+                rr.build_req(begin_addr, to_read);
 
                 res = mb_client.do_transaction(_srv_addr, timeout, rr);
                 if(res) {

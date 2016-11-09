@@ -213,6 +213,28 @@ public:
 };
 
 // *******************************************************************************
+// read_holding_regs_t
+
+class read_holding_regs_t : public read_regs_t {
+public:
+    read_holding_regs_t();
+    read_holding_regs_t(transaction_t& _tr);
+
+    void build_req(uint16_t _starting_address, uint16_t _quantity);
+};
+
+// *******************************************************************************
+// read_input_regs_t
+
+class read_input_regs_t : public read_regs_t {
+public:
+    read_input_regs_t();
+    read_input_regs_t(transaction_t& _tr);
+
+    void build_req(uint16_t _starting_address, uint16_t _quantity);
+};
+
+// *******************************************************************************
 // write_reg_t
 
 class write_reg_t : public transact_base_t {
