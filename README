@@ -1,6 +1,6 @@
 
 Project:
-A library that implements a modbus protocol.
+A library, that implements a modbus protocol.
 
 Prerequisites:
 
@@ -12,6 +12,7 @@ implementations plainly can not be moved to different platforms.
 3) I want to create a fully portable sources, that can be work anywhere.
 On such platforms like AVR, MSP430, ARM, with OS and without it.
 
+**************************************************************************
 Goals:
 
 1) Realisation of modbus 1.1 protocol.
@@ -25,6 +26,48 @@ Goals:
 5) In project can be used C language only. (exclude wrappers)
 
 6) Structure should be able to create a simple wrappers.
+
+**************************************************************************
+At the current time are ready:
+
+The Modbus transport:
+
+Modbus-RTU
+Modbus-TCP
+
+The server functions:
+
+0x01 (Read Coils)
+0x05 (Write Single Coil)
+0x0F (Write Multiple Coils)
+
+0x04 (Read Input Registers)
+
+0x03 (Read Holding Registers)
+0x06 (Write Holding Register)
+0x10 (Write Holding Registers)
+0x16 (Mask Write Register)
+
+0x14 (Read File Record)
+0x15 (Write File Record)
+
+The client functions:
+
+0x01 (Read Coils)
+0x05 (Write Single Coil)
+0x0F (Write Multiple Coils)
+
+0x04 (Read Input Registers)
+
+0x03 (Read Holding Registers)
+0x06 (Write Holding Register)
+0x10 (Write Holding Registers)
+0x16 (Mask Write Register)
+
+0x14 (Read File Record)
+0x15 (Write File Record)
+
+0x18 (Read FIFO)
 
 Alexander Kovylin, alex.northfield@gmail.com
 05.2016.
