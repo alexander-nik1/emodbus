@@ -1,5 +1,5 @@
 
-Make accessible the 0xFFFF coil, file's register.
+Make accessible the 0xFFFF file's register.
 
 Suppose: we have a server, that works via modbus-tcp transport.
 And each new client need to pass an authentication. In this case, user take care of saving a client-id, and authentication info.
@@ -18,7 +18,7 @@ Remake an implementations to clear C instead C++.
 License this library. Read about here: http://www.gnu.org/licenses/gpl-howto.ru.html.
 This library need a LGPL v2 license.
 
-Написать тесты для holding'ов и для file_record'ов, по аналогии с тестами для coils.
+Add a tests for the File-Records, 0x02 and 0x04 functions.
 
 Добавить очередь в client_t. И если он будет работать в асинхронном режиме,
 то использовать эту очередь.
