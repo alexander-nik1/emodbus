@@ -14,7 +14,7 @@
 #include <emodbus/base/add/container_of.h>
 #include <emodbus/base/modbus_errno.h>
 
-#include <emodbus/client/read_coils.h>
+#include <emodbus/client/read_bits.h>
 #include <emodbus/client/write_coils.h>
 #include <emodbus/client/read_regs.h>
 #include <emodbus/client/write_mask_reg.h>
@@ -259,8 +259,8 @@ public:
             do {
                 const uint16_t begin_addr = rr_begin+count;
                 int res, to_read = rr_size-count;
-                if(to_read > EMB_READ_COILS_MAX_QUANTITY)
-                    to_read = EMB_READ_COILS_MAX_QUANTITY;
+                if(to_read > EMB_READ_BITS_MAX_QUANTITY)
+                    to_read = EMB_READ_BITS_MAX_QUANTITY;
 
                 rc.build_req(begin_addr, to_read);
 
@@ -296,7 +296,7 @@ public:
 
         srv_addr = srv_addr = servers_begin + (rand() % servers_size);
         begin_addr = rand16();
-        quantity = (rand() % EMB_READ_COILS_MAX_QUANTITY) + 1;
+        quantity = (rand() % EMB_READ_BITS_MAX_QUANTITY) + 1;
 
 //        if(quantity+begin_addr >= 0x10000) {
 //            quantity = 0x10000 - begin_addr;
@@ -436,8 +436,8 @@ public:
             do {
                 const uint16_t begin_addr = rr_begin+count;
                 int res, to_read = rr_size-count;
-                if(to_read > EMB_READ_COILS_MAX_QUANTITY)
-                    to_read = EMB_READ_COILS_MAX_QUANTITY;
+                if(to_read > EMB_READ_BITS_MAX_QUANTITY)
+                    to_read = EMB_READ_BITS_MAX_QUANTITY;
 
                 rc.build_req(begin_addr, to_read);
 
@@ -452,7 +452,7 @@ public:
 
                 for(int i=0; i<to_read; ++i) {
                     const uint16_t addr = begin_addr+i;
-                    const bool v1 = rc.get_answer_coil(i);
+                    const bool v1 = rc.get_answer_bit(i);
                     const bool v2 = coils[_srv_addr-servers_begin][addr];
                     if(v1 != v2) {
                         printf("%s:%d: server[0x%02X] verify error [0x%04X] %d != %d\n",

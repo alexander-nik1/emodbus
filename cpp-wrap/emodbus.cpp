@@ -3,7 +3,7 @@
 #include <emodbus/base/add/container_of.h>
 #include <emodbus/base/modbus_errno.h>
 
-#include <emodbus/client/read_coils.h>
+#include <emodbus/client/read_bits.h>
 #include <emodbus/client/write_coil.h>
 #include <emodbus/client/write_coils.h>
 #include <emodbus/client/read_regs.h>
@@ -144,45 +144,65 @@ transact_base_t::operator const transaction_t& () const
 { return *tr; }
 
 // *******************************************************************************
-// read_coils_t
+// read_bits_t
 
-read_coils_t::read_coils_t() { }
-read_coils_t::read_coils_t(transaction_t& _tr) : transact_base_t(_tr) { }
+read_bits_t::read_bits_t() { }
+read_bits_t::read_bits_t(transaction_t& _tr) : transact_base_t(_tr) { }
 
-void read_coils_t::build_req(uint16_t _starting_address, uint16_t _quantity) {
+void read_bits_t::build_req(enum EMB_RB_TYPE _type,
+                            uint16_t _starting_address,
+                            uint16_t _quantity) {
     int res;
 
-    tr->req.resize(emb_read_coils_calc_req_data_size());
-    tr->ans.resize(emb_read_coils_calc_answer_data_size(_quantity));
+    tr->req.resize(emb_read_bits_calc_req_data_size());
+    tr->ans.resize(emb_read_bits_calc_answer_data_size(_quantity));
 
-    if((res = emb_read_coils_make_req(tr->req, _starting_address, _quantity)))
+    if((res = emb_read_bits_make_req(tr->req, _type, _starting_address, _quantity)))
         throw res;
 }
 
-uint16_t read_coils_t::get_req_starting_addr() const {
-    return emb_read_coils_get_starting_addr(tr->req);
+uint16_t read_bits_t::get_req_starting_addr() const {
+    return emb_read_bits_get_starting_addr(tr->req);
 }
 
-uint16_t read_coils_t::get_req_quantity() const {
-    return emb_read_coils_get_quantity(tr->req);
+uint16_t read_bits_t::get_req_quantity() const {
+    return emb_read_bits_get_quantity(tr->req);
 }
 
-char read_coils_t::get_answer_coil(uint16_t _offset) const {
-    return emb_read_coils_get_coil(tr->ans, _offset);
+char read_bits_t::get_answer_bit(uint16_t _offset) const {
+    return emb_read_bits_get_bit(tr->ans, _offset);
 }
 
-uint8_t read_coils_t::get_answer_byte(uint8_t _offset) const {
-    return emb_read_coils_get_byte(tr->ans, _offset);
+uint8_t read_bits_t::get_answer_byte(uint8_t _offset) const {
+    return emb_read_bits_get_byte(tr->ans, _offset);
 }
 
-void read_coils_t::response_data(bool *_coils, unsigned int _size) const {
-    uint16_t sz = emb_read_coils_get_quantity(tr->req);
+void read_bits_t::response_data(bool *_coils, unsigned int _size) const {
+    uint16_t sz = emb_read_bits_get_quantity(tr->req);
     if(sz > _size)
         sz = _size;
     for(uint16_t i=0; i<sz; ++i) {
-        _coils[i] = emb_read_coils_get_coil(tr->ans, i);
+        _coils[i] = emb_read_bits_get_bit(tr->ans, i);
     }
 }
+
+// *******************************************************************************
+// read_coils_t
+
+read_coils_t::read_coils_t() { }
+read_coils_t::read_coils_t(transaction_t& _tr) : read_bits_t(_tr) { }
+
+void read_coils_t::build_req(uint16_t _starting_address, uint16_t _quantity)
+{ read_bits_t::build_req(EMB_RB_COILS, _starting_address, _quantity); }
+
+// *******************************************************************************
+// read_discrete_inputs_t
+
+read_discrete_inputs_t::read_discrete_inputs_t() { }
+read_discrete_inputs_t::read_discrete_inputs_t(transaction_t& _tr) : read_bits_t(_tr) { }
+
+void read_discrete_inputs_t::build_req(uint16_t _starting_address, uint16_t _quantity)
+{ read_bits_t::build_req(EMB_RB_DISCRETE_INPUTS, _starting_address, _quantity); }
 
 // *******************************************************************************
 // write_coil_t

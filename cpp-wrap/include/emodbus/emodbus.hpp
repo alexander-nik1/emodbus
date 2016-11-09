@@ -5,6 +5,7 @@
 #include <emodbus/client/client.h>
 #include <vector>
 #include <list>
+#include <emodbus/client/read_bits.h>
 #include <emodbus/client/read_regs.h>
 #include <emodbus/client/read_file_record.h>
 #include <emodbus/client/write_file_record.h>
@@ -147,21 +148,45 @@ public:
 };
 
 // *******************************************************************************
+// read_bits_t
+
+class read_bits_t : public transact_base_t {
+public:
+    read_bits_t();
+    read_bits_t(transaction_t& _tr);
+
+    void build_req(enum EMB_RB_TYPE _type,
+                   uint16_t _starting_address,
+                   uint16_t _quantity);
+
+    uint16_t get_req_starting_addr() const;
+    uint16_t get_req_quantity() const;
+    char get_answer_bit(uint16_t _offset) const;
+    uint8_t get_answer_byte(uint8_t _offset) const;
+
+    void response_data(bool* _coils, unsigned int _size) const;
+};
+
+// *******************************************************************************
 // read_coils_t
 
-class read_coils_t : public transact_base_t {
+class read_coils_t : public read_bits_t {
 public:
     read_coils_t();
     read_coils_t(transaction_t& _tr);
 
     void build_req(uint16_t _starting_address, uint16_t _quantity);
+};
 
-    uint16_t get_req_starting_addr() const;
-    uint16_t get_req_quantity() const;
-    char get_answer_coil(uint16_t _offset) const;
-    uint8_t get_answer_byte(uint8_t _offset) const;
+// *******************************************************************************
+// read_discrete_inputs_t
 
-    void response_data(bool* _coils, unsigned int _size) const;
+class read_discrete_inputs_t : public read_bits_t {
+public:
+    read_discrete_inputs_t();
+    read_discrete_inputs_t(transaction_t& _tr);
+
+    void build_req(uint16_t _starting_address, uint16_t _quantity);
 };
 
 // *******************************************************************************
