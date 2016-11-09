@@ -32,12 +32,10 @@
 
 class my_coils_t : public emb::server::coils_t {
 public:
-    enum { START = 0x0000 };
-    enum { SIZE = 0xFFFF };
-
-    my_coils_t() : emb::server::coils_t(START, SIZE) {
-        values.resize(SIZE);
-        for(int i=0; i<SIZE; ++i) {
+    my_coils_t(uint16_t _start, uint16_t _size) :
+        emb::server::coils_t(_start, _size) {
+        values.resize(_size);
+        for(int i=0; i<_size; ++i) {
             values[i] = false;
         }
     }
@@ -184,12 +182,16 @@ class my_server_t : public emb::server::server_t {
 public:
     my_server_t(int _address)
         : emb::server::server_t(_address)
+        , coils1(0x0000, 0x7FED)
+        , coils2(0x7FED, 0x0077)
+        , coils3(0x8065, 0x0001)
+        , coils4(0xE800, 0x1800)
         , holdings1(0x0000, 0x7FED)
         , holdings2(0x7FED, 0x0077)
         , holdings3(0x8065, 0x0001)
         , holdings4(0xE800, 0x1800)
         , inputs1(0x0000, 0x8000)
-        , inputs2(0xD000, 0x1000)
+        , inputs2(0xE800, 0x1800)
     {
         add_function(0x01, emb_srv_read_coils);
         add_function(0x05, emb_srv_write_coil);
@@ -205,8 +207,14 @@ public:
         add_function(0x14, emb_srv_read_file);
         add_function(0x15, emb_srv_write_file);
 
-        if(!add_coils(coils))
-            printf("Error with add_coils(coils)\n");
+        if(!add_coils(coils1))
+            printf("Error with add_coils(coils1)\n");
+        if(!add_coils(coils2))
+            printf("Error with add_coils(coils2)\n");
+        if(!add_coils(coils3))
+            printf("Error with add_coils(coils3)\n");
+        if(!add_coils(coils4))
+            printf("Error with add_coils(coils4)\n");
 
         if(!add_holding_regs(holdings1))
             printf("Error with add_holding_regs(holdings1)\n");
@@ -227,7 +235,7 @@ public:
     }
 
 private:
-    my_coils_t coils;
+    my_coils_t coils1,coils2,coils3,coils4;
     my_holdings_t holdings1,holdings2,holdings3,holdings4;
     my_input_regs_t inputs1,inputs2;
     my_file_t file;
