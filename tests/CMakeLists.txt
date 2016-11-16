@@ -50,3 +50,6 @@ target_link_libraries(sync_client_test
 add_executable(ev_srv event_server.c)
 
 target_link_libraries(ev_srv event_core)
+
+add_executable(tty2tty tty2tty.c)
+
