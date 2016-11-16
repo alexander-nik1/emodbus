@@ -21,6 +21,7 @@
 
 #include <emodbus/impl/posix/serial-rtu.hpp>
 #include <emodbus/impl/posix/tcp-client-rtu.hpp>
+#include <emodbus/impl/posix/mb-rtu-via-serial.h>
 #include <emodbus/impl/posix/mb-tcp-via-tcp-client.h>
 #include <emodbus/impl/posix/mb-tcp-via-tcp-server.h>
 
@@ -307,16 +308,18 @@ int main(int argc, char* argv[]) {
 
     //res = rtu.open(base, "/dev/ttyUSB0", 115200);
     //res = tcp.open(base, "127.0.0.1", 9992);
-    emb_tcp_via_tcp_server_t* tcp = emb_tcp_via_tcp_server_create(base, 8502);
+    //emb_tcp_via_tcp_server_t* tcp = emb_tcp_via_tcp_server_create(base, 8502);
 
-    if(!tcp)
+    struct emb_rtu_via_serial_t* rtu = emb_rtu_via_serial_create(base, 5, "/dev/pts/26", 1152000);
+
+    if(!rtu)
         exit(1);
 
     //ssrv.set_proto(tcp/*rtu*/.get_proto());
-    ssrv.set_transport(emb_tcp_via_tcp_server_get_transport(tcp));
+    ssrv.set_transport(emb_rtu_via_serial_get_transport(rtu));
 
     //tcp/*rtu*/.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
-    emb_tcp_via_tcp_server_get_transport(tcp)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
+    emb_rtu_via_serial_get_transport(rtu)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
 
     emb_debug_helper.enable_dumping();
 

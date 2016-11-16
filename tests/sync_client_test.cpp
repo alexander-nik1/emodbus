@@ -26,6 +26,7 @@
 
 #include <emodbus/impl/posix/serial-rtu.hpp>
 #include <emodbus/impl/posix/tcp-client-rtu.hpp>
+#include <emodbus/impl/posix/mb-rtu-via-serial.h>
 #include <emodbus/impl/posix/mb-tcp-via-tcp-client.h>
 
 #include <pthread.h>
@@ -145,9 +146,11 @@ void* thr_proc(void* p) {
 
     struct event_base *base = event_base_new();
 
-    struct emb_tcp_via_tcp_client_t* rtu;
+    //struct emb_tcp_via_tcp_client_t* rtu;
+    //rtu = emb_tcp_via_tcp_client_create(base, "127.0.0.1", 8502);
+    struct emb_rtu_via_serial_t* rtu;
 
-    rtu = emb_tcp_via_tcp_client_create(base, "127.0.0.1", 8502);
+    rtu = emb_rtu_via_serial_create(base, 5, "/dev/pts/24", 1152000);
 
     //res = rtu.open(base, "/dev/ttyUSB0", 115200);
     //res = rtu.open(base, "127.0.0.1", 8502);
@@ -156,15 +159,17 @@ void* thr_proc(void* p) {
         exit(res);
 
     //emb_debug_helper.enable_dumping();
-    emb_tcp_via_tcp_client_get_transport(rtu)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
+    //emb_tcp_via_tcp_client_get_transport(rtu)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
+    emb_rtu_via_serial_get_transport(rtu)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
 
-    client->set_transport(emb_tcp_via_tcp_client_get_transport(rtu));
+    client->set_transport(emb_rtu_via_serial_get_transport(rtu));
 
     client->init_timers(base);
 
     event_base_dispatch(base);
 
-    emb_tcp_via_tcp_client_destroy(rtu);
+    emb_rtu_via_serial_destroy(rtu);
+    //emb_tcp_via_tcp_client_destroy(rtu);
 }
 
 void print_all_read_file_answer_data(const emb::client::read_file_t &ans);
@@ -878,7 +883,7 @@ void full_test() {
 
     printf("OK\ntesting ... \n"); fflush(stdout);
 
-    enum { N_TESTS = 65536 * 2 * 2 };
+    enum { N_TESTS = 6553 * 2 * 2 };
 
     sleep(2);
 
