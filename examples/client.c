@@ -17,6 +17,7 @@
 #include <emodbus/impl/posix/mb-rtu-via-serial.h>
 #include <emodbus/impl/posix/dumper.h>
 #include <emodbus/impl/posix/client.h>
+#include <emodbus/impl/posix/pdu.h>
 
 /***************************************************************************************************/
 /*                                                                                                 */
@@ -30,7 +31,6 @@ struct emb_posix_sync_client_t* client;
 
 /***************************************************************************************************/
 // This function are called at Ctrl+C
-
 static void signal_cb(evutil_socket_t sig, short events, void *user_data)
 {
     struct event_base *base = user_data;
@@ -84,37 +84,8 @@ void* thr_proc(void* p)
     exit(0);
 }
 
-// Small helpers.
-int alloc_pdu_data(emb_pdu_t* _pdu)
-{
-    if(_pdu) {
-        if((_pdu->data = malloc(MAX_PDU_DATA_SIZE))) {
-            _pdu->max_size = MAX_PDU_DATA_SIZE;
-            return 0;
-        }
-        else {
-            return -ENOMEM;
-        }
-    }
-    return -EINVAL;
-}
-
-int free_pdu_data(emb_pdu_t* _pdu)
-{
-    if(_pdu) {
-        if(_pdu->data) {
-            free(_pdu->data);
-            _pdu->data = NULL;
-            _pdu->max_size;
-            return 0;
-        }
-    }
-    return -EINVAL;
-}
-
 /***************************************************************************************************/
 // Main
-
 int main()
 {
     int i;
@@ -130,8 +101,8 @@ int main()
     transaction.resp_pdu = &ans;
     transaction.procs = NULL;
 
-    alloc_pdu_data(&req);
-    alloc_pdu_data(&ans);
+    emb_posix_alloc_pdu_data(&req);
+    emb_posix_alloc_pdu_data(&ans);
 
     emb_read_regs_make_req(&req, EMB_RR_HOLDINGS, 0x0000, 8);
 
@@ -148,8 +119,8 @@ int main()
             printf("Fail with transaction: %d, %s\n", res, emb_strerror(-res));
     }
 
-    free_pdu_data(&req);
-    free_pdu_data(&ans);
+    emb_posix_free_pdu_data(&req);
+    emb_posix_free_pdu_data(&ans);
 
     pthread_kill(pthr, SIGTERM);
    //pthread_join(pthr, NULL);
