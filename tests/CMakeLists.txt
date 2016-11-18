@@ -3,14 +3,10 @@ SET(SYNC_CLI_TEST_SRC
     sync_client_test.cpp
     timespec_operations.h
     timespec_operations.c
-    dumping_helper.hpp
-    dumping_helper.cpp
 )
 
 SET(SRV_TEST_SRC
     server_test.cpp
-    dumping_helper.hpp
-    dumping_helper.cpp
 )
 
 #SET(CXXSTANDARD "-std=c++11")
@@ -44,6 +40,7 @@ target_link_libraries(sync_client_test
     pthread
     emodbus-serial-rtu
     emodbus-impl-posix
+    emodbus-cpp-impl-posix
     event_pthreads
 )
 

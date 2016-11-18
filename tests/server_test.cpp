@@ -24,12 +24,11 @@
 #include <emodbus/impl/posix/mb-rtu-via-serial.h>
 #include <emodbus/impl/posix/mb-tcp-via-tcp-client.h>
 #include <emodbus/impl/posix/mb-tcp-via-tcp-server.h>
+#include <emodbus/impl/posix/dumper.h>
 
 #include <event2/event.h>
 
 #include "timespec_operations.h"
-
-#include "dumping_helper.hpp"
 
 class my_coils_t : public emb::server::coils_t {
 public:
@@ -308,20 +307,20 @@ int main(int argc, char* argv[]) {
 
     //res = rtu.open(base, "/dev/ttyUSB0", 115200);
     //res = tcp.open(base, "127.0.0.1", 9992);
-    //emb_tcp_via_tcp_server_t* tcp = emb_tcp_via_tcp_server_create(base, 8502);
+    emb_tcp_via_tcp_server_t* tcp = emb_tcp_via_tcp_server_create(base, 8502);
 
-    struct emb_rtu_via_serial_t* rtu = emb_rtu_via_serial_create(base, 5, "/dev/pts/26", 1152000);
+    //struct emb_rtu_via_serial_t* rtu = emb_rtu_via_serial_create(base, 5, "/dev/pts/26", 1152000);
 
-    if(!rtu)
+    if(!tcp)
         exit(1);
 
     //ssrv.set_proto(tcp/*rtu*/.get_proto());
-    ssrv.set_transport(emb_rtu_via_serial_get_transport(rtu));
+    ssrv.set_transport(emb_tcp_via_tcp_server_get_transport(tcp));
 
     //tcp/*rtu*/.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
-    emb_rtu_via_serial_get_transport(rtu)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
-
-    emb_debug_helper.enable_dumping();
+    emb_tcp_via_tcp_server_get_transport(tcp)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
+    emb_posix_dumping_stream = stdout;
+//    emb_posix_dumper_enable_rx_tx();
 
     sleep(1);
 

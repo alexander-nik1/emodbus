@@ -24,123 +24,27 @@
 #include <emodbus/client/write_file_record.h>
 #include <emodbus/client/read_fifo.h>
 
+#include <emodbus/impl/posix/client.hpp>
 #include <emodbus/impl/posix/serial-rtu.hpp>
 #include <emodbus/impl/posix/tcp-client-rtu.hpp>
 #include <emodbus/impl/posix/mb-rtu-via-serial.h>
 #include <emodbus/impl/posix/mb-tcp-via-tcp-client.h>
+#include <emodbus/impl/posix/dumper.h>
 
 #include <pthread.h>
 
 #include <event2/event.h>
+#include <event2/thread.h>
 
 #include "timespec_operations.h"
 
-#include "dumping_helper.hpp"
-
-class client_t : public emb::client::client_t {
-public:
-    client_t()
-        : timeout_timer(NULL)
-    {
-        pthread_mutex_init(&mutex, NULL);
-        pthread_mutex_trylock(&mutex);
-
-        emb::client::client_t::set_sync(true);
-    }
-
-    ~client_t() {
-        if(timeout_timer) {
-            event_free(timeout_timer);
-            timeout_timer = NULL;
-        }
-    }
-
-    void init_timers(struct event_base* _eb) {
-        timeout_timer = event_new(_eb, -1, EV_TIMEOUT, timeout_cb, this);
-    }
-
-    int do_transaction(int _server_addr,
-                                 unsigned int _timeout,
-                                 emb::client::transaction_t &_transaction) {
-        int r;
-        while((r = emb::client::client_t::do_transaction(_server_addr, _timeout, _transaction)) == -16) {
-            usleep(1);
-        }
-        return r;
-    }
-
-private:
-
-    int emb_sync_client_start_wait(unsigned int _timeout) {
-        int res;
-        is_timeout = false;
-
-        struct timeval timeout_time;
-
-        timeout_time.tv_sec = 0;
-        timeout_time.tv_usec = _timeout * 1000;
-
-        if(timeout_timer) {
-            event_add(timeout_timer, &timeout_time);
-        }
-        else {
-            fprintf(stderr, "%s: can't keep timeouts, timeout_timer is NULL!\n", __PRETTY_FUNCTION__);
-            return -1;
-        }
-
-//        pthread_mutex_trylock(&mutex);
-
-        res = pthread_mutex_lock(&mutex);
-
-        event_del(timeout_timer);
-
-        if(is_timeout) {
-            return 1;
-        }
-        else {
-            return result;
-        }
-    }
-
-    void emb_on_response(int _slave_addr) {
-        is_timeout = false;
-        result = 0;
-        //printf("%s:\n", __FUNCTION__); fflush(stdout);
-        pthread_mutex_unlock(&mutex);
-    }
-
-    void emb_on_error(int _slave_addr, int _errno) {
-        is_timeout = false;
-        result = _errno;
-        //printf("%s:\n", __FUNCTION__); fflush(stdout);
-        pthread_mutex_unlock(&mutex);
-    }
-
-    static void timeout_cb(evutil_socket_t, short, void * _arg) {
-        client_t* _this = (client_t*)_arg;
-        _this->is_timeout = true;
-        _this->sync_answer_timeout();
-        //printf("%s:\n", __FUNCTION__); fflush(stdout);
-        pthread_mutex_unlock(&_this->mutex);
-    }
-
-    bool is_timeout;
-
-    pthread_mutex_t mutex;
-    struct event* timeout_timer;
-} mb_client;
-
-//serial_rtu_t rtu;
-//tcp_client_rtu_t rtu;
-//tcp_client_tcp_t rtu;
-
-#include <event2/thread.h>
+emb::posix_sync_client_t mb_client(NULL);
 
 void* thr_proc(void* p) {
 
     int res=0;
 
-    client_t* client = (client_t*)p;
+    emb::posix_sync_client_t* client = (emb::posix_sync_client_t*)p;
 
     evthread_use_pthreads();
 
@@ -148,27 +52,29 @@ void* thr_proc(void* p) {
 
     //struct emb_tcp_via_tcp_client_t* rtu;
     //rtu = emb_tcp_via_tcp_client_create(base, "127.0.0.1", 8502);
-    struct emb_rtu_via_serial_t* rtu;
+    //struct emb_rtu_via_serial_t* rtu;
 
-    rtu = emb_rtu_via_serial_create(base, 5, "/dev/pts/24", 1152000);
+    //rtu = emb_rtu_via_serial_create(base, 5, "/dev/pts/24", 1152000);
+
+    struct emb_tcp_via_tcp_client_t* tcp = emb_tcp_via_tcp_client_create(base, "127.0.0.1", 8502);
 
     //res = rtu.open(base, "/dev/ttyUSB0", 115200);
     //res = rtu.open(base, "127.0.0.1", 8502);
 
-    if(res)
-        exit(res);
-
     //emb_debug_helper.enable_dumping();
     //emb_tcp_via_tcp_client_get_transport(rtu)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
-    emb_rtu_via_serial_get_transport(rtu)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
 
-    client->set_transport(emb_rtu_via_serial_get_transport(rtu));
+    emb_tcp_via_tcp_client_get_transport(tcp)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
+    emb_posix_dumping_stream = stdout;
+    //emb_posix_dumper_enable_rx_tx();
+
+    client->set_transport(emb_tcp_via_tcp_client_get_transport(tcp));
 
     client->init_timers(base);
 
     event_base_dispatch(base);
 
-    emb_rtu_via_serial_destroy(rtu);
+    emb_tcp_via_tcp_client_destroy(tcp);
     //emb_tcp_via_tcp_client_destroy(rtu);
 }
 
@@ -195,8 +101,8 @@ int main(int argc, char* argv[]) {
 
    // pthread_join(pthr, NULL);
 
-    printf("RX bytes = %ld\n", emb_debug_helper.rx_bytes());
-    printf("TX bytes = %ld\n", emb_debug_helper.tx_bytes());
+    printf("RX bytes = %ld\n", emb_posix_dumper_rx_bytes());
+    printf("TX bytes = %ld\n", emb_posix_dumper_tx_bytes());
 
     return 0;
 }
@@ -883,7 +789,7 @@ void full_test() {
 
     printf("OK\ntesting ... \n"); fflush(stdout);
 
-    enum { N_TESTS = 6553 * 2 * 2 };
+    enum { N_TESTS = 65536 * 2 * 2 };
 
     sleep(2);
 
