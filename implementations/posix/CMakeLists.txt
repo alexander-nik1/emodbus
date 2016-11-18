@@ -41,7 +41,7 @@ target_link_libraries(emodbus-impl-posix
     serail-port
 )
 
-add_library(emodbus-cpp-impl-posix
+add_library(emodbus-cpp-impl-posix SHARED
     client.cpp
 )
 

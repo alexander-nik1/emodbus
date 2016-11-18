@@ -193,7 +193,10 @@ INSTALL(FILES
 INSTALL(FILES lib/libemodbus-cpp.so DESTINATION ${PREFIX}/lib/ COMPONENT cpp)
 
 # component impl-posix
-INSTALL(FILES lib/libemodbus-impl-posix.so DESTINATION ${PREFIX}/lib/ COMPONENT impl-posix)
+INSTALL(FILES
+        lib/libemodbus-impl-posix.so
+        lib/libemodbus-cpp-impl-posix.so
+        DESTINATION ${PREFIX}/lib/ COMPONENT impl-posix)
 
 set(MAJOR_VERSION "0")
 set(MINOR_VERSION "1")
