@@ -29,6 +29,7 @@ add_library(emodbus-impl-posix SHARED
 )
 
 target_link_libraries(emodbus-impl-posix
+    pthread
     event_core
     emodbus-rtu
     emodbus-tcp
@@ -36,4 +37,13 @@ target_link_libraries(emodbus-impl-posix
     tcp-client
     tcp-server
     serail-port
+)
+
+add_library(emodbus-cpp-impl-posix
+    client.cpp
+)
+
+target_link_libraries(emodbus-cpp-impl-posix
+    emodbus-cpp
+    emodbus-impl-posix
 )
