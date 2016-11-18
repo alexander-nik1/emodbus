@@ -27,6 +27,7 @@ add_library(emodbus-impl-posix SHARED
     mb-tcp-via-tcp-server.c
     client.c
     dumper.c
+    pdu.c
 )
 
 target_link_libraries(emodbus-impl-posix
