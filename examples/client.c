@@ -16,6 +16,8 @@
 
 #include <emodbus/impl/posix/mb-rtu-via-serial.h>
 
+#include <emodbus/impl/posix/client.h>
+
 /***************************************************************************************************/
 /*                                                                                                 */
 /*                                SYNCHRONOUS CLIENT EXAMPLE                                       */
@@ -24,57 +26,13 @@
 
 /***************************************************************************************************/
 // Synchronous client
-
-// Emodbus client context
-struct emb_client_t client;
-// Storage for transaction result
-int transact_result = 0;
-// Mutex to waiting an events on it
-pthread_mutex_t mutex;
-// Response timeout timer.
-struct event* timeout_timer;
-
-// This function calls when response waiting timeout occurs.
-static void timeout_cb(evutil_socket_t _fd, short _events, void * _arg) {
-    emb_client_wait_timeout(&client);
-    transact_result=-modbus_resp_timeout;
-    pthread_mutex_unlock(&mutex);
-}
-
-// This function calls when a valid response was got from server
-void client_on_response(struct emb_client_t* _req, int _slave_addr) {
-    transact_result=0;
-    pthread_mutex_unlock(&mutex);
-}
-
-// This function calls when an error occurs, or when a modbus-error code was returned by a server.
-void client_on_error(struct emb_client_t* _req, int _slave_addr, int _errno) {
-    transact_result=_errno;
-    pthread_mutex_unlock(&mutex);
-}
-
-// Call this function to begin the transaction.
-int client_sync_transaction(int _server_addr,
-                            unsigned int _timeout,
-                            struct emb_client_transaction_t* _transact) {
-    int res;
-    struct timeval timeout_time;
-
-    timeout_time.tv_sec = 0;
-    timeout_time.tv_usec = _timeout * 1000;
-    if((res = emb_client_do_transaction(&client, _server_addr, _transact)) != 0)
-        return res;
-    event_add(timeout_timer, &timeout_time);
-
-    pthread_mutex_lock(&mutex);
-    event_del(timeout_timer);
-    return transact_result;
-}
+struct emb_posix_sync_client_t* client;
 
 /***************************************************************************************************/
 // This function are called at Ctrl+C
 
-static void signal_cb(evutil_socket_t sig, short events, void *user_data) {
+static void signal_cb(evutil_socket_t sig, short events, void *user_data)
+{
     struct event_base *base = user_data;
     printf("Caught an interrupt signal; exiting cleanly.\n");
     event_base_loopexit(base, NULL);
@@ -83,9 +41,9 @@ static void signal_cb(evutil_socket_t sig, short events, void *user_data) {
 /***************************************************************************************************/
 // Thread for a transport-level operations.
 // This thread works with a physical port.
-void* thr_proc(void* p) {
+void* thr_proc(void* p)
+{
 
-    int res=0;
     struct event_base *base;
     struct event *signal_event;
     struct emb_rtu_via_serial_t* rtu;
@@ -100,32 +58,33 @@ void* thr_proc(void* p) {
         fflush(stderr);
     }
 
-    memset(&client, 0, sizeof(struct emb_client_t));
-    client.on_response = client_on_response;
-    client.on_error = client_on_error;
-    emb_client_init(&client);
+    // Creatig the client
+    client = emb_posix_sync_client_create(base);
 
-    pthread_mutex_init(&mutex, NULL);
-    pthread_mutex_trylock(&mutex);
-
-    timeout_timer = event_new(base, -1, EV_TIMEOUT, timeout_cb, &client);
-
+    // Creating the RTU
     rtu = emb_rtu_via_serial_create(base, 10, "/dev/ttyUSB0", 115200);
 
-    emb_client_set_transport(&client, emb_rtu_via_serial_get_transport(rtu));
+    // Bind the client to the RTU
+    emb_posix_sync_client_set_transport(client, emb_rtu_via_serial_get_transport(rtu));
+
+    // Enable the packets dumping
     emb_rtu_via_serial_get_transport(rtu)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
 
+    // Libevent's loop
     event_base_dispatch(base);
 
+    // Destroy the RTU
     emb_rtu_via_serial_destroy(rtu);
 
-    if(timeout_timer)
-        event_free(timeout_timer);
+    // Destroy the Client
+    emb_posix_sync_client_destroy(client);
+
     exit(0);
 }
 
 // Small helpers.
-int alloc_pdu_data(emb_pdu_t* _pdu) {
+int alloc_pdu_data(emb_pdu_t* _pdu)
+{
     if(_pdu) {
         if((_pdu->data = malloc(MAX_PDU_DATA_SIZE))) {
             _pdu->max_size = MAX_PDU_DATA_SIZE;
@@ -138,7 +97,8 @@ int alloc_pdu_data(emb_pdu_t* _pdu) {
     return -EINVAL;
 }
 
-int free_pdu_data(emb_pdu_t* _pdu) {
+int free_pdu_data(emb_pdu_t* _pdu)
+{
     if(_pdu) {
         if(_pdu->data) {
             free(_pdu->data);
@@ -153,7 +113,8 @@ int free_pdu_data(emb_pdu_t* _pdu) {
 /***************************************************************************************************/
 // Dumping RX/TX packets
 
-void dump_packet(void *_f, const char* _prefix, const void* _pkt, unsigned int _size) {
+void dump_packet(void *_f, const char* _prefix, const void* _pkt, unsigned int _size)
+{
     if(_f) {
         FILE* f = (FILE*)_f;
         int i;
@@ -171,7 +132,8 @@ void on_emodbus_transport_rx(const void* _data, unsigned int _size)
 void on_emodbus_transport_tx(const void* _data, unsigned int _size)
 { dump_packet(stdout, "<<", _data, _size); }
 
-void dumping_init() {
+void dumping_init()
+{
     emb_dump_rx_data = on_emodbus_transport_rx;
     emb_dump_tx_data = on_emodbus_transport_tx;
 }
@@ -179,7 +141,8 @@ void dumping_init() {
 /***************************************************************************************************/
 // Main
 
-int main() {
+int main()
+{
     int i;
     pthread_t pthr;
 
@@ -204,7 +167,11 @@ int main() {
         int res;
 
         /* Read holding registers 0x0000-0x0007 from the server 16 */
-        res = client_sync_transaction(16, 1000, &transaction);
+        res = emb_posix_sync_client_transaction(client, 16, 1000, &transaction);
+        if(res)
+            printf("Fail with transaction: %d, %s\n", res, emb_strerror(-res));
+
+        res = emb_posix_sync_client_transaction(client, 17, 1000, &transaction);
         if(res)
             printf("Fail with transaction: %d, %s\n", res, emb_strerror(-res));
     }
