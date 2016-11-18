@@ -15,7 +15,7 @@
 #include <emodbus/client/read_regs.h>
 
 #include <emodbus/impl/posix/mb-rtu-via-serial.h>
-
+#include <emodbus/impl/posix/dumper.h>
 #include <emodbus/impl/posix/client.h>
 
 /***************************************************************************************************/
@@ -69,6 +69,8 @@ void* thr_proc(void* p)
 
     // Enable the packets dumping
     emb_rtu_via_serial_get_transport(rtu)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
+    emb_posix_dumping_stream = stdout;
+    emb_posix_dumper_enable_rx_tx();
 
     // Libevent's loop
     event_base_dispatch(base);
@@ -111,42 +113,12 @@ int free_pdu_data(emb_pdu_t* _pdu)
 }
 
 /***************************************************************************************************/
-// Dumping RX/TX packets
-
-void dump_packet(void *_f, const char* _prefix, const void* _pkt, unsigned int _size)
-{
-    if(_f) {
-        FILE* f = (FILE*)_f;
-        int i;
-        fprintf(f, "%s", _prefix);
-        for(i=0; i<_size; ++i)
-            fprintf(f, "%02X ", ((uint8_t*)_pkt)[i]);
-        fprintf(f, "\n");
-        fflush(f);
-    }
-}
-
-void on_emodbus_transport_rx(const void* _data, unsigned int _size)
-{ dump_packet(stdout, ">>", _data, _size); }
-
-void on_emodbus_transport_tx(const void* _data, unsigned int _size)
-{ dump_packet(stdout, "<<", _data, _size); }
-
-void dumping_init()
-{
-    emb_dump_rx_data = on_emodbus_transport_rx;
-    emb_dump_tx_data = on_emodbus_transport_tx;
-}
-
-/***************************************************************************************************/
 // Main
 
 int main()
 {
     int i;
     pthread_t pthr;
-
-    dumping_init();
 
     pthread_create(&pthr, NULL, thr_proc, NULL);
     sleep(1);   // We must wait here for all initialization is made in started thread.
