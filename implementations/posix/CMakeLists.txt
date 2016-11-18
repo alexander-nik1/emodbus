@@ -25,12 +25,14 @@ add_library(emodbus-impl-posix SHARED
 #    mb-rtu-via-tcp-server.c
     mb-tcp-via-tcp-client.c
     mb-tcp-via-tcp-server.c
+    client.c
 )
 
 target_link_libraries(emodbus-impl-posix
     event_core
     emodbus-rtu
     emodbus-tcp
+    emodbus-client
     tcp-client
     tcp-server
     serail-port
