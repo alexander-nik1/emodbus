@@ -1131,18 +1131,17 @@ server_t::server_t(int _address) : address(_address) {
     srv.get_input_regs = get_input_regs;
     srv.get_holding_regs = get_holding_regs;
     srv.get_file = get_file;
+    functions.resize(MAX_FUNCTION_NUMBER+1, NULL);
 }
 
 int server_t::addr() const { return address; }
 
 bool server_t::add_function(uint8_t _func_no, emb_srv_function_t _func) {
-    for(func_iter i=functions.begin(); i != functions.end(); ++i) {
-        if(i->func_no == _func_no)
-            return false;
+    if(functions.size() > _func_no) {
+        functions[_func_no] = _func;
+        return true;
     }
-    function_t f = { _func_no, _func };
-    functions.push_back(f);
-    return true;
+    return false;
 }
 
 #define IS_POINT_IN_RANGE(_range_start_, _range_end_, _point_) \
@@ -1214,10 +1213,8 @@ bool server_t::add_file(file_record_t& _file) {
 
 emb_srv_function_t server_t::get_function(struct emb_server_t* _srv, uint8_t _func) {
     server_t* _this = container_of(_srv, server_t, srv);
-    for(func_iter i=_this->functions.begin(); i != _this->functions.end(); ++i) {
-        if(i->func_no == _func)
-            return i->func;
-    }
+    if(_this->functions.size() > _func)
+        return _this->functions[_func];
     return NULL;
 }
 

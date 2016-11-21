@@ -723,12 +723,10 @@ class super_server_t;
 class server_t {
     friend class super_server_t;
 
-    struct function_t {
-        uint8_t func_no;
-        emb_srv_function_t func;
-    };
-
 public:
+
+    enum { MAX_FUNCTION_NUMBER = 255 };
+
     server_t(int _address);
 
     virtual int addr() const;
@@ -754,8 +752,7 @@ private:
 
     static struct emb_srv_file_t* get_file(struct emb_server_t* _srv, uint16_t _fileno/*, uint16_t _begin*/);
 
-    typedef std::vector<function_t>::iterator func_iter;
-    std::vector<function_t> functions;
+    std::vector<emb_srv_function_t> functions;
 
     typedef std::vector<coils_t*>::iterator coils_iter;
     std::vector<coils_t*> coils;
