@@ -53,6 +53,8 @@ The server functions:
 0x14 (Read File Record)
 0x15 (Write File Record)
 
+0x18 (Read FIFO)
+
 The client functions:
 
 0x01 (Read Coils)
