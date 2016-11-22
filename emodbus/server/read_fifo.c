@@ -38,8 +38,9 @@ uint8_t emb_srv_read_fifo(struct emb_super_server_t* _ssrv,
     if(_ssrv->tx_pdu->data_size > _ssrv->tx_pdu->max_size)
         return MBE_SLAVE_FAILURE;
 
-    // Swap all words
-    for(i=0; i<fifo_count+2; ++i) {
+    // Swap all words (include bytes and fifo count)
+    fifo_count += 2;
+    for(i=0; i<fifo_count; ++i) {
         const uint16_t tmp = *((uint16_t*)tx_data);
         *((uint16_t*)tx_data) = SWAP_BYTES(tmp);
         tx_data += sizeof(uint16_t);

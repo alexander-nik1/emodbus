@@ -579,6 +579,10 @@ public:
     virtual uint8_t on_write_coils(uint16_t _offset,
                                    uint16_t _quantity,
                                    const uint8_t* _pvalues);
+
+    uint16_t start() const;
+    uint16_t size() const;
+
 private:
     void set_funcs();
     static uint8_t read_coils(struct emb_srv_bits_t* _coils,
@@ -608,6 +612,10 @@ public:
     virtual uint8_t on_read_bits(uint16_t _offset,
                                  uint16_t _quantity,
                                  uint8_t* _pvalues);
+
+    uint16_t start() const;
+    uint16_t size() const;
+
 private:
     void set_funcs();
     static uint8_t read_inputs(struct emb_srv_bits_t* _bits,
@@ -632,9 +640,9 @@ public:
     virtual uint8_t on_read_regs(uint16_t _offset,
                                  uint16_t _quantity,
                                  uint16_t* _pvalues);
-    virtual uint8_t on_write_regs(uint16_t _offset,
-                                  uint16_t _quantity,
-                                  const uint16_t* _pvalues);
+
+    uint16_t start() const;
+    uint16_t size() const;
 
 private:
     void set_funcs();
@@ -642,10 +650,6 @@ private:
                              uint16_t _offset,
                              uint16_t _quantity,
                              uint16_t* _pvalues);
-    static uint8_t write_regs(struct emb_srv_regs_t* _rr,
-                              uint16_t _offset,
-                              uint16_t _quantity,
-                              const uint16_t* _pvalues);
 
     struct emb_srv_regs_t h;
 };
@@ -667,6 +671,9 @@ public:
     virtual uint8_t on_write_regs(uint16_t _offset,
                                   uint16_t _quantity,
                                   const uint16_t* _pvalues);
+
+    uint16_t start() const;
+    uint16_t size() const;
 
 private:
     void set_funcs();
@@ -739,6 +746,10 @@ public:
     bool add_input_regs(input_regs_t& _holdings);
     bool add_file(file_record_t& _file);
 
+    virtual uint8_t on_read_fifo(uint16_t _address,
+                                 uint16_t* _fifo_buf,
+                                 uint8_t* _fifo_count);
+
 private:
     static emb_srv_function_t get_function(struct emb_server_t* _srv, uint8_t _func);
 
@@ -751,6 +762,9 @@ private:
     static struct emb_srv_regs_t* get_input_regs(struct emb_server_t* _srv, uint16_t _begin);
 
     static struct emb_srv_file_t* get_file(struct emb_server_t* _srv, uint16_t _fileno/*, uint16_t _begin*/);
+
+    static uint8_t read_fifo(struct emb_server_t* _srv, uint16_t _address,
+                             uint16_t* _fifo_buf, uint8_t* _fifo_count);
 
     std::vector<emb_srv_function_t> functions;
 

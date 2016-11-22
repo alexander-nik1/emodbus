@@ -908,6 +908,9 @@ uint8_t coils_t::on_write_coils(uint16_t _offset,
                               const uint8_t* _pvalues)
 { return 0; }
 
+uint16_t coils_t::start() const { return coils.start; }
+uint16_t coils_t::size() const { return coils.size; }
+
 void coils_t::set_funcs() {
     coils.read_bits = read_coils;
     coils.write_bits = write_coils;
@@ -953,6 +956,9 @@ uint8_t discrete_inputs_t::on_read_bits(uint16_t _offset,
                              uint8_t* _pvalues)
 { return 0; }
 
+uint16_t discrete_inputs_t::start() const { return discrete_inputs.start; }
+uint16_t discrete_inputs_t::size() const { return discrete_inputs.size; }
+
 void discrete_inputs_t::set_funcs() {
     discrete_inputs.read_bits = read_inputs;
     discrete_inputs.write_bits = NULL;
@@ -990,14 +996,12 @@ uint8_t input_regs_t::on_read_regs(uint16_t _offset,
                              uint16_t* _pvalues)
 { return 0; }
 
-uint8_t input_regs_t::on_write_regs(uint16_t _offset,
-                              uint16_t _quantity,
-                              const uint16_t* _pvalues)
-{ return 0; }
+uint16_t input_regs_t::start() const { return h.start; }
+uint16_t input_regs_t::size() const { return h.size; }
 
 void input_regs_t::set_funcs() {
     h.read_regs = read_regs;
-    h.write_regs = write_regs;
+    h.write_regs = NULL;
 }
 
 uint8_t input_regs_t::read_regs(struct emb_srv_regs_t* _rr,
@@ -1006,14 +1010,6 @@ uint8_t input_regs_t::read_regs(struct emb_srv_regs_t* _rr,
                                      uint16_t* _pvalues) {
     input_regs_t* _this = container_of(_rr, input_regs_t, h);
     return _this->on_read_regs(_offset, _quantity, _pvalues);
-}
-
-uint8_t input_regs_t::write_regs(struct emb_srv_regs_t* _rr,
-                                      uint16_t _offset,
-                                      uint16_t _quantity,
-                                      const uint16_t* _pvalues) {
-    input_regs_t* _this = container_of(_rr, input_regs_t, h);
-    return _this->on_write_regs(_offset, _quantity, _pvalues);
 }
 
 // *******************************************************************************
@@ -1044,6 +1040,9 @@ uint8_t holding_regs_t::on_write_regs(uint16_t _offset,
                               uint16_t _quantity,
                               const uint16_t* _pvalues)
 { return 0; }
+
+uint16_t holding_regs_t::start() const { return h.start; }
+uint16_t holding_regs_t::size() const { return h.size; }
 
 void holding_regs_t::set_funcs() {
     h.read_regs = read_regs;
@@ -1131,6 +1130,7 @@ server_t::server_t(int _address) : address(_address) {
     srv.get_input_regs = get_input_regs;
     srv.get_holding_regs = get_holding_regs;
     srv.get_file = get_file;
+    srv.read_fifo = read_fifo;
     srv.flags = 0;
     functions.resize(MAX_FUNCTION_NUMBER+1, NULL);
 }
@@ -1212,6 +1212,14 @@ bool server_t::add_file(file_record_t& _file) {
     return true;
 }
 
+uint8_t server_t::on_read_fifo(uint16_t _address,
+                               uint16_t* _fifo_buf,
+                               uint8_t* _fifo_count)
+{
+    *_fifo_count = 0;
+    return 0; // May be I need to return an MBE_ILLEGAL_FUNCTION here ?
+}
+
 emb_srv_function_t server_t::get_function(struct emb_server_t* _srv, uint8_t _func) {
     server_t* _this = container_of(_srv, server_t, srv);
     if(_this->functions.size() > _func)
@@ -1270,6 +1278,13 @@ struct emb_srv_file_t* server_t::get_file(struct emb_server_t* _srv, uint16_t _f
             return &((*i)->f);
     }
     return NULL;
+}
+
+uint8_t server_t::read_fifo(struct emb_server_t* _srv, uint16_t _address,
+                            uint16_t* _fifo_buf, uint8_t* _fifo_count)
+{
+    server_t* _this = container_of(_srv, server_t, srv);
+    return _this->on_read_fifo(_address, _fifo_buf, _fifo_count);
 }
 
 // *******************************************************************************

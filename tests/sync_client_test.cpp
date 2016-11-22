@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <vector>
 #include <errno.h>
+#include <string.h>
 #include <stdlib.h>
 
 #include <emodbus/emodbus.hpp>
@@ -451,6 +452,7 @@ public:
         count_0x06 = 0;
         count_0x10 = 0;
         count_0x16 = 0;
+        count_0x18 = 0;
     }
 
     uint16_t rand16() const {
@@ -675,6 +677,47 @@ public:
         ++count_0x16;
     }
 
+    int fifo_sizs_statistic[32];
+
+    void schedule_0x18() {
+        int err;
+        const int srv_addr = servers_begin + (rand() % servers_size);
+
+        int addr;
+
+        bool must_be_error;
+
+        addr = rand16();
+
+        // for testing the exception reaction
+        if(0xABC0 <= addr && addr <= 0xABCF)
+            must_be_error = true;
+        else
+            must_be_error = false;
+
+        emb::client::read_fifo_t rf(tr);
+
+        rf.build_req(addr);
+
+        err = mb_client.do_transaction(srv_addr, timeout, rf);
+        if((must_be_error && !err) || (!must_be_error && err)) {
+            printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, err, emb_strerror(-err));
+            printf("must_be_error=%d srv_addr=%d, addr=0x%04X,\n",
+                   must_be_error, srv_addr, addr);
+            fflush(stdout);
+            //exit(0);
+        }
+        else if(!err) {
+            const uint16_t sz = rf.get_answer_regs_count();
+            rf.get_answer_all_data(sz, &holdings[srv_addr-servers_begin][addr]);
+        }
+
+        if(!err)
+            fifo_sizs_statistic[rf.get_answer_regs_count()]++;
+
+        ++count_0x18;
+    }
+
     void server_range_verify(int _srv_addr) {
         emb::client::read_holding_regs_t rr(tr);
 
@@ -761,6 +804,7 @@ public:
     int count_0x06;
     int count_0x10;
     int count_0x16;
+    int count_0x18;
 };
 
 void full_test() {
@@ -793,6 +837,8 @@ void full_test() {
 
     sleep(2);
 
+    memset(ht.fifo_sizs_statistic, 0, sizeof(ht.fifo_sizs_statistic));
+
     for(int i=0; i<N_TESTS; ++i) {
 
         const unsigned int x = rand()+rand();
@@ -805,6 +851,7 @@ void full_test() {
         if(x & (1 << 4)) ht.schedule_0x06();
         if(x & (1 << 5)) ht.schedule_0x10();
         if(x & (1 << 6)) ht.schedule_0x16();
+        if(x & (1 << 7)) ht.schedule_0x18();
 
         if(!(i%(N_TESTS/100))) {
             printf("\rProgress: %d%%", i/(N_TESTS/100));
@@ -829,6 +876,13 @@ void full_test() {
     printf("count 0x06 calls = %d\n", ht.count_0x06);
     printf("count 0x10 calls = %d\n", ht.count_0x10);
     printf("count 0x16 calls = %d\n", ht.count_0x16);
+    printf("count 0x18 calls = %d\n", ht.count_0x18);
+
+    printf("FIFO statistics:\n");
+    for(int i=0; i<32; ++i) {
+        printf("%d = %d calls\n", i, ht.fifo_sizs_statistic[i]);
+    }
+    printf("\n");
 }
 
 void write_and_read_file_record_test()

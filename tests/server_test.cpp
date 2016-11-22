@@ -120,14 +120,14 @@ public:
     my_holdings_t(uint16_t _start, uint16_t _size) :
         emb::server::holding_regs_t(_start, _size) {
 
-        regs.resize(_size);
-        memset(&regs[0], 0, _size*2);
+        regs_.resize(_size);
+        memset(&regs_[0], 0, _size*2);
     }
 
     uint8_t on_read_regs(uint16_t _offset,
                          uint16_t _quantity, uint16_t* _pvalues) {
 
-        memcpy(_pvalues, &regs[_offset], _quantity*2);
+        memcpy(_pvalues, &regs_[_offset], _quantity*2);
 
 //        printf("Read Holdings: start:0x%04X, length:0x%04X\n", _offset, _quantity);
 //        fflush(stdout);
@@ -143,12 +143,19 @@ public:
 //        printf("\n");
 //        fflush(stdout);
 
-        memcpy(&regs[_offset], _pvalues, _quantity*2);
+        memcpy(&regs_[_offset], _pvalues, _quantity*2);
 
         return 0;
     }
+
+    const std::vector<uint16_t>& regs() const
+    { return regs_; }
+
+    std::vector<uint16_t> getRegs() const;
+    void setRegs(const std::vector<uint16_t> &value);
+
 private:
-    std::vector<uint16_t> regs;
+    std::vector<uint16_t> regs_;
 };
 
 class my_input_regs_t : public emb::server::input_regs_t {
@@ -206,6 +213,12 @@ private:
 //serial_rtu_t rtu;
 //tcp_client_tcp_t tcp;
 
+template <typename T>
+bool is_addr_belongs_to(const T& _range, uint16_t _addr)
+{
+   return (_range.start() <= _addr && _addr < (_range.start() + _range.size()));
+}
+
 class my_server_t : public emb::server::server_t {
 public:
     my_server_t(int _address)
@@ -239,6 +252,8 @@ public:
         add_function(0x14, emb_srv_read_file);
         add_function(0x15, emb_srv_write_file);
 
+        add_function(0x18, emb_srv_read_fifo);
+
         if(!add_discrete_inputs(di1))
             printf("Error with add_discrete_inputs(di1)\n");
         if(!add_discrete_inputs(di2))
@@ -269,6 +284,44 @@ public:
 
         if(!add_file(file))
             printf("Error with add_file(file)\n");
+    }
+
+    virtual uint8_t on_read_fifo(uint16_t _address,
+                                 uint16_t* _fifo_buf, uint8_t* _fifo_count)
+    {
+
+        const my_holdings_t* regs = NULL;
+
+        if(is_addr_belongs_to(holdings1, _address))
+            regs = &holdings1;
+        else if(is_addr_belongs_to(holdings2, _address))
+            regs = &holdings2;
+        else if(is_addr_belongs_to(holdings3, _address))
+            regs = &holdings3;
+        else if(is_addr_belongs_to(holdings4, _address))
+            regs = &holdings4;
+
+        // just for testing the exception reaction
+        if(0xABC0 <= _address && _address <= 0xABCF)
+            return MBE_ILLEGAL_DATA_ADDR;
+
+        if(!regs) {
+            *_fifo_count = 0;
+            return 0;
+        }
+
+        _address -= regs->start();
+
+        size_t sz = regs->size() - _address;
+
+        if(sz > EMB_SRV_READ_FIFO_MAX_REGS)
+            sz = EMB_SRV_READ_FIFO_MAX_REGS;
+
+        memcpy(_fifo_buf, regs->regs().data()+_address, sz*2);
+
+        *_fifo_count = sz;
+
+        return 0;
     }
 
 private:
