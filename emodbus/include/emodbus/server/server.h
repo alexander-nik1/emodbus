@@ -37,6 +37,9 @@ struct emb_server_t {
     struct emb_srv_regs_t* (*get_input_regs)(struct emb_server_t* _srv, uint16_t _begin);
 
     struct emb_srv_file_t* (*get_file)(struct emb_server_t* _srv, uint16_t _fileno/*, uint16_t _begin*/);
+
+    uint8_t (*read_fifo)(struct emb_server_t* _srv, uint16_t _address,
+                         uint16_t* _fifo_buf, uint8_t* _fifo_count);
 };
 
 struct emb_super_server_t {
