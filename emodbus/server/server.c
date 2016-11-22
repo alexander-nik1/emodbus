@@ -56,8 +56,10 @@ static void emb_super_server_on_receive_req(void* _user_data,
 
     } while(0);
 
-    emb_transport_send_packet(ssrv->transport, _slave_addr, MB_CONST_PDU(ssrv->tx_pdu));
-    DO_EVENT(ssrv, embsev_resp_sent, 0);
+    if(!(srv->flags & EMB_SRV_BROADCAST_FLAG)) {
+        emb_transport_send_packet(ssrv->transport, _slave_addr, MB_CONST_PDU(ssrv->tx_pdu));
+        DO_EVENT(ssrv, embsev_resp_sent, 0);
+    }
 }
 
 static void emb_super_server_on_error(void* _user_data, int _errno) {

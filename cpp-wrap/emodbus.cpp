@@ -1131,6 +1131,7 @@ server_t::server_t(int _address) : address(_address) {
     srv.get_input_regs = get_input_regs;
     srv.get_holding_regs = get_holding_regs;
     srv.get_file = get_file;
+    srv.flags = 0;
     functions.resize(MAX_FUNCTION_NUMBER+1, NULL);
 }
 

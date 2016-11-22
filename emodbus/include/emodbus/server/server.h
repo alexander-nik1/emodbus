@@ -24,6 +24,10 @@ struct emb_super_server_t;
 
 typedef uint8_t (*emb_srv_function_t)(struct emb_super_server_t* _ssrv, struct emb_server_t* _srv);
 
+enum {
+    EMB_SRV_BROADCAST_FLAG = (1 << 0)
+};
+
 struct emb_server_t {
 
     emb_srv_function_t (*get_function)(struct emb_server_t* _srv, uint8_t _func);
@@ -40,6 +44,8 @@ struct emb_server_t {
 
     uint8_t (*read_fifo)(struct emb_server_t* _srv, uint16_t _address,
                          uint16_t* _fifo_buf, uint8_t* _fifo_count);
+
+    uint8_t flags;
 };
 
 struct emb_super_server_t {
