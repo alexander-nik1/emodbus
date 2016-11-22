@@ -105,6 +105,8 @@ uint8_t emb_srv_write_file(struct emb_super_server_t* _ssrv,
 //**********************************************************************
 // FIFOs
 
+enum { EMB_SRV_READ_FIFO_MAX_REGS = 31 };
+
 uint8_t emb_srv_read_fifo(struct emb_super_server_t* _ssrv,
                           struct emb_server_t* _srv);
 

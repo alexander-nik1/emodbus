@@ -30,6 +30,7 @@
 //#define WRITE_FILE_ANS_SIZE()
 
 #define READ_FIFO_REQ_SIZE()                            (2)
-#define READ_FIFO_ANS_SIZE()                            (2 + 2 + 2 * 31)
+#define READ_FIFO_ANS_SIZE(_count_)                     (2 + 2 + 2 * (_count_))
+#define READ_FIFO_ANS_MAX_SIZE()                        READ_FIFO_ANS_SIZE(31)
 
 #endif // EMODBUS_CALC_PDU_SIZE_H

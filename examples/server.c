@@ -51,6 +51,27 @@ struct emb_srv_regs_t holdings1 = {
     .write_regs = holdings1_write_regs
 };
 
+/***************************************************************************************************/
+// FIFO
+
+static const uint16_t fifo1_data[8] =
+{
+    0xDEAD, 0x1111, 0x2222, 0x3333, 0x4444, 0x5555, 0x6666, 0x7777
+};
+
+static uint8_t srv_read_fifo(struct emb_server_t* _srv, uint16_t _address,
+                      uint16_t* _fifo_buf, uint8_t* _fifo_count)
+{
+    if(_address < 8) {
+        memcpy(_fifo_buf, fifo1_data+_address, (8-_address)*2);
+        *_fifo_count = 8-_address;
+    }
+    else {
+        *_fifo_count = 0;
+    }
+    return 0;
+}
+
 // ************************************************************************************************************************
 // modbus server
 
@@ -80,7 +101,7 @@ static emb_srv_function_t my_srv_funcs[] = {
     /* 0x15 */ NULL, // emb_srv_write_file,
     /* 0x16 */ emb_srv_mask_reg,
     /* 0x17 */ NULL,
-    /* 0x18 */ NULL,
+    /* 0x18 */ emb_srv_read_fifo,
 };
 
 static emb_srv_function_t my_srv_get_function(struct emb_server_t* _srv, uint8_t _func)
@@ -103,7 +124,8 @@ struct emb_server_t my_srv = {
     .get_function = my_srv_get_function,
     .get_coils = NULL,
     .get_holding_regs = my_srv_get_holdings,
-    .get_file = NULL
+    .get_file = NULL,
+    .read_fifo = srv_read_fifo
 };
 
 // ************************************************************************************************************************

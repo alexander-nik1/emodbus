@@ -104,6 +104,7 @@ INSTALL(FILES
 		lib/libemodbus-server-write-file.so
 		lib/libemodbus-server-write-reg.so
 		lib/libemodbus-server-write-regs.so
+                lib/libemodbus-server-read-fifo.so
 		DESTINATION ${PREFIX}/lib/
 		COMPONENT server-libs)
 
@@ -120,6 +121,7 @@ INSTALL(FILES
 		lib/libemodbus-server-write-file-static.a
 		lib/libemodbus-server-write-reg-static.a
 		lib/libemodbus-server-write-regs-static.a
+                lib/libemodbus-server-read-fifo-static.a
 		DESTINATION ${PREFIX}/lib/
 		COMPONENT server-libs-static)
 

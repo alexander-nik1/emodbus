@@ -17,7 +17,7 @@ int emb_read_fifo_calc_req_data_size() {
 }
 
 int emb_read_fifo_calc_answer_data_size() {
-    return READ_FIFO_ANS_SIZE();
+    return READ_FIFO_ANS_MAX_SIZE();
 }
 
 int emb_read_fifo_make_req(emb_pdu_t* _result_req,

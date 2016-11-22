@@ -117,3 +117,13 @@ set(EMODBUS_SERVER_WRITE_FILE
 
 add_library(emodbus-server-write-file SHARED ${EMODBUS_SERVER_WRITE_FILE})
 add_library(emodbus-server-write-file-static STATIC ${EMODBUS_SERVER_WRITE_FILE})
+
+# ===================================================
+# server-read-fifo
+
+set(EMODBUS_SERVER_READ_FIFO
+    read_fifo.c
+)
+
+add_library(emodbus-server-read-fifo SHARED ${EMODBUS_SERVER_READ_FIFO})
+add_library(emodbus-server-read-fifo-static STATIC ${EMODBUS_SERVER_READ_FIFO})
