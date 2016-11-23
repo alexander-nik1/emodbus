@@ -3,19 +3,18 @@ project(emodbus)
 
 cmake_minimum_required(VERSION 2.8)
 
-if(NOT DEFINED PACKAGE_ARCH)
-message(WARNING "You are not defined \"PACKAGE_ARCH\" variable.")
+if(NOT DEFINED EMB_DO_NOT_BUILD_DEB_PACKAGES)
+	if(NOT DEFINED PACKAGE_ARCH)
+		message(WARNING "You are not defined \"PACKAGE_ARCH\" variable.")
+	endif()
+
+	if(NOT DEFINED TARGET_PLATFORM)
+		message(WARNING "You are not defined \"TARGET_PLATFORM\" variable.")
+	endif()
+
+	set( EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin )
+	set( LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib )
 endif()
-
-if(NOT DEFINED TARGET_PLATFORM)
-message(WARNING "You are not defined \"TARGET_PLATFORM\" variable.")
-endif()
-
-#set( CMAKE_C_COMPILER gcc )
-#set( CMAKE_CXX_COMPILER g++ )
-
-set( EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin )
-set( LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib )
 
 include_directories(emodbus/include)
 include_directories(cpp-wrap/include)
@@ -30,9 +29,13 @@ add_subdirectory(cpp-wrap)
 
 add_subdirectory(implementations)
 
-add_subdirectory(tests)
-
+if( NOT DEFINED EMB_DO_NOT_BUILD_EXAMPLES )
 add_subdirectory(examples)
+endif()
+
+if( NOT DEFINED EMB_DO_NOT_BUILD_TESTS )
+add_subdirectory(tests)
+endif()
 
 FILE(GLOB_RECURSE LibFiles "*.hpp" "*.h" README TODO)
 add_custom_target(headers SOURCES ${LibFiles})
