@@ -6,7 +6,7 @@ To build this project you neet to:
 
 mkdir build
 cd build
-cmake -DPACKAGE_ARCH=i386 -DTARGET_PLATFORM=posix -DPREFIX=/usr ../emodbus
+cmake -DPACKAGE_ARCH=i386 -DTARGET_PLATFORM=posix -DPREFIX=/usr ..
 make
 make package
 
