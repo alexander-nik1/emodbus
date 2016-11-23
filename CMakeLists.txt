@@ -4,11 +4,11 @@ project(emodbus)
 cmake_minimum_required(VERSION 2.8)
 
 if(NOT DEFINED PACKAGE_ARCH)
-message(FATAL_ERROR "You are not defined \"PACKAGE_ARCH\" variable.")
+message(WARNING "You are not defined \"PACKAGE_ARCH\" variable.")
 endif()
 
 if(NOT DEFINED TARGET_PLATFORM)
-message(FATAL_ERROR "You are not defined \"TARGET_PLATFORM\" variable.")
+message(WARNING "You are not defined \"TARGET_PLATFORM\" variable.")
 endif()
 
 #set( CMAKE_C_COMPILER gcc )
