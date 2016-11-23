@@ -7,6 +7,10 @@
 
 #include <event2/event.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct emb_posix_sync_client_t;
 
 
@@ -22,5 +26,9 @@ int emb_posix_sync_client_transaction(struct emb_posix_sync_client_t* _cli,
                                       int _server_addr,
                                       unsigned int _timeout,
                                       struct emb_client_transaction_t* _transact);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif // EMB_POSIX_CLIENT_IMPL_H
