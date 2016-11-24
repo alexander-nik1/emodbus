@@ -142,7 +142,7 @@ INSTALL(FILES lib/libemodbus-server-full.so   DESTINATION ${PREFIX}/lib/ COMPONE
 INSTALL(FILES 
 		lib/libemodbus-client.so
 		lib/libemodbus-client-mask-write-reg.so
-                lib/libemodbus-client-read-bits.so
+		lib/libemodbus-client-read-bits.so
 		lib/libemodbus-client-read-fifo.so
 		lib/libemodbus-client-read-file-record.so
 		lib/libemodbus-client-read-regs.so
@@ -150,16 +150,17 @@ INSTALL(FILES
 		lib/libemodbus-client-write-coils.so
 		lib/libemodbus-client-write-file-record.so
 		lib/libemodbus-client-write-multi-reg.so
+		lib/libemodbus-client-read-write-regs.so
 		lib/libemodbus-client-write-single-reg.so
 		DESTINATION ${PREFIX}/lib/
-                COMPONENT client-libs)
+		COMPONENT client-libs)
 
 # component client-libs-static
 # set(CPACK_DEBIAN_CLIENT-LIBS-STATIC_PACKAGE_DEPENDS "emodbus-base-static")
 INSTALL(FILES 
 		lib/libemodbus-client-static.a
 		lib/libemodbus-client-mask-write-reg-static.a
-                lib/libemodbus-client-read-bits-static.a
+		lib/libemodbus-client-read-bits-static.a
 		lib/libemodbus-client-read-fifo-static.a
 		lib/libemodbus-client-read-file-record-static.a
 		lib/libemodbus-client-read-regs-static.a
@@ -167,6 +168,7 @@ INSTALL(FILES
 		lib/libemodbus-client-write-coils-static.a
 		lib/libemodbus-client-write-file-record-static.a
 		lib/libemodbus-client-write-multi-reg-static.a
+		lib/libemodbus-client-read-write-regs-static.a
 		lib/libemodbus-client-write-single-reg-static.a
 		DESTINATION ${PREFIX}/lib/
 		COMPONENT client-libs-static)

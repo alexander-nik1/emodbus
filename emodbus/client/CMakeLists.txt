@@ -99,6 +99,17 @@ add_library(emodbus-client-write-multi-reg SHARED ${EMODBUS_CLIENT_WRITE_MULTI_R
 add_library(emodbus-client-write-multi-reg-static STATIC ${EMODBUS_CLIENT_WRITE_MULTI_REGS})
 
 # ===================================================
+# client read write registers
+
+set(EMODBUS_CLIENT_READ_WRITE_REGS
+	read_write_regs.c
+)
+
+add_library(emodbus-client-read-write-regs SHARED ${EMODBUS_CLIENT_READ_WRITE_REGS})
+
+add_library(emodbus-client-read-write-regs-static STATIC ${EMODBUS_CLIENT_READ_WRITE_REGS})
+
+# ===================================================
 # client read file record
 
 set(EMODBUS_CLIENT_READ_FILE_RECORD
