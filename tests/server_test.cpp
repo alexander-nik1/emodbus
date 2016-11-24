@@ -251,6 +251,8 @@ public:
         add_function(0x14, emb_srv_read_file);
         add_function(0x15, emb_srv_write_file);
 
+        add_function(0x17, emb_srv_read_write_regs);
+
         add_function(0x18, emb_srv_read_fifo);
 
         if(!add_discrete_inputs(di1))

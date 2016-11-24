@@ -102,15 +102,16 @@ INSTALL(FILES lib/libemodbus-base-static.a   DESTINATION ${PREFIX}/lib/ COMPONEN
 INSTALL(FILES 
 		lib/libemodbus-server.so
 		lib/libemodbus-server-mask-reg.so
-                lib/libemodbus-server-read-bits.so
+		lib/libemodbus-server-read-bits.so
 		lib/libemodbus-server-read-file.so
-                lib/libemodbus-server-read-regs.so
+		lib/libemodbus-server-read-regs.so
 		lib/libemodbus-server-write-coil.so
 		lib/libemodbus-server-write-coils.so
 		lib/libemodbus-server-write-file.so
 		lib/libemodbus-server-write-reg.so
 		lib/libemodbus-server-write-regs.so
-                lib/libemodbus-server-read-fifo.so
+		lib/libemodbus-server-read-write-regs.so
+		lib/libemodbus-server-read-fifo.so
 		DESTINATION ${PREFIX}/lib/
 		COMPONENT server-libs)
 
@@ -119,15 +120,16 @@ INSTALL(FILES
 INSTALL(FILES 
 		lib/libemodbus-server-static.a
 		lib/libemodbus-server-mask-reg-static.a
-                lib/libemodbus-server-read-bits-static.a
+		lib/libemodbus-server-read-bits-static.a
 		lib/libemodbus-server-read-file-static.a
-                lib/libemodbus-server-read-regs-static.a
+		lib/libemodbus-server-read-regs-static.a
 		lib/libemodbus-server-write-coil-static.a
 		lib/libemodbus-server-write-coils-static.a
 		lib/libemodbus-server-write-file-static.a
 		lib/libemodbus-server-write-reg-static.a
 		lib/libemodbus-server-write-regs-static.a
-                lib/libemodbus-server-read-fifo-static.a
+		lib/libemodbus-server-read-write-regs-static.a
+		lib/libemodbus-server-read-fifo-static.a
 		DESTINATION ${PREFIX}/lib/
 		COMPONENT server-libs-static)
 

@@ -102,6 +102,12 @@ uint8_t emb_srv_mask_reg(struct emb_super_server_t* _ssrv,
                          struct emb_server_t* _srv);
 
 
+enum { EMB_SRV_RDWR_REGS_MAX_READ_REGS = 0x007D };
+enum { EMB_SRV_RDWR_REGS_MAX_WRITE_REGS = 0x0079 };
+
+uint8_t emb_srv_read_write_regs(struct emb_super_server_t* _ssrv,
+                                struct emb_server_t* _srv);
+
 //**********************************************************************
 // File records
 
