@@ -23,6 +23,9 @@ add_definitions(-DEMODBUS_PACKETS_DUMPING=1)
 
 set(HEADERS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+# Disable a warnings around 'offsetof' in C++
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof")
+
 add_subdirectory(emodbus)
 
 add_subdirectory(cpp-wrap)
