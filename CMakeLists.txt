@@ -11,11 +11,10 @@ if(NOT DEFINED TARGET_PLATFORM)
 message(WARNING "You are not defined \"TARGET_PLATFORM\" variable.")
 endif()
 
-#set( CMAKE_C_COMPILER gcc )
-#set( CMAKE_CXX_COMPILER g++ )
-
+if(NOT DEFINED EMB_USE_SYSTEM_BIN_AND_LIB_PATH)
 set( EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin )
 set( LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib )
+endif()
 
 include_directories(emodbus/include)
 include_directories(cpp-wrap/include)
@@ -30,9 +29,13 @@ add_subdirectory(cpp-wrap)
 
 add_subdirectory(implementations)
 
+if(NOT DEFINED EMB_WITHOUT_TESTS)
 add_subdirectory(tests)
+endif()
 
+if(NOT DEFINED EMB_WITHOUT_EXAMPLES)
 add_subdirectory(examples)
+endif()
 
 FILE(GLOB_RECURSE LibFiles "*.hpp" "*.h" README TODO)
 add_custom_target(headers SOURCES ${LibFiles})
