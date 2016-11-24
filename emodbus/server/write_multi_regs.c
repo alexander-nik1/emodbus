@@ -36,6 +36,9 @@ uint8_t emb_srv_write_regs(struct emb_super_server_t* _ssrv,
     if(!r->write_regs)
         return MBE_ILLEGAL_DATA_ADDR;
 
+    if(WRITE_REGISTERS_ANS_SIZE() > _ssrv->tx_pdu->max_size)
+        return MBE_SLAVE_FAILURE;
+
     rx_data += 5;
 
     for(i=0; i<quantity; ++i) {
@@ -49,9 +52,6 @@ uint8_t emb_srv_write_regs(struct emb_super_server_t* _ssrv,
                       (uint16_t*)rx_data);
     if(i)
         return i;
-
-    if(WRITE_REGISTERS_ANS_SIZE() > _ssrv->tx_pdu->max_size)
-        return MBE_SLAVE_FAILURE;
 
     ((uint16_t*)tx_data)[0] = SWAP_BYTES(start_addr);
     ((uint16_t*)tx_data)[1] = SWAP_BYTES(quantity);
