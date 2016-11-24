@@ -1,4 +1,8 @@
 
+Think about checks for client-side low-level functions, and error-returns.
+
+Carry the limitations-numbers for different requests into a single place.
+
 Make accessible the 0xFFFF file's register.
 
 Add a DEB package with clean sources of emodbus.
@@ -32,8 +36,6 @@ Add a tests for the File-Records, 0x02 and 0x04 functions.
 Think about function-names, register, coils, and so on.
 
 Make a cilend and server function 0x17. (Read/Write multiple registers)
-
-Make a server-side function 0x18. (Read FIFO)
 
 Разработать прокси для сервера, как в rmodbus.
 Заметки по прокси:
