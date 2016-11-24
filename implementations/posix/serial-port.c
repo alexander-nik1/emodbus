@@ -174,39 +174,102 @@ void serial_port_destroy(struct serial_port_t* _ctx) {
 
 #define GSBB_BAUD_CASE(_baud_)	case _baud_: return B##_baud_;
 
-static speed_t posix_serial_port_get_speedt_by_baudrate(unsigned int _baudrate){
+static speed_t posix_serial_port_get_speedt_by_baudrate(unsigned int _baudrate)
+{
     switch(_baudrate) {
+#ifdef B0
         GSBB_BAUD_CASE(0)
+#endif
+#ifdef B50
         GSBB_BAUD_CASE(50)
+#endif
+#ifdef B75
         GSBB_BAUD_CASE(75)
+#endif
+#ifdef B110
         GSBB_BAUD_CASE(110)
+#endif
+#ifdef B134
         GSBB_BAUD_CASE(134)
+#endif
+#ifdef B150
         GSBB_BAUD_CASE(150)
+#endif
+#ifdef B200
         GSBB_BAUD_CASE(200)
+#endif
+#ifdef B300
         GSBB_BAUD_CASE(300)
+#endif
+#ifdef B600
         GSBB_BAUD_CASE(600)
+#endif
+#ifdef B1200
         GSBB_BAUD_CASE(1200)
+#endif
+#ifdef B1800
         GSBB_BAUD_CASE(1800)
+#endif
+#ifdef B2400
         GSBB_BAUD_CASE(2400)
+#endif
+#ifdef B4800
         GSBB_BAUD_CASE(4800)
+#endif
+#ifdef B9600
         GSBB_BAUD_CASE(9600)
+#endif
+#ifdef B19200
         GSBB_BAUD_CASE(19200)
+#endif
+#ifdef B38400
         GSBB_BAUD_CASE(38400)
+#endif
+#ifdef B57600
         GSBB_BAUD_CASE(57600)
+#endif
+#ifdef B115200
         GSBB_BAUD_CASE(115200)
+#endif
+#ifdef B230400
         GSBB_BAUD_CASE(230400)
+#endif
+#ifdef B460800
         GSBB_BAUD_CASE(460800)
+#endif
+#ifdef B500000
         GSBB_BAUD_CASE(500000)
+#endif
+#ifdef B576000
         GSBB_BAUD_CASE(576000)
+#endif
+#ifdef B921600
         GSBB_BAUD_CASE(921600)
+#endif
+#ifdef B1000000
         GSBB_BAUD_CASE(1000000)
+#endif
+#ifdef B1152000
         GSBB_BAUD_CASE(1152000)
+#endif
+#ifdef B1500000
         GSBB_BAUD_CASE(1500000)
+#endif
+#ifdef B2000000
         GSBB_BAUD_CASE(2000000)
+#endif
+#ifdef B2500000
         GSBB_BAUD_CASE(2500000)
+#endif
+#ifdef B3000000
         GSBB_BAUD_CASE(3000000)
+#endif
+#ifdef B3500000
         GSBB_BAUD_CASE(3500000)
+#endif
+#ifdef B4000000
         GSBB_BAUD_CASE(4000000)
+#endif
         default: return -1;
     }
 }
