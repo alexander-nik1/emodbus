@@ -19,7 +19,6 @@
 #include <emodbus/server/regs.h>
 #include <emodbus/server/file.h>
 
-#include <emodbus/impl/posix/serial-rtu.hpp>
 #include <emodbus/impl/posix/tcp-client-rtu.hpp>
 #include <emodbus/impl/posix/mb-rtu-via-serial.h>
 #include <emodbus/impl/posix/mb-tcp-via-tcp-client.h>

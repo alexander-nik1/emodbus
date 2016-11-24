@@ -26,7 +26,6 @@
 #include <emodbus/client/read_fifo.h>
 
 #include <emodbus/impl/posix/client.hpp>
-#include <emodbus/impl/posix/serial-rtu.hpp>
 #include <emodbus/impl/posix/tcp-client-rtu.hpp>
 #include <emodbus/impl/posix/mb-rtu-via-serial.h>
 #include <emodbus/impl/posix/mb-tcp-via-tcp-client.h>
@@ -57,7 +56,7 @@ void* thr_proc(void* p) {
 
     //rtu = emb_rtu_via_serial_create(base, 5, "/dev/pts/24", 1152000);
 
-    struct emb_tcp_via_tcp_client_t* tcp = emb_tcp_via_tcp_client_create(base, "127.0.0.1", 8502);
+    struct emb_tcp_via_tcp_client_t* tcp = emb_tcp_via_tcp_client_create(base, "192.168.1.133", 8502);
 
     //res = rtu.open(base, "/dev/ttyUSB0", 115200);
     //res = rtu.open(base, "127.0.0.1", 8502);
