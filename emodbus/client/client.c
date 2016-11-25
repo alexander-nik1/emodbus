@@ -24,6 +24,8 @@ static void emb_client_on_receive_pkt(void* _user_data,
 
     cli->curr_transaction = (struct emb_client_transaction_t*)0;
 
+    cli->transport->rx_pdu = NULL;
+
     do {
 
         if(!req) {
@@ -60,8 +62,6 @@ static void emb_client_on_receive_pkt(void* _user_data,
             cli->on_response(cli, _slave_addr);
     }
     while(0);
-
-    cli->transport->rx_pdu = NULL;
 }
 
 static void emb_client_on_error(void* _user_data, int _errno) {
