@@ -1,4 +1,6 @@
 
+Fix the bug with modbus-tcp overflowing and stpooing.
+
 Think about checks for client-side low-level functions, and error-returns.
 
 Carry the limitations-numbers for different requests into a single place.
