@@ -27,7 +27,6 @@ target_link_libraries(srv_test
     emodbus-server-full
     emodbus-cpp
     pthread
-    emodbus-tcp-client-rtu
     emodbus-impl-posix
 )
 
