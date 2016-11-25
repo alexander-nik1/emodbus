@@ -1,11 +1,11 @@
 
 include_directories(../include)
 
-add_library(tcp-client STATIC tcp-client.c)
+add_library(emb-tcp-client STATIC tcp-client.c)
 
-add_library(tcp-server STATIC tcp-server.c)
+add_library(emb-tcp-server STATIC tcp-server.c)
 
-add_library(serail-port STATIC serial-port.c)
+add_library(emb-serail-port STATIC serial-port.c)
 
 add_library(emodbus-impl-posix SHARED
     mb-rtu-via-serial.c
@@ -24,9 +24,9 @@ target_link_libraries(emodbus-impl-posix
     emodbus-rtu
     emodbus-tcp
     emodbus-client
-    tcp-client
-    tcp-server
-    serail-port
+    emb-tcp-client
+    emb-tcp-server
+    emb-serail-port
 )
 
 add_library(emodbus-cpp-impl-posix SHARED
