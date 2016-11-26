@@ -142,7 +142,7 @@ void emb_tcp_port_event(struct emb_tcp_t* _mbt,
                         void *_tcp_client_id,
                         enum emb_tcp_port_event_t _event) {
 
-    int result;
+    int result = 0;
     _mbt->tcp_client_id = _tcp_client_id;
 
     switch(_event) {
@@ -151,9 +151,9 @@ void emb_tcp_port_event(struct emb_tcp_t* _mbt,
             int to_be_read = emb_tcp_rx_buf_size - _mbt->rx_pkt_counter;
 
             if(to_be_read < _mbt->curr_rx_length) {
-                //printf("Cleaning by invalid curr_rx_length: (%d < %d)\n",
-                      // to_be_read, _mbt->curr_rx_length);
-                //fflush(stdout);
+//                printf("Cleaning by invalid curr_rx_length: (%d < %d)\n",
+//                       to_be_read, _mbt->curr_rx_length);
+//                fflush(stdout);
                 _mbt->rx_pkt_counter = 0;
                 return;
             }
@@ -161,13 +161,17 @@ void emb_tcp_port_event(struct emb_tcp_t* _mbt,
             if(_mbt->curr_rx_length >= 0)
                 to_be_read = _mbt->curr_rx_length;
 
-            result = _mbt->read_from_port(_mbt,
-                                          _mbt->rx_buf + _mbt->rx_pkt_counter,
-                                          to_be_read);
+            if(to_be_read) {
+                result = _mbt->read_from_port(_mbt,
+                                              _mbt->rx_buf + _mbt->rx_pkt_counter,
+                                              to_be_read);
+            }
+            else
+                result = 0;
 
 //            printf("read_from_port = %d, rx_pkt_counter = %d,v to_be_read = %d\n",
 //                   result, _mbt->rx_pkt_counter, to_be_read);
-            fflush(stdout);
+//            fflush(stdout);
 
             if(result >= 0) {
                 _mbt->rx_pkt_counter += result;
@@ -178,7 +182,7 @@ void emb_tcp_port_event(struct emb_tcp_t* _mbt,
                 else {
                     if(emb_tcp_rx_buf_size == _mbt->rx_pkt_counter) {
                         _mbt->rx_pkt_counter = 0;
-                       // printf("Cleaning by buffer overflow\n"); fflush(stdout);
+//                        printf("Cleaning by buffer overflow\n"); fflush(stdout);
                     }
                 }
             }
@@ -193,6 +197,7 @@ void emb_tcp_port_event(struct emb_tcp_t* _mbt,
             _mbt->tx_pkt_counter += result;
         }
         break;
+
     case emb_tcp_last_rx_timeout:
         // By last rx timeout we are clean the rx buffer
 //        if(_mbt->rx_pkt_counter) {
