@@ -74,7 +74,8 @@ void emb_tcp_on_error(struct emb_tcp_t* _mbt,
  */
 enum emb_tcp_port_event_t {
     emb_tcp_data_received_event,    ///< Port tells: I have a received data for you.
-    emb_tcp_tx_buf_empty_event      ///< Port tells: My transmit buffer is empty, you can write to.
+    emb_tcp_tx_buf_empty_event,     ///< Port tells: My transmit buffer is empty, you can write to.
+    emb_tcp_last_rx_timeout,        ///< Port tells: A packet-timeout time have passed, after a last data receive.
 };
 
 /**

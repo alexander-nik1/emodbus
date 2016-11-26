@@ -13,7 +13,9 @@ extern "C" {
 struct emb_tcp_via_tcp_server_t;
 
 struct emb_tcp_via_tcp_server_t*
-emb_tcp_via_tcp_server_create(struct event_base *_base, int _port);
+emb_tcp_via_tcp_server_create(struct event_base *_base,
+                              int _port,
+                              unsigned int _rx_timeout_ms);
 
 void emb_tcp_via_tcp_server_destroy(struct emb_tcp_via_tcp_server_t* _ctx);
 

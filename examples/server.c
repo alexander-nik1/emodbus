@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
         goto ret;
     }
 
-    mb_tcp = emb_tcp_via_tcp_server_create(base, TCP_LISTEN_PORT);
+    mb_tcp = emb_tcp_via_tcp_server_create(base, TCP_LISTEN_PORT, 1000);
     if(!mb_tcp) {
         fprintf(stderr, "Error: emb_tcp_via_tcp_server_create() (port:%d) return NULL : %m\n", TCP_LISTEN_PORT);
         fflush(stderr);

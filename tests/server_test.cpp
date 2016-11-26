@@ -361,7 +361,7 @@ int main(int argc, char* argv[]) {
 
     //res = rtu.open(base, "/dev/ttyUSB0", 115200);
     //res = tcp.open(base, "127.0.0.1", 9992);
-    emb_tcp_via_tcp_server_t* tcp = emb_tcp_via_tcp_server_create(base, 8502);
+    emb_tcp_via_tcp_server_t* tcp = emb_tcp_via_tcp_server_create(base, 8502, 1000);
 
     //struct emb_rtu_via_serial_t* rtu = emb_rtu_via_serial_create(base, 5, "/dev/pts/26", 1152000);
 

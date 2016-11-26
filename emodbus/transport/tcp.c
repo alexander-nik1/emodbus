@@ -38,7 +38,7 @@ static void parse_packet(struct emb_tcp_t* _mbt) {
 #endif // EMODBUS_PACKETS_DUMPING
 
         do {
-            // If we are server's side, then we need to check a transaction id.
+            // If we are client's side, then we need to check a transaction id.
             // The transaction id must be the same as in sent packet.
             if(!(_mbt->transport.flags & EMB_TRANSPORT_FLAG_IS_SERVER)) {
                 struct emb_tcp_mbap_t* tx_mbap = (struct emb_tcp_mbap_t*)_mbt->tx_buf;
@@ -157,6 +157,10 @@ void emb_tcp_port_event(struct emb_tcp_t* _mbt,
         if(result > 0) {
             _mbt->tx_pkt_counter += result;
         }
+        break;
+    case emb_tcp_last_rx_timeout:
+        // By last rx timeout we are clean the rx buffer
+        _mbt->rx_pkt_counter = 0;
         break;
     }
 }
