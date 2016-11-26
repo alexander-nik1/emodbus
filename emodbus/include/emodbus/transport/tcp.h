@@ -43,6 +43,8 @@ struct emb_tcp_t {
                          const void* _p_data, unsigned int _sz_to_write);
 
     void* tcp_client_id;
+
+    int curr_rx_length;
 };
 
 /**

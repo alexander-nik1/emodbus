@@ -59,7 +59,7 @@ static void tcp_cient_notifier(struct tcp_server_t* _ctx,
 
 static void on_rx_timeout(evutil_socket_t _fd, short _what, void *_arg) {
     struct emb_tcp_via_tcp_server_t* _this = (struct emb_tcp_via_tcp_server_t*)_arg;
-    emb_tcp_port_event(&_this->modbus_tcp, NULL, emb_tcp_last_rx_timeout);
+    emb_tcp_port_event(&_this->modbus_tcp, _this->modbus_tcp.tcp_client_id, emb_tcp_last_rx_timeout);
 }
 
 
@@ -79,8 +79,8 @@ emb_tcp_via_tcp_server_create(struct event_base *_base,
 
         memset(res, 0, sizeof(struct emb_tcp_via_tcp_server_t));
 
-        res->rx_timeout.tv_sec = 0;
-        res->rx_timeout.tv_usec = 1000 * _rx_timeout_ms;
+        res->rx_timeout.tv_sec = _rx_timeout_ms / 1000;
+        res->rx_timeout.tv_usec = 1000 * (_rx_timeout_ms % 1000);
 
         res->rx_timeout_timer = event_new(_base, -1, EV_TIMEOUT, on_rx_timeout, res);
         if(!res->rx_timeout_timer)

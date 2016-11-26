@@ -19,17 +19,21 @@ struct emb_tcp_mbap_t {
 #define read_data_from_port(_mbt_)  emb_tcp_port_event((_mbt_), (_mbt_)->tcp_client_id, emb_tcp_data_received_event)
 #define write_data_to_port(_mbt_)   emb_tcp_port_event((_mbt_), (_mbt_)->tcp_client_id, emb_tcp_tx_buf_empty_event)
 
-static void parse_packet(struct emb_tcp_t* _mbt) {
+static int parse_packet(struct emb_tcp_t* _mbt) {
+
+    _mbt->curr_rx_length = -1;
 
     // TODO: Maybe I need to loop-based searching in receive buffer ?
     if(_mbt->rx_pkt_counter >= (emb_tcp_mbap_size + 2)) {
         struct emb_tcp_mbap_t* mbap = (struct emb_tcp_mbap_t*)_mbt->rx_buf;
         const uint16_t pkt_length = SWAP_BYTES(mbap->length) - 1;
 
+        _mbt->curr_rx_length = (emb_tcp_mbap_size + pkt_length) - _mbt->rx_pkt_counter;
+
         // If we are received not all packet, then skip processing, and
         // wait for data remainder.
-        if(_mbt->rx_pkt_counter < emb_tcp_mbap_size + pkt_length)
-            return;
+        if(_mbt->curr_rx_length > 0)
+            return 0;
 
 #if EMODBUS_PACKETS_DUMPING
         if(_mbt->transport.flags & EMB_TRANSPORT_FLAG_DUMD_PAKETS)
@@ -61,8 +65,9 @@ static void parse_packet(struct emb_tcp_t* _mbt) {
             }
 
         } while(0);
-        _mbt->rx_pkt_counter = 0;
+        return 1;
     }
+    return 0;
 }
 
 /**
@@ -129,6 +134,7 @@ void emb_tcp_initialize(struct emb_tcp_t* _mbt) {
         mbap->transact_id = SWAP_BYTES(0);
         _mbt->transport.send_packet = modbus_tcp_send_packet;
         _mbt->transport.transport_context = _mbt;
+        _mbt->curr_rx_length = -1;
     }
 }
 
@@ -141,12 +147,41 @@ void emb_tcp_port_event(struct emb_tcp_t* _mbt,
 
     switch(_event) {
     case emb_tcp_data_received_event:
-        result = _mbt->read_from_port(_mbt,
-                                      _mbt->rx_buf + _mbt->rx_pkt_counter,
-                                      emb_tcp_rx_buf_size - _mbt->rx_pkt_counter);
-        if(result > 0) {
-            _mbt->rx_pkt_counter += result;
-            parse_packet(_mbt);
+        {
+            int to_be_read = emb_tcp_rx_buf_size - _mbt->rx_pkt_counter;
+
+            if(to_be_read < _mbt->curr_rx_length) {
+                //printf("Cleaning by invalid curr_rx_length: (%d < %d)\n",
+                      // to_be_read, _mbt->curr_rx_length);
+                //fflush(stdout);
+                _mbt->rx_pkt_counter = 0;
+                return;
+            }
+
+            if(_mbt->curr_rx_length >= 0)
+                to_be_read = _mbt->curr_rx_length;
+
+            result = _mbt->read_from_port(_mbt,
+                                          _mbt->rx_buf + _mbt->rx_pkt_counter,
+                                          to_be_read);
+
+//            printf("read_from_port = %d, rx_pkt_counter = %d,v to_be_read = %d\n",
+//                   result, _mbt->rx_pkt_counter, to_be_read);
+            fflush(stdout);
+
+            if(result >= 0) {
+                _mbt->rx_pkt_counter += result;
+
+                if(parse_packet(_mbt)) {
+                    _mbt->rx_pkt_counter = 0;
+                }
+                else {
+                    if(emb_tcp_rx_buf_size == _mbt->rx_pkt_counter) {
+                        _mbt->rx_pkt_counter = 0;
+                       // printf("Cleaning by buffer overflow\n"); fflush(stdout);
+                    }
+                }
+            }
         }
         break;
 
@@ -160,6 +195,12 @@ void emb_tcp_port_event(struct emb_tcp_t* _mbt,
         break;
     case emb_tcp_last_rx_timeout:
         // By last rx timeout we are clean the rx buffer
+//        if(_mbt->rx_pkt_counter) {
+//            printf("Cleaning by timer (_mbt->rx_pkt_counter = %d)\n",
+//                   _mbt->rx_pkt_counter);
+//            fflush(stdout);
+//        }
+        _mbt->curr_rx_length = -1;
         _mbt->rx_pkt_counter = 0;
         break;
     }
