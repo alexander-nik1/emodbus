@@ -56,7 +56,7 @@ void* thr_proc(void* p) {
 
     //rtu = emb_rtu_via_serial_create(base, 5, "/dev/pts/24", 1152000);
 
-    struct emb_tcp_via_tcp_client_t* tcp = emb_tcp_via_tcp_client_create(base, "192.168.1.133", 8502);
+    struct emb_tcp_via_tcp_client_t* tcp = emb_tcp_via_tcp_client_create(base, "127.0.0.1", 8502);
 
     //res = rtu.open(base, "/dev/ttyUSB0", 115200);
     //res = rtu.open(base, "127.0.0.1", 8502);
@@ -451,6 +451,7 @@ public:
         count_0x06 = 0;
         count_0x10 = 0;
         count_0x16 = 0;
+        count_0x17 = 0;
         count_0x18 = 0;
     }
 
@@ -676,7 +677,69 @@ public:
         ++count_0x16;
     }
 
-    int fifo_sizs_statistic[32];
+    void schedule_0x17()
+    {
+        int err;
+        const int srv_addr = servers_begin + (rand() % servers_size);
+
+        uint16_t rd_addr = rand16();
+        uint16_t rd_quantity = (rand() % 0x7D) + 1;
+        uint16_t wr_addr = rand16();
+        uint16_t wr_quantity = (rand() % 0x79) + 1;
+
+        bool must_be_srv_error;
+
+//        bool must_be_cli_error = true;
+
+//        if(1 <= rd_quantity && rd_quantity <= 0x7D && 1 <= wr_quantity && wr_quantity <= 0x79)
+//            must_be_cli_error = false;
+
+//        if(quantity+begin_addr > 0x10000) {
+//            quantity = 0x10000 - begin_addr;
+//        }
+
+        if(is_range_belongs_t_regs(rd_addr, rd_quantity) &&
+                is_range_belongs_t_regs(wr_addr, wr_quantity))
+        {
+            must_be_srv_error = false;
+        }
+        else {
+            must_be_srv_error = true;
+        }
+
+        emb::client::read_write_regs_t rw(tr);
+
+        emb::regs_t wr_regs;
+        wr_regs.resize(wr_quantity);
+
+        for(int i=0; i<wr_quantity; ++i)
+            wr_regs[i] = rand();
+
+        rw.build_req(rd_addr, rd_quantity, wr_addr, wr_quantity, wr_regs.data());
+
+        err = mb_client.do_transaction(srv_addr, timeout, rw);
+
+        if((must_be_srv_error && !err) || (!must_be_srv_error && err)) {
+            printf("%s:%d: Error: %d \"%s\"\n", __FUNCTION__, __LINE__, err, emb_strerror(-err));
+            printf("must_be_error=%d srv_addr=%d, rd_addr=0x%04X rd_count=0x%04X wr_addr=0x%04X wr_count=0x%04X\n",
+                   must_be_srv_error, srv_addr, rd_addr, rd_quantity, wr_addr, wr_quantity);
+            fflush(stdout);
+            //exit(0);
+        }
+        else if(!err) {
+            uint16_t* p_data = &holdings[srv_addr-servers_begin][wr_addr];
+            //printf("MBE=%d ADDR=0x%04X, Q=0x%04X\n", must_be_error, begin_addr, quantity);
+            for(int i=0; i<wr_quantity; ++i)
+                p_data[i] = wr_regs[i];
+
+            p_data = &holdings[srv_addr-servers_begin][rd_addr];
+            rw.get_answer_rd_regs(p_data, 0, rw.get_answer_rd_quantity());
+        }
+
+        ++count_0x17;
+    }
+
+    //int fifo_sizs_statistic[32];
 
     void schedule_0x18() {
         int err;
@@ -711,8 +774,8 @@ public:
             rf.get_answer_all_data(sz, &holdings[srv_addr-servers_begin][addr]);
         }
 
-        if(!err)
-            fifo_sizs_statistic[rf.get_answer_regs_count()]++;
+//        if(!err)
+//            fifo_sizs_statistic[rf.get_answer_regs_count()]++;
 
         ++count_0x18;
     }
@@ -803,6 +866,7 @@ public:
     int count_0x06;
     int count_0x10;
     int count_0x16;
+    int count_0x17;
     int count_0x18;
 };
 
@@ -836,7 +900,7 @@ void full_test() {
 
     sleep(2);
 
-    memset(ht.fifo_sizs_statistic, 0, sizeof(ht.fifo_sizs_statistic));
+//    memset(ht.fifo_sizs_statistic, 0, sizeof(ht.fifo_sizs_statistic));
 
     for(int i=0; i<N_TESTS; ++i) {
 
@@ -850,7 +914,8 @@ void full_test() {
         if(x & (1 << 4)) ht.schedule_0x06();
         if(x & (1 << 5)) ht.schedule_0x10();
         if(x & (1 << 6)) ht.schedule_0x16();
-        if(x & (1 << 7)) ht.schedule_0x18();
+        if(x & (1 << 7)) ht.schedule_0x17();
+        if(x & (1 << 8)) ht.schedule_0x18();
 
         if(!(i%(N_TESTS/100))) {
             printf("\rProgress: %d%%", i/(N_TESTS/100));
@@ -875,13 +940,14 @@ void full_test() {
     printf("count 0x06 calls = %d\n", ht.count_0x06);
     printf("count 0x10 calls = %d\n", ht.count_0x10);
     printf("count 0x16 calls = %d\n", ht.count_0x16);
+    printf("count 0x17 calls = %d\n", ht.count_0x17);
     printf("count 0x18 calls = %d\n", ht.count_0x18);
 
-    printf("FIFO statistics:\n");
-    for(int i=0; i<32; ++i) {
-        printf("%d = %d calls\n", i, ht.fifo_sizs_statistic[i]);
-    }
-    printf("\n");
+//    printf("FIFO statistics:\n");
+//    for(int i=0; i<32; ++i) {
+//        printf("%d = %d calls\n", i, ht.fifo_sizs_statistic[i]);
+//    }
+//    printf("\n");
 }
 
 void write_and_read_file_record_test()
