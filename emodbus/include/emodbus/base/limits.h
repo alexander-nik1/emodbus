@@ -1,0 +1,39 @@
+
+#ifndef EMODBUS_LIMITS_H
+#define EMODBUS_LIMITS_H
+
+#define READ_BITS_MIN_QUANTITY              0x0001
+#define READ_BITS_MAX_QUANTITY              0x07D0
+
+#define READ_REGS_MIN_QUANTITY              0x0001
+#define READ_REGS_MAX_QUANTITY              0x007D
+
+#define WRITE_COILS_MIN_QUANTITY            0x0001
+#define WRITE_COILS_MAX_QUANTITY            0x07B0
+
+#define WRITE_REGS_MIN_QUANTITY             0x0001
+#define WRITE_REGS_MAX_QUANTITY             0x007B
+
+#define FILE_RECORD_MIN_FILE_NO             0x0001
+#define FILE_RECORD_MAX_FILE_NO             0xFFFF
+#define FILE_RECORD_MIN_RECORD_NO           0x0000
+#define FILE_RECORD_MAX_RECORD_NO           0x270F
+
+#define READ_FILE_REQ_MIN_BYTE_COUNT        0x0007
+#define READ_FILE_REQ_MAX_BYTE_COUNT        0x00F5
+#define READ_FILE_ANS_MIN_DATA_LEN          0x0007
+#define READ_FILE_ANS_MAX_DATA_LEN          0x00F5
+
+#define WRITE_FILE_REQ_MIN_BYTE_COUNT       0x0009
+#define WRITE_FILE_REQ_MAX_BYTE_COUNT       0x00FB
+#define WRITE_FILE_ANS_MIN_DATA_LEN         0x0009
+#define WRITE_FILE_ANS_MAX_DATA_LEN         0x00FB
+
+#define RDWR_REGS_MIN_RD_QUANTITY           0x0001
+#define RDWR_REGS_MAX_RD_QUANTITY           0x007D
+#define RDWR_REGS_MIN_WR_QUANTITY           0x0001
+#define RDWR_REGS_MAX_WR_QUANTITY           0x0079
+
+#define READ_FIFO_MAX_COUNT                 31
+
+#endif // EMODBUS_LIMITS_H
