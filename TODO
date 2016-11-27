@@ -1,9 +1,7 @@
 
-Fix the bug with modbus-tcp overflowing and stpooing.
-
 Think about checks for client-side low-level functions, and error-returns.
 
-Carry the limitations-numbers for different requests into a single place.
+Apply previously collected limitations in all places, where it used.
 
 Make accessible the 0xFFFF file's register.
 
