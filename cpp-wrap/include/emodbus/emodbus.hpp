@@ -19,7 +19,8 @@ namespace emb {
 
 // Just overload the << operator for useful usage.
 template<typename T>
-struct vector : public std::vector<T> {
+struct vector : public std::vector<T>
+{
     vector& operator << (const T& _v) {
         std::vector<T>::push_back(_v);
         return *this;
@@ -31,7 +32,8 @@ typedef std::pair<uint16_t, uint16_t> range_t;
 typedef vector<bool> coils_t;
 typedef coils_t inputs_t;
 
-struct regs_t : public std::vector<uint16_t> {
+struct regs_t : public std::vector<uint16_t>
+{
     regs_t& operator << (const int& _v);
     regs_t& operator << (const float& _v);
 
@@ -58,7 +60,8 @@ struct regs_t : public std::vector<uint16_t> {
  * allocated buffer for this PDU.
  *
  */
-class pdu_t : public emb_pdu_t {
+class pdu_t : public emb_pdu_t
+{
 public:
     pdu_t();
     pdu_t(unsigned int _sz);
@@ -95,7 +98,8 @@ namespace client {
  *
  * @see emb_client_transaction_t
  */
-class transaction_t {
+class transaction_t
+{
 public:
 
     transaction_t();
@@ -131,7 +135,8 @@ private:
  * transaction_t object, that was got in constructor.
  *
  */
-class transact_base_t {
+class transact_base_t
+{
 public:
     transact_base_t();
     transact_base_t(transaction_t& _tr);
@@ -150,7 +155,8 @@ public:
 // *******************************************************************************
 // read_bits_t
 
-class read_bits_t : public transact_base_t {
+class read_bits_t : public transact_base_t
+{
 public:
     read_bits_t();
     read_bits_t(transaction_t& _tr);
@@ -170,7 +176,8 @@ public:
 // *******************************************************************************
 // read_coils_t
 
-class read_coils_t : public read_bits_t {
+class read_coils_t : public read_bits_t
+{
 public:
     read_coils_t();
     read_coils_t(transaction_t& _tr);
@@ -181,7 +188,8 @@ public:
 // *******************************************************************************
 // read_discrete_inputs_t
 
-class read_discrete_inputs_t : public read_bits_t {
+class read_discrete_inputs_t : public read_bits_t
+{
 public:
     read_discrete_inputs_t();
     read_discrete_inputs_t(transaction_t& _tr);
@@ -192,7 +200,8 @@ public:
 // *******************************************************************************
 // write_coil_t
 
-class write_coil_t : public transact_base_t {
+class write_coil_t : public transact_base_t
+{
 public:
     write_coil_t();
     write_coil_t(transaction_t& _tr);
@@ -205,7 +214,8 @@ public:
 // *******************************************************************************
 // write_coils_t
 
-class write_coils_t : public transact_base_t {
+class write_coils_t : public transact_base_t
+{
 public:
     write_coils_t();
     write_coils_t(transaction_t& _tr);
@@ -220,7 +230,8 @@ public:
 // *******************************************************************************
 // read_regs_t
 
-class read_regs_t : public transact_base_t {
+class read_regs_t : public transact_base_t
+{
 public:
     read_regs_t();
     read_regs_t(transaction_t& _tr);
@@ -240,7 +251,8 @@ public:
 // *******************************************************************************
 // read_holding_regs_t
 
-class read_holding_regs_t : public read_regs_t {
+class read_holding_regs_t : public read_regs_t
+{
 public:
     read_holding_regs_t();
     read_holding_regs_t(transaction_t& _tr);
@@ -251,7 +263,8 @@ public:
 // *******************************************************************************
 // read_input_regs_t
 
-class read_input_regs_t : public read_regs_t {
+class read_input_regs_t : public read_regs_t
+{
 public:
     read_input_regs_t();
     read_input_regs_t(transaction_t& _tr);
@@ -262,7 +275,8 @@ public:
 // *******************************************************************************
 // write_reg_t
 
-class write_reg_t : public transact_base_t {
+class write_reg_t : public transact_base_t
+{
 public:
     write_reg_t();
     write_reg_t(transaction_t& _tr);
@@ -279,7 +293,8 @@ public:
 // *******************************************************************************
 // write_regs_t
 
-class write_regs_t : public transact_base_t {
+class write_regs_t : public transact_base_t
+{
 public:
     write_regs_t();
     write_regs_t(transaction_t& _tr);
@@ -295,9 +310,37 @@ public:
 };
 
 // *******************************************************************************
+// read_write_regs_t
+
+class read_write_regs_t : public transact_base_t
+{
+public:
+    read_write_regs_t();
+    read_write_regs_t(transaction_t& _tr);
+
+    void build_req(uint16_t _rd_address,
+                   uint16_t _rd_quantity,
+                   uint16_t _wr_address,
+                   uint16_t _wr_quantity,
+                   const uint16_t* _wr_data);
+
+    uint16_t get_req_rd_address() const;
+    uint16_t get_req_rd_quantity() const;
+    uint16_t get_req_wr_address() const;
+    uint16_t get_req_wr_quantity() const;
+
+    uint16_t get_answer_rd_reg(uint16_t _offset) const;
+    uint16_t get_answer_rd_quantity() const;
+
+    void get_answer_rd_regs(uint16_t* _p_data, uint16_t _offset, uint16_t _n_regs);
+    void get_answer_rd_regs(regs_t& _res, uint16_t _offset, uint16_t _n_regs);
+};
+
+// *******************************************************************************
 // write_mask_reg_t
 
-class write_mask_reg_t : public transact_base_t {
+class write_mask_reg_t : public transact_base_t
+{
 public:
     write_mask_reg_t();
     write_mask_reg_t(transaction_t& _tr);
@@ -318,7 +361,8 @@ public:
 // *******************************************************************************
 // read_file_t
 
-class read_file_t : public transact_base_t {
+class read_file_t : public transact_base_t
+{
 public:
 
     // Read file record for
@@ -373,7 +417,8 @@ public:
 // *******************************************************************************
 // write_file_t
 
-class write_file_t : public transact_base_t {
+class write_file_t : public transact_base_t
+{
 public:
 
     struct subreq_t {
@@ -397,7 +442,8 @@ public:
 // *******************************************************************************
 // read_fifo_t
 
-class read_fifo_t : public transact_base_t {
+class read_fifo_t : public transact_base_t
+{
 public:
     read_fifo_t();
     read_fifo_t(transaction_t& _tr);
@@ -413,7 +459,8 @@ public:
 // *******************************************************************************
 // client_t
 
-class client_t {
+class client_t
+{
 public:
     client_t();
 
@@ -448,12 +495,14 @@ protected:
 // *******************************************************************************
 // proxy_t
 
-class proxy_t {
-
-    struct holdings_t {
+class proxy_t
+{
+    struct holdings_t
+    {
         friend class proxy_t;
     private:
-        struct reg_t {
+        struct reg_t
+        {
             friend class holdings_t;
 
             operator int() const;
@@ -473,7 +522,8 @@ class proxy_t {
             proxy_t* p;
         } reg;
 
-        struct regs_t {
+        struct regs_t
+        {
             friend class holdings_t;
 
             operator emb::regs_t();
@@ -515,7 +565,7 @@ public:
     // Coils
     void read_coils(uint16_t _begin, uint16_t _size, coils_t& _result);
     void write_coil(uint16_t _addr, bool _value);
-    void write_coils(uint16_t _begin, const coils_t& _values);
+//    void write_coils(uint16_t _begin, const coils_t& _values);
 
     // Input registers
     void read_input_regs(uint16_t _begin, uint16_t _size, regs_t& _result);
@@ -563,7 +613,8 @@ class server_t;
 // *******************************************************************************
 // coils_t
 
-class coils_t {
+class coils_t
+{
     friend class server_t;
 public:
     coils_t();
@@ -600,7 +651,8 @@ private:
 // *******************************************************************************
 // discrete_inputs_t
 
-class discrete_inputs_t {
+class discrete_inputs_t
+{
     friend class server_t;
 public:
     discrete_inputs_t();
@@ -629,7 +681,8 @@ private:
 // *******************************************************************************
 // input_regs_t
 
-class input_regs_t {
+class input_regs_t
+{
     friend class server_t;
 public:
     input_regs_t();
@@ -657,7 +710,8 @@ private:
 // *******************************************************************************
 // holding_regs_t
 
-class holding_regs_t {
+class holding_regs_t
+{
     friend class server_t;
 public:
     holding_regs_t();
@@ -692,7 +746,8 @@ private:
 // *******************************************************************************
 // file_record_t
 
-class file_record_t {
+class file_record_t
+{
     friend class server_t;
 public:
     file_record_t();
@@ -727,7 +782,8 @@ private:
 
 class super_server_t;
 
-class server_t {
+class server_t
+{
     friend class super_server_t;
 
 public:
@@ -793,7 +849,8 @@ private:
 // *******************************************************************************
 // super_server_t
 
-class super_server_t {
+class super_server_t
+{
 public:
     super_server_t();
     void set_transport(struct emb_transport_t* _transport);
