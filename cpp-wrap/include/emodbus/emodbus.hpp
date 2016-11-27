@@ -161,9 +161,9 @@ public:
     read_bits_t();
     read_bits_t(transaction_t& _tr);
 
-    void build_req(enum EMB_RB_TYPE _type,
-                   uint16_t _starting_address,
-                   uint16_t _quantity);
+    int build_req(enum EMB_RB_TYPE _type,
+                  uint16_t _starting_address,
+                  uint16_t _quantity);
 
     uint16_t get_req_starting_addr() const;
     uint16_t get_req_quantity() const;
@@ -182,7 +182,7 @@ public:
     read_coils_t();
     read_coils_t(transaction_t& _tr);
 
-    void build_req(uint16_t _starting_address, uint16_t _quantity);
+    int build_req(uint16_t _starting_address, uint16_t _quantity);
 };
 
 // *******************************************************************************
@@ -194,7 +194,7 @@ public:
     read_discrete_inputs_t();
     read_discrete_inputs_t(transaction_t& _tr);
 
-    void build_req(uint16_t _starting_address, uint16_t _quantity);
+    int build_req(uint16_t _starting_address, uint16_t _quantity);
 };
 
 // *******************************************************************************
@@ -206,7 +206,7 @@ public:
     write_coil_t();
     write_coil_t(transaction_t& _tr);
 
-    void build_req(uint16_t _address, bool _value);
+    int build_req(uint16_t _address, bool _value);
 
     uint16_t get_req_addr() const;
 };
@@ -220,8 +220,8 @@ public:
     write_coils_t();
     write_coils_t(transaction_t& _tr);
 
-    void build_req(uint16_t _starting_address, uint16_t _quantity,
-                   const bool *_pcoils);
+    int build_req(uint16_t _starting_address, uint16_t _quantity,
+                  const bool *_pcoils);
 
     uint16_t get_req_starting_addr() const;
     uint16_t get_req_quantity() const;
@@ -236,8 +236,8 @@ public:
     read_regs_t();
     read_regs_t(transaction_t& _tr);
 
-    void build_req(enum EMB_RR_TYPE _subtype,
-                   uint16_t _starting_address, uint16_t _quantity);
+    int build_req(enum EMB_RR_TYPE _subtype,
+                  uint16_t _starting_address, uint16_t _quantity);
 
     uint16_t get_req_starting_addr() const;
     uint16_t get_req_quantity() const;
@@ -257,7 +257,7 @@ public:
     read_holding_regs_t();
     read_holding_regs_t(transaction_t& _tr);
 
-    void build_req(uint16_t _starting_address, uint16_t _quantity);
+    int build_req(uint16_t _starting_address, uint16_t _quantity);
 };
 
 // *******************************************************************************
@@ -269,7 +269,7 @@ public:
     read_input_regs_t();
     read_input_regs_t(transaction_t& _tr);
 
-    void build_req(uint16_t _starting_address, uint16_t _quantity);
+    int build_req(uint16_t _starting_address, uint16_t _quantity);
 };
 
 // *******************************************************************************
@@ -281,7 +281,7 @@ public:
     write_reg_t();
     write_reg_t(transaction_t& _tr);
 
-    void build_req(uint16_t _address, uint16_t _value);
+    int build_req(uint16_t _address, uint16_t _value);
 
     uint16_t get_req_address() const;
     uint16_t get_req_value() const;
@@ -299,7 +299,7 @@ public:
     write_regs_t();
     write_regs_t(transaction_t& _tr);
 
-    void build_req(uint16_t _address, uint16_t _quantity, const uint16_t* _data);
+    int build_req(uint16_t _address, uint16_t _quantity, const uint16_t* _data);
 
     uint16_t get_req_address() const;
     uint16_t get_req_quantity() const;
@@ -318,11 +318,11 @@ public:
     read_write_regs_t();
     read_write_regs_t(transaction_t& _tr);
 
-    void build_req(uint16_t _rd_address,
-                   uint16_t _rd_quantity,
-                   uint16_t _wr_address,
-                   uint16_t _wr_quantity,
-                   const uint16_t* _wr_data);
+    int build_req(uint16_t _rd_address,
+                  uint16_t _rd_quantity,
+                  uint16_t _wr_address,
+                  uint16_t _wr_quantity,
+                  const uint16_t* _wr_data);
 
     uint16_t get_req_rd_address() const;
     uint16_t get_req_rd_quantity() const;
@@ -345,9 +345,9 @@ public:
     write_mask_reg_t();
     write_mask_reg_t(transaction_t& _tr);
 
-    void build_req(uint16_t _address,
-                   uint16_t _and_mask,
-                   uint16_t _or_mask);
+    int build_req(uint16_t _address,
+                  uint16_t _and_mask,
+                  uint16_t _or_mask);
 
     uint16_t get_req_address() const;
     uint16_t get_req_and_mask() const;
@@ -404,7 +404,7 @@ public:
     read_file_t();
     read_file_t(transaction_t& _tr);
 
-    void build_req(const req_t& _reqs);
+    int build_req(const req_t& _reqs);
 
     answer_iterator_t subanswer_begin() const;
     answer_iterator_t subanswer_end() const;
@@ -436,7 +436,7 @@ public:
     write_file_t();
     write_file_t(transaction_t& _tr);
 
-    void build_req(const req_t& _req);
+    int build_req(const req_t& _req);
 };
 
 // *******************************************************************************

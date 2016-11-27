@@ -22,25 +22,29 @@ namespace emb {
 // *******************************************************************************
 // regs_t
 
-regs_t& regs_t::operator << (const int& _v) {
+regs_t& regs_t::operator << (const int& _v)
+{
     push_back(_v);
     return *this;
 }
 
-regs_t& regs_t::operator << (const float& _v) {
+regs_t& regs_t::operator << (const float& _v)
+{
     const uint16_t* p = (uint16_t*)&_v;
     push_back(p[0]);
     push_back(p[1]);
     return *this;
 }
 
-regs_t& regs_t::operator >> (int& _v) {
+regs_t& regs_t::operator >> (int& _v)
+{
     _v = front();
     erase(begin());
     return *this;
 }
 
-regs_t& regs_t::operator >> (float& _v) {
+regs_t& regs_t::operator >> (float& _v)
+{
     uint16_t* p = (uint16_t*)&_v;
     iterator i = begin();
     p[0] = *i++;
@@ -52,23 +56,25 @@ regs_t& regs_t::operator >> (float& _v) {
 // *******************************************************************************
 // pdu_t
 
-pdu_t::pdu_t() {
+pdu_t::pdu_t()
+{
     emb_pdu_t::max_size = 0;
     emb_pdu_t::data_size = 0;
     emb_pdu_t::data = NULL;
 }
 
-pdu_t::pdu_t(unsigned int _sz) {
-    resize(_sz);
-}
+pdu_t::pdu_t(unsigned int _sz)
+{ resize(_sz); }
 
-pdu_t::~pdu_t() {
+pdu_t::~pdu_t()
+{
     emb_pdu_t::max_size = 0;
     emb_pdu_t::data_size = 0;
     emb_pdu_t::data = NULL;
 }
 
-void pdu_t::resize(unsigned int _size) {
+void pdu_t::resize(unsigned int _size)
+{
     if(buffer.size() < _size) {
         buffer.resize(_size);
         emb_pdu_t::max_size = buffer.size();
@@ -76,13 +82,11 @@ void pdu_t::resize(unsigned int _size) {
     }
 }
 
-pdu_t::operator emb_pdu_t* () {
-    return (emb_pdu_t*) (this);
-}
+pdu_t::operator emb_pdu_t* ()
+{ return (emb_pdu_t*) (this); }
 
-pdu_t::operator emb_const_pdu_t* () const {
-    return (emb_const_pdu_t*) (this);
-}
+pdu_t::operator emb_const_pdu_t* () const
+{ return (emb_const_pdu_t*) (this); }
 
 namespace client {
 
@@ -96,7 +100,8 @@ namespace client {
 // *******************************************************************************
 // transaction_t
 
-transaction_t::transaction_t() {
+transaction_t::transaction_t()
+{
     tr.procs = &procs;
     tr.req_pdu = req;
     tr.resp_pdu = ans;
@@ -109,18 +114,21 @@ void transaction_t::emb_transaction_on_error(int _slave_addr, int _errno) { }
 transaction_t::operator struct emb_client_transaction_t* () { return &tr; }
 
 void transaction_t::emb_trans_on_response_(struct emb_client_transaction_t* _tr,
-                                           int _slave_addr) {
+                                           int _slave_addr)
+{
     transaction_t* _this = container_of(_tr, transaction_t, tr);
     _this->emb_transaction_on_response(_slave_addr);
 }
 
 void transaction_t::emb_trans_on_error_(struct emb_client_transaction_t* _tr,
-                                        int _slave_addr, int _errno) {
+                                        int _slave_addr, int _errno)
+{
     transaction_t* _this = container_of(_tr, transaction_t, tr);
     _this->emb_transaction_on_error(_slave_addr, _errno);
 }
 
-struct emb_client_req_procs_t transaction_t::procs = {
+struct emb_client_req_procs_t transaction_t::procs =
+{
     transaction_t::emb_trans_on_response_,
     transaction_t::emb_trans_on_error_
 };
@@ -133,7 +141,8 @@ transact_base_t::transact_base_t(transaction_t& _tr)
     : self_tr(NULL)
     , tr(&_tr) { }
 
-transact_base_t::~transact_base_t() {
+transact_base_t::~transact_base_t()
+{
     if(self_tr)
         delete self_tr;
 }
@@ -150,35 +159,29 @@ transact_base_t::operator const transaction_t& () const
 read_bits_t::read_bits_t() { }
 read_bits_t::read_bits_t(transaction_t& _tr) : transact_base_t(_tr) { }
 
-void read_bits_t::build_req(enum EMB_RB_TYPE _type,
-                            uint16_t _starting_address,
-                            uint16_t _quantity) {
-    int res;
-
+int read_bits_t::build_req(enum EMB_RB_TYPE _type,
+                           uint16_t _starting_address,
+                           uint16_t _quantity)
+{
     tr->req.resize(emb_read_bits_calc_req_data_size());
     tr->ans.resize(emb_read_bits_calc_answer_data_size(_quantity));
-
-    if((res = emb_read_bits_make_req(tr->req, _type, _starting_address, _quantity)))
-        throw res;
+    return emb_read_bits_make_req(tr->req, _type, _starting_address, _quantity);
 }
 
-uint16_t read_bits_t::get_req_starting_addr() const {
-    return emb_read_bits_get_starting_addr(tr->req);
-}
+uint16_t read_bits_t::get_req_starting_addr() const
+{ return emb_read_bits_get_starting_addr(tr->req); }
 
-uint16_t read_bits_t::get_req_quantity() const {
-    return emb_read_bits_get_quantity(tr->req);
-}
+uint16_t read_bits_t::get_req_quantity() const
+{ return emb_read_bits_get_quantity(tr->req); }
 
-char read_bits_t::get_answer_bit(uint16_t _offset) const {
-    return emb_read_bits_get_bit(tr->ans, _offset);
-}
+char read_bits_t::get_answer_bit(uint16_t _offset) const
+{ return emb_read_bits_get_bit(tr->ans, _offset); }
 
-uint8_t read_bits_t::get_answer_byte(uint8_t _offset) const {
-    return emb_read_bits_get_byte(tr->ans, _offset);
-}
+uint8_t read_bits_t::get_answer_byte(uint8_t _offset) const
+{ return emb_read_bits_get_byte(tr->ans, _offset); }
 
-void read_bits_t::response_data(bool *_coils, unsigned int _size) const {
+void read_bits_t::response_data(bool *_coils, unsigned int _size) const
+{
     uint16_t sz = emb_read_bits_get_quantity(tr->req);
     if(sz > _size)
         sz = _size;
@@ -193,8 +196,8 @@ void read_bits_t::response_data(bool *_coils, unsigned int _size) const {
 read_coils_t::read_coils_t() { }
 read_coils_t::read_coils_t(transaction_t& _tr) : read_bits_t(_tr) { }
 
-void read_coils_t::build_req(uint16_t _starting_address, uint16_t _quantity)
-{ read_bits_t::build_req(EMB_RB_COILS, _starting_address, _quantity); }
+int read_coils_t::build_req(uint16_t _starting_address, uint16_t _quantity)
+{ return read_bits_t::build_req(EMB_RB_COILS, _starting_address, _quantity); }
 
 // *******************************************************************************
 // read_discrete_inputs_t
@@ -202,8 +205,8 @@ void read_coils_t::build_req(uint16_t _starting_address, uint16_t _quantity)
 read_discrete_inputs_t::read_discrete_inputs_t() { }
 read_discrete_inputs_t::read_discrete_inputs_t(transaction_t& _tr) : read_bits_t(_tr) { }
 
-void read_discrete_inputs_t::build_req(uint16_t _starting_address, uint16_t _quantity)
-{ read_bits_t::build_req(EMB_RB_DISCRETE_INPUTS, _starting_address, _quantity); }
+int read_discrete_inputs_t::build_req(uint16_t _starting_address, uint16_t _quantity)
+{ return read_bits_t::build_req(EMB_RB_DISCRETE_INPUTS, _starting_address, _quantity); }
 
 // *******************************************************************************
 // write_coil_t
@@ -211,19 +214,15 @@ void read_discrete_inputs_t::build_req(uint16_t _starting_address, uint16_t _qua
 write_coil_t::write_coil_t() { }
 write_coil_t::write_coil_t(transaction_t& _tr) : transact_base_t(_tr) { }
 
-void write_coil_t::build_req(uint16_t _address, bool _value) {
-    int res;
-
+int write_coil_t::build_req(uint16_t _address, bool _value)
+{
     tr->req.resize(emb_write_coil_calc_req_data_size());
     tr->ans.resize(emb_write_coil_calc_answer_data_size());
-
-    if((res = emb_write_coil_make_req(tr->req, _address, _value)))
-        throw res;
+    return emb_write_coil_make_req(tr->req, _address, _value);
 }
 
-uint16_t write_coil_t::get_req_addr() const {
-    return emb_write_coil_get_addr(tr->req);
-}
+uint16_t write_coil_t::get_req_addr() const
+{ return emb_write_coil_get_addr(tr->req); }
 
 // *******************************************************************************
 // write_coils_t
@@ -231,11 +230,10 @@ uint16_t write_coil_t::get_req_addr() const {
 write_coils_t::write_coils_t() { }
 write_coils_t::write_coils_t(transaction_t& _tr) : transact_base_t(_tr) { }
 
-void write_coils_t::build_req(uint16_t _starting_address,
-                              uint16_t _quantity,
-                              const bool *_pcoils) {
-    int res;
-
+int write_coils_t::build_req(uint16_t _starting_address,
+                             uint16_t _quantity,
+                             const bool *_pcoils)
+{
     std::vector<uint8_t> coils;
 
     coils.resize((_quantity / 8) + ((_quantity & 7) ? 1 : 0));
@@ -256,17 +254,14 @@ void write_coils_t::build_req(uint16_t _starting_address,
     tr->req.resize(emb_write_coils_calc_req_data_size(_quantity));
     tr->ans.resize(emb_write_coils_calc_answer_data_size());
 
-    if((res = emb_write_coils_make_req(tr->req, _starting_address, _quantity, &coils[0])))
-        throw res;
+    return emb_write_coils_make_req(tr->req, _starting_address, _quantity, &coils[0]);
 }
 
-uint16_t write_coils_t::get_req_starting_addr() const {
-    return emb_write_coils_get_starting_addr(tr->req);
-}
+uint16_t write_coils_t::get_req_starting_addr() const
+{ return emb_write_coils_get_starting_addr(tr->req); }
 
-uint16_t write_coils_t::get_req_quantity() const {
-    return emb_write_coils_get_quantity(tr->req);
-}
+uint16_t write_coils_t::get_req_quantity() const
+{ return emb_write_coils_get_quantity(tr->req); }
 
 // *******************************************************************************
 // read_hold_regs_t
@@ -274,42 +269,36 @@ uint16_t write_coils_t::get_req_quantity() const {
 read_regs_t::read_regs_t() : transact_base_t() { }
 read_regs_t::read_regs_t(transaction_t &_tr) : transact_base_t(_tr) { }
 
-void read_regs_t::build_req(enum EMB_RR_TYPE _subtype,
-                            uint16_t _starting_address,
-                            uint16_t _quantity) {
-    int res;
-
+int read_regs_t::build_req(enum EMB_RR_TYPE _subtype,
+                           uint16_t _starting_address,
+                           uint16_t _quantity)
+{
     tr->req.resize(emb_read_regs_calc_req_data_size());
     tr->ans.resize(emb_read_regs_calc_answer_data_size(_quantity));
 
-    if((res = emb_read_regs_make_req(tr->req,
-                                     _subtype,
-                                     _starting_address,
-                                     _quantity)))
-        throw res;
+    return emb_read_regs_make_req(tr->req,
+                                  _subtype,
+                                  _starting_address,
+                                  _quantity);
 }
 
-uint16_t read_regs_t::get_req_starting_addr() const {
-    return emb_read_regs_get_starting_addr(tr->req);
-}
+uint16_t read_regs_t::get_req_starting_addr() const
+{ return emb_read_regs_get_starting_addr(tr->req); }
 
-uint16_t read_regs_t::get_req_quantity() const {
-    return emb_read_regs_get_quantity(tr->req);
-}
+uint16_t read_regs_t::get_req_quantity() const
+{ return emb_read_regs_get_quantity(tr->req); }
 
-uint16_t read_regs_t::get_answer_reg(uint16_t _offset) const {
-    return emb_read_regs_get_reg(tr->ans, _offset);
-}
+uint16_t read_regs_t::get_answer_reg(uint16_t _offset) const
+{ return emb_read_regs_get_reg(tr->ans, _offset); }
 
-uint16_t read_regs_t::get_answer_quantity() const {
-    return emb_read_regs_get_regs_n(tr->ans);
-}
+uint16_t read_regs_t::get_answer_quantity() const
+{ return emb_read_regs_get_regs_n(tr->ans); }
 
-void read_regs_t::get_answer_regs(uint16_t* _p_data, uint16_t _offset, uint16_t _n_regs) {
-    emb_read_regs_get_regs(tr->ans, _offset, _n_regs, _p_data);
-}
+void read_regs_t::get_answer_regs(uint16_t* _p_data, uint16_t _offset, uint16_t _n_regs)
+{ emb_read_regs_get_regs(tr->ans, _offset, _n_regs, _p_data); }
 
-void read_regs_t::get_answer_regs(regs_t& _res, uint16_t _offset, uint16_t _n_regs) {
+void read_regs_t::get_answer_regs(regs_t& _res, uint16_t _offset, uint16_t _n_regs)
+{
     _res.resize(_n_regs);
     emb_read_regs_get_regs(tr->ans, _offset, _n_regs, &_res[0]);
 }
@@ -320,8 +309,8 @@ void read_regs_t::get_answer_regs(regs_t& _res, uint16_t _offset, uint16_t _n_re
 read_holding_regs_t::read_holding_regs_t() { }
 read_holding_regs_t::read_holding_regs_t(transaction_t &_tr) : read_regs_t(_tr) { }
 
-void read_holding_regs_t::build_req(uint16_t _starting_address, uint16_t _quantity)
-{ read_regs_t::build_req(EMB_RR_HOLDINGS, _starting_address, _quantity); }
+int read_holding_regs_t::build_req(uint16_t _starting_address, uint16_t _quantity)
+{ return read_regs_t::build_req(EMB_RR_HOLDINGS, _starting_address, _quantity); }
 
 // *******************************************************************************
 // read_input_regs_t
@@ -329,8 +318,8 @@ void read_holding_regs_t::build_req(uint16_t _starting_address, uint16_t _quanti
 read_input_regs_t::read_input_regs_t() { }
 read_input_regs_t::read_input_regs_t(transaction_t &_tr) : read_regs_t(_tr) { }
 
-void read_input_regs_t::build_req(uint16_t _starting_address, uint16_t _quantity)
-{ read_regs_t::build_req(EMB_RR_INPUTS, _starting_address, _quantity); }
+int read_input_regs_t::build_req(uint16_t _starting_address, uint16_t _quantity)
+{ return read_regs_t::build_req(EMB_RR_INPUTS, _starting_address, _quantity); }
 
 // *******************************************************************************
 // write_reg_t
@@ -338,30 +327,24 @@ void read_input_regs_t::build_req(uint16_t _starting_address, uint16_t _quantity
 write_reg_t::write_reg_t() { }
 write_reg_t::write_reg_t(transaction_t& _tr) : transact_base_t(_tr) { }
 
-void write_reg_t::build_req(uint16_t _address, uint16_t _value) {
-    int res;
+int write_reg_t::build_req(uint16_t _address, uint16_t _value)
+{
     tr->req.resize(emb_write_reg_calc_req_data_size());
     tr->ans.resize(emb_write_reg_calc_answer_data_size());
-
-    if((res = emb_write_reg_make_req(tr->req, _address, _value)))
-        throw res;
+    return emb_write_reg_make_req(tr->req, _address, _value);
 }
 
-uint16_t write_reg_t::get_req_address() const {
-    return emb_write_reg_get_address(tr->req);
-}
+uint16_t write_reg_t::get_req_address() const
+{ return emb_write_reg_get_address(tr->req); }
 
-uint16_t write_reg_t::get_req_value() const {
-    return emb_write_reg_get_value(tr->req);
-}
+uint16_t write_reg_t::get_req_value() const
+{ return emb_write_reg_get_value(tr->req); }
 
-uint16_t write_reg_t::get_answer_address() const {
-    return emb_write_reg_get_address(tr->ans);
-}
+uint16_t write_reg_t::get_answer_address() const
+{ return emb_write_reg_get_address(tr->ans); }
 
-uint16_t write_reg_t::get_answer_value() const {
-    return emb_write_reg_get_value(tr->ans);
-}
+uint16_t write_reg_t::get_answer_value() const
+{ return emb_write_reg_get_value(tr->ans); }
 
 // *******************************************************************************
 // write_regs_t
@@ -369,36 +352,28 @@ uint16_t write_reg_t::get_answer_value() const {
 write_regs_t::write_regs_t() { }
 write_regs_t::write_regs_t(transaction_t& _tr) : transact_base_t(_tr) { }
 
-void write_regs_t::build_req(uint16_t _address, uint16_t _quantity,
-                             const uint16_t* _data) {
-
-    int res;
+int write_regs_t::build_req(uint16_t _address, uint16_t _quantity,
+                            const uint16_t* _data)
+{
     tr->req.resize(emb_write_regs_calc_req_data_size(_quantity));
     tr->ans.resize(emb_write_regs_calc_answer_data_size());
-
-    if((res = emb_write_regs_make_req(tr->req, _address, _quantity, _data)))
-        throw res;
+    return emb_write_regs_make_req(tr->req, _address, _quantity, _data);
 }
 
-uint16_t write_regs_t::get_req_address() const {
-    return emb_write_regs_get_req_address(tr->req);
-}
+uint16_t write_regs_t::get_req_address() const
+{ return emb_write_regs_get_req_address(tr->req); }
 
-uint16_t write_regs_t::get_req_quantity() const {
-    return emb_write_regs_get_req_quantity(tr->req);
-}
+uint16_t write_regs_t::get_req_quantity() const
+{ return emb_write_regs_get_req_quantity(tr->req); }
 
-uint16_t write_regs_t::get_req_data(uint16_t _offset) const {
-    return emb_write_regs_get_req_data(tr->req, _offset);
-}
+uint16_t write_regs_t::get_req_data(uint16_t _offset) const
+{ return emb_write_regs_get_req_data(tr->req, _offset); }
 
-uint16_t write_regs_t::get_answer_address() const {
-    return emb_write_regs_get_answer_address(tr->ans);
-}
+uint16_t write_regs_t::get_answer_address() const
+{ return emb_write_regs_get_answer_address(tr->ans); }
 
-uint16_t write_regs_t::get_answer_quantity() const {
-    return emb_write_regs_get_answer_quantity(tr->ans);
-}
+uint16_t write_regs_t::get_answer_quantity() const
+{ return emb_write_regs_get_answer_quantity(tr->ans); }
 
 // *******************************************************************************
 // read_write_regs_t
@@ -406,19 +381,16 @@ uint16_t write_regs_t::get_answer_quantity() const {
 read_write_regs_t::read_write_regs_t() { }
 read_write_regs_t::read_write_regs_t(transaction_t& _tr) : transact_base_t(_tr) { }
 
-void read_write_regs_t::build_req(uint16_t _rd_address,
-                                  uint16_t _rd_quantity,
-                                  uint16_t _wr_address,
-                                  uint16_t _wr_quantity,
-                                  const uint16_t* _wr_data)
+int read_write_regs_t::build_req(uint16_t _rd_address,
+                                 uint16_t _rd_quantity,
+                                 uint16_t _wr_address,
+                                 uint16_t _wr_quantity,
+                                 const uint16_t* _wr_data)
 {
-    int res;
     tr->req.resize(emb_rdwr_regs_calc_req_data_size(_wr_quantity));
     tr->ans.resize(emb_rdwr_regs_calc_answer_data_size(_rd_quantity));
-
-    if((res = emb_rdwr_regs_make_req(tr->req, _rd_address, _rd_quantity,
-                                     _wr_address, _wr_quantity, _wr_data)))
-        throw res;
+    return emb_rdwr_regs_make_req(tr->req, _rd_address, _rd_quantity,
+                                  _wr_address, _wr_quantity, _wr_data);
 }
 
 uint16_t read_write_regs_t::get_req_rd_address() const
@@ -454,45 +426,38 @@ void read_write_regs_t::get_answer_rd_regs(regs_t& _res, uint16_t _offset, uint1
 write_mask_reg_t::write_mask_reg_t() { }
 write_mask_reg_t::write_mask_reg_t(transaction_t& _tr) : transact_base_t(_tr) { }
 
-void write_mask_reg_t::build_req(uint16_t _address,
-                                 uint16_t _and_mask,
-                                 uint16_t _or_mask) {
-    int res;
+int write_mask_reg_t::build_req(uint16_t _address,
+                                uint16_t _and_mask,
+                                uint16_t _or_mask)
+{
     tr->req.resize(emb_write_mask_reg_calc_req_data_size());
     tr->ans.resize(emb_write_mask_reg_calc_answer_data_size());
-
-    if((res = emb_write_mask_reg_make_req(tr->req, _address, _and_mask, _or_mask)))
-        throw res;
+    return emb_write_mask_reg_make_req(tr->req, _address, _and_mask, _or_mask);
 }
 
-uint16_t write_mask_reg_t::write_mask_reg_t::get_req_address() const {
-    return emb_write_mask_reg_get_address(tr->req);
-}
+uint16_t write_mask_reg_t::write_mask_reg_t::get_req_address() const
+{ return emb_write_mask_reg_get_address(tr->req); }
 
-uint16_t write_mask_reg_t::write_mask_reg_t::get_req_and_mask() const {
-    return emb_write_mask_reg_get_and_mask(tr->req);
-}
+uint16_t write_mask_reg_t::write_mask_reg_t::get_req_and_mask() const
+{ return emb_write_mask_reg_get_and_mask(tr->req); }
 
-uint16_t write_mask_reg_t::write_mask_reg_t::get_req_or_mask() const {
-    return emb_write_mask_reg_get_or_mask(tr->req);
-}
+uint16_t write_mask_reg_t::write_mask_reg_t::get_req_or_mask() const
+{ return emb_write_mask_reg_get_or_mask(tr->req); }
 
-uint16_t write_mask_reg_t::write_mask_reg_t::get_answer_address() const {
-    return emb_write_mask_reg_get_address(tr->ans);
-}
+uint16_t write_mask_reg_t::write_mask_reg_t::get_answer_address() const
+{ return emb_write_mask_reg_get_address(tr->ans); }
 
-uint16_t write_mask_reg_t::write_mask_reg_t::get_answer_and_mask() const {
-    return emb_write_mask_reg_get_and_mask(tr->ans);
-}
+uint16_t write_mask_reg_t::write_mask_reg_t::get_answer_and_mask() const
+{ return emb_write_mask_reg_get_and_mask(tr->ans); }
 
-uint16_t write_mask_reg_t::write_mask_reg_t::get_answer_or_mask() const {
-    return emb_write_mask_reg_get_or_mask(tr->ans);
-}
+uint16_t write_mask_reg_t::write_mask_reg_t::get_answer_or_mask() const
+{ return emb_write_mask_reg_get_or_mask(tr->ans); }
 
 // *******************************************************************************
 // read_file_t
 
-read_file_t::subreq_t::subreq_t(uint16_t _fileno, uint16_t _record_no, uint16_t _length) {
+read_file_t::subreq_t::subreq_t(uint16_t _fileno, uint16_t _record_no, uint16_t _length)
+{
     emb_read_file_req_t::file_number = _fileno;
     emb_read_file_req_t::record_number = _record_no;
     emb_read_file_req_t::record_length = _length;
@@ -500,37 +465,33 @@ read_file_t::subreq_t::subreq_t(uint16_t _fileno, uint16_t _record_no, uint16_t 
 
 read_file_t::answer_iterator_t::answer_iterator_t(emb_const_pdu_t *_anw)
     : ans(_anw)
-    , iterator_(NULL) {
-    reset_to_begin();
-}
+    , iterator_(NULL)
+{ reset_to_begin(); }
 
-uint16_t read_file_t::answer_iterator_t::subanswer_quantity() const {
-    return emb_read_file_subanswer_quantity(iterator_);
-}
+uint16_t read_file_t::answer_iterator_t::subanswer_quantity() const
+{ return emb_read_file_subanswer_quantity(iterator_); }
 
-uint16_t read_file_t::answer_iterator_t::subanswer_data(int _i) const {
+uint16_t read_file_t::answer_iterator_t::subanswer_data(int _i) const
+{
     if(_i < 0)
         _i = subanswer_quantity() + _i;
     return emb_read_file_subanswer_data(iterator_, _i);
 }
 
-bool read_file_t::answer_iterator_t::operator == (const answer_iterator_t& _a) const {
-    return (this->iterator_ == _a.iterator_);
-}
+bool read_file_t::answer_iterator_t::operator == (const answer_iterator_t& _a) const
+{ return (this->iterator_ == _a.iterator_); }
 
-bool read_file_t::answer_iterator_t::operator != (const answer_iterator_t& _a) const {
-    return !operator == (_a);
-}
+bool read_file_t::answer_iterator_t::operator != (const answer_iterator_t& _a) const
+{ return !operator == (_a); }
 
-void read_file_t::answer_iterator_t::operator ++ () {
-    iterator_ = emb_read_file_next_subanswer(ans, iterator_);
-}
+void read_file_t::answer_iterator_t::operator ++ ()
+{ iterator_ = emb_read_file_next_subanswer(ans, iterator_); }
 
-void read_file_t::answer_iterator_t::operator ++ (int) {
-    iterator_ = emb_read_file_next_subanswer(ans, iterator_);
-}
+void read_file_t::answer_iterator_t::operator ++ (int)
+{ iterator_ = emb_read_file_next_subanswer(ans, iterator_); }
 
-void read_file_t::answer_iterator_t::reset_to_begin() {
+void read_file_t::answer_iterator_t::reset_to_begin()
+{
     if(ans)
         iterator_ = emb_read_file_next_subanswer(ans, NULL);
 }
@@ -538,24 +499,21 @@ void read_file_t::answer_iterator_t::reset_to_begin() {
 read_file_t::read_file_t() { }
 read_file_t::read_file_t(transaction_t& _tr) : transact_base_t(_tr) { }
 
-void read_file_t::build_req(const req_t &_reqs) {
-    int res;
+int read_file_t::build_req(const req_t &_reqs)
+{
     tr->req.resize(emb_read_file_calc_req_data_size(_reqs.size()));
     tr->ans.resize(emb_read_file_calc_answer_data_size(&_reqs[0], _reqs.size()));
-
-    if(res = emb_read_file_make_req(tr->req, &_reqs[0], _reqs.size()))
-        throw res;
+    return emb_read_file_make_req(tr->req, &_reqs[0], _reqs.size());
 }
 
-read_file_t::answer_iterator_t read_file_t::subanswer_begin() const {
-    return answer_iterator_t(tr->ans);
-}
+read_file_t::answer_iterator_t read_file_t::subanswer_begin() const
+{ return answer_iterator_t(tr->ans); }
 
-read_file_t::answer_iterator_t read_file_t::subanswer_end() const {
-    return answer_iterator_t(NULL);
-}
+read_file_t::answer_iterator_t read_file_t::subanswer_end() const
+{ return answer_iterator_t(NULL); }
 
-read_file_t::answer_iterator_t read_file_t::operator [] (int _subanswer_index) const {
+read_file_t::answer_iterator_t read_file_t::operator [] (int _subanswer_index) const
+{
     emb_read_file_subansw_t* i = emb_read_file_find_subanswer(tr->ans, _subanswer_index);
     answer_iterator_t res(tr->ans);
     if(i)
@@ -565,7 +523,8 @@ read_file_t::answer_iterator_t read_file_t::operator [] (int _subanswer_index) c
     return res;
 }
 
-read_file_t::answer_t& read_file_t::get_answer(answer_t& _res) {
+read_file_t::answer_t& read_file_t::get_answer(answer_t& _res)
+{
     for(answer_iterator_t ii=subanswer_begin(); ii != subanswer_end(); ++ii) {
         _res.push_back(subanswer_t());
         const uint16_t length = ii.subanswer_quantity();
@@ -590,8 +549,8 @@ write_file_t::subreq_t::subreq_t(uint16_t _file_number,
 write_file_t::write_file_t() { }
 write_file_t::write_file_t(transaction_t& _tr) : transact_base_t(_tr) { }
 
-void write_file_t::build_req(const req_t& _req) {
-    int res;
+int write_file_t::build_req(const req_t& _req)
+{
     std::vector<emb_write_file_req_t> reqs(_req.size());
     for(size_t i=0; i<_req.size(); ++i) {
         reqs[i].file_number = _req[i].file_number;
@@ -603,8 +562,7 @@ void write_file_t::build_req(const req_t& _req) {
     tr->req.resize(emb_write_file_calc_req_data_size(&reqs[0], reqs.size()));
     tr->ans.resize(emb_write_file_calc_answer_data_size(&reqs[0], reqs.size()));
 
-    if(res = emb_write_file_make_req(tr->req, &reqs[0], reqs.size()))
-        throw res;
+    return emb_write_file_make_req(tr->req, &reqs[0], reqs.size());
 }
 
 // *******************************************************************************
@@ -622,19 +580,17 @@ void read_fifo_t::build_req(uint16_t _starting_address) {
         throw res;
 }
 
-uint16_t read_fifo_t::get_answer_regs_count() const {
-    return emb_read_fifo_regs_count(tr->ans);
-}
+uint16_t read_fifo_t::get_answer_regs_count() const
+{ return emb_read_fifo_regs_count(tr->ans); }
 
-uint16_t read_fifo_t::get_answer_data(uint16_t _offset) const {
-    return emb_read_fifo_get_data(tr->ans, _offset);
-}
+uint16_t read_fifo_t::get_answer_data(uint16_t _offset) const
+{ return emb_read_fifo_get_data(tr->ans, _offset); }
 
-uint16_t read_fifo_t::get_answer_all_data(uint16_t _buf_size, uint16_t* _buf) const {
-    return emb_read_fifo_get_all_data(tr->ans, _buf_size, _buf);
-}
+uint16_t read_fifo_t::get_answer_all_data(uint16_t _buf_size, uint16_t* _buf) const
+{ return emb_read_fifo_get_all_data(tr->ans, _buf_size, _buf); }
 
-regs_t& read_fifo_t::get_answer_all_data(regs_t& _result) const {
+regs_t& read_fifo_t::get_answer_all_data(regs_t& _result) const
+{
     const uint16_t sz = get_answer_regs_count();
     _result.resize(sz);
     emb_read_fifo_get_all_data(tr->ans, sz, &_result[0]);
@@ -686,9 +642,7 @@ int client_t::do_transaction(int _server_addr,
 }
 
 void client_t::set_transport(struct emb_transport_t* _transport)
-{
-    emb_client_set_transport(&client, _transport);
-}
+{ emb_client_set_transport(&client, _transport); }
 
 void client_t::set_sync(bool _is_sync) { is_sync = _is_sync; }
 
@@ -701,9 +655,7 @@ void client_t::emb_on_error(int _slave_addr, int _errno) { }
 int client_t::emb_sync_client_start_wait(unsigned int _timeout) { return 0; }
 
 void client_t::sync_answer_timeout()
-{
-    emb_client_wait_timeout(&client);
-}
+{ emb_client_wait_timeout(&client); }
 
 void client_t::emb_on_response_(struct emb_client_t* _req, int _slave_addr)
 {
@@ -1040,9 +992,7 @@ uint8_t coils_t::write_coils(struct emb_srv_bits_t* _coils,
 // discrete_inputs_t
 
 discrete_inputs_t::discrete_inputs_t()
-{
-    set_funcs();
-}
+{ set_funcs(); }
 
 discrete_inputs_t::discrete_inputs_t(uint16_t _start, uint16_t _size)
 {
@@ -1084,9 +1034,7 @@ uint8_t discrete_inputs_t::read_inputs(struct emb_srv_bits_t* _bits,
 // input_regs_t
 
 input_regs_t::input_regs_t()
-{
-    set_funcs();
-}
+{ set_funcs(); }
 
 input_regs_t::input_regs_t(uint16_t _start, uint16_t _size)
 {
@@ -1128,9 +1076,7 @@ uint8_t input_regs_t::read_regs(struct emb_srv_regs_t* _rr,
 // holding_regs_t
 
 holding_regs_t::holding_regs_t()
-{
-    set_funcs();
-}
+{ set_funcs(); }
 
 holding_regs_t::holding_regs_t(uint16_t _start, uint16_t _size)
 {
@@ -1186,9 +1132,7 @@ uint8_t holding_regs_t::write_regs(struct emb_srv_regs_t* _rr,
 // file_record_t
 
 file_record_t::file_record_t()
-{
-    set_funcs();
-}
+{ set_funcs(); }
 
 file_record_t::file_record_t(uint16_t _fileno/*, uint16_t _start, uint16_t _size*/)
 {
@@ -1439,9 +1383,7 @@ super_server_t::super_server_t()
 }
 
 void super_server_t::set_transport(struct emb_transport_t* _transport)
-{
-    emb_super_server_set_transport(&ssrv, _transport);
-}
+{ emb_super_server_set_transport(&ssrv, _transport); }
 
 bool super_server_t::add_server(server_t& _srv)
 {
