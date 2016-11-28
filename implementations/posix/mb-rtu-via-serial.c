@@ -56,10 +56,11 @@ static int read_from_port(struct emb_rtu_t* _mbt,
 
 static int write_to_port(struct emb_rtu_t* _mbt,
                          const void* _p_data,
-                         unsigned int _sz_to_write) {
+                         unsigned int _sz_to_write,
+                         unsigned int* _wrote) {
     if(_mbt) {
         struct emb_rtu_via_serial_t* _this = container_of(_mbt, struct emb_rtu_via_serial_t, modbus_rtu);
-        return serial_port_write(_this->serial, _p_data, _sz_to_write);
+        return serial_port_write(_this->serial, _p_data, _sz_to_write, _wrote);
     }
     return 0;
 }

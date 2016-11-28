@@ -59,7 +59,10 @@ struct emb_rtu_t {
 
     /// (RTU Interface) This function are implemented by physical port.
     /// By using this call, RTU can write data into physical port.
-    int (*write_to_port)(struct emb_rtu_t* _this, const void* _p_data, unsigned int _sz_to_write);
+    int (*write_to_port)(struct emb_rtu_t* _this,
+                         const void* _p_data,
+                         unsigned int _sz_to_write,
+                         unsigned int* _wrote);
 };
 
 /**

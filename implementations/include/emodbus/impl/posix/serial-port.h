@@ -38,7 +38,8 @@ int serial_port_read(struct serial_port_t* _ctx,
 
 int serial_port_write(struct serial_port_t* _ctx,
                       const void* _p_data,
-                      unsigned int _sz_to_write);
+                      unsigned int _sz_to_write,
+                      unsigned int* _wrote);
 
 #ifdef __cplusplus
 };

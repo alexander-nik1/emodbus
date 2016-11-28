@@ -313,7 +313,8 @@ int serial_port_read(struct serial_port_t* _ctx,
 
 int serial_port_write(struct serial_port_t* _ctx,
                       const void* _p_data,
-                      unsigned int _sz_to_write) {
+                      unsigned int _sz_to_write,
+                      unsigned int* _wrote) {
     if(_ctx) {
         int res, r;
 
@@ -324,6 +325,17 @@ int serial_port_write(struct serial_port_t* _ctx,
 
         res = write(_ctx->fd, _p_data, _sz_to_write);
         fsync(_ctx->fd);
+
+        if(res > 0) {
+            if(_wrote)
+                *_wrote += res;
+        }
+        else {
+            fprintf(stderr, "%s: Error with write(fd:%d, size:%d) call: %m\n",
+                    __FUNCTION__, _ctx->fd, _sz_to_write);
+            fflush(stderr);
+            return res;
+        }
 
         if((r = event_add(_ctx->write_event, NULL))) {
             fprintf(stderr, "%s: Error with event_add() call: %m (%d)\n", __FUNCTION__, r);

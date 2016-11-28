@@ -134,10 +134,16 @@ void emb_rtu_port_event(struct emb_rtu_t* _mbt,
         _mbt->emb_rtu_on_char(_mbt);
         break;
 
-    case emb_rtu_tx_buf_empty_event: /// TODO: Check returned value for < 0
-        _mbt->tx_buf_counter += _mbt->write_to_port(_mbt,
-                                                    _mbt->tx_buffer + _mbt->tx_buf_counter,
-                                                    _mbt->tx_pkt_size - _mbt->tx_buf_counter);
+    case emb_rtu_tx_buf_empty_event: { /// TODO: Check returned value for < 0
+            if(_mbt->write_to_port(_mbt,
+                                    _mbt->tx_buffer + _mbt->tx_buf_counter,
+                                    _mbt->tx_pkt_size - _mbt->tx_buf_counter,
+                                    &_mbt->tx_buf_counter) < 0)
+            {
+                // Transmitting error, stop the transmit.
+                _mbt->tx_buf_counter = _mbt->tx_pkt_size = 0;
+            }
+        }
         break;
     }
 }
