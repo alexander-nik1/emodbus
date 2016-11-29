@@ -9,7 +9,7 @@ add_library(emb-serail-port STATIC serial-port.c)
 
 add_library(emodbus-impl-posix SHARED
     mb-rtu-via-serial.c
-#    mb-rtu-via-tcp-client.c
+    mb-rtu-via-tcp-client.c
 #    mb-rtu-via-tcp-server.c
     mb-tcp-via-tcp-client.c
     mb-tcp-via-tcp-server.c
