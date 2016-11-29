@@ -115,6 +115,8 @@ void emb_rtu_initialize(struct emb_rtu_t* _mbt) {
 
 void emb_rtu_on_char_timeout(struct emb_rtu_t* _mbt) {
     parse_packet(_mbt);
+    //printf("cleaning _mbt->rx_buf_counter = %d\n", _mbt->rx_buf_counter);
+    //fflush(stdout);
     _mbt->rx_buf_counter = 0;
 }
 
@@ -126,23 +128,31 @@ void emb_rtu_on_error(struct emb_rtu_t* _mbt,
 void emb_rtu_port_event(struct emb_rtu_t* _mbt,
                         enum emb_rtu_port_event_t _event) {
 
-    switch(_event) {    /// TODO: Check returned value for < 0
+    int r;
+
+    switch(_event) {
     case emb_rtu_data_received_event:
-        _mbt->rx_buf_counter += _mbt->read_from_port(_mbt,
-                                                     _mbt->rx_buffer + _mbt->rx_buf_counter,
-                                                     _mbt->rx_buf_size - _mbt->rx_buf_counter);
-        _mbt->emb_rtu_on_char(_mbt);
+        r = _mbt->read_from_port(_mbt,
+                                 _mbt->rx_buffer + _mbt->rx_buf_counter,
+                                 _mbt->rx_buf_size - _mbt->rx_buf_counter);
+        if(r > 0) {
+            _mbt->rx_buf_counter += r;
+            _mbt->emb_rtu_on_char(_mbt);
+        }
+        else {
+            // Receiving error, cleaning rx buffer.
+            _mbt->rx_buf_counter = 0;
+        }
         break;
 
-    case emb_rtu_tx_buf_empty_event: { /// TODO: Check returned value for < 0
-            if(_mbt->write_to_port(_mbt,
-                                    _mbt->tx_buffer + _mbt->tx_buf_counter,
-                                    _mbt->tx_pkt_size - _mbt->tx_buf_counter,
-                                    &_mbt->tx_buf_counter) < 0)
-            {
-                // Transmitting error, stop the transmit.
-                _mbt->tx_buf_counter = _mbt->tx_pkt_size = 0;
-            }
+    case emb_rtu_tx_buf_empty_event:
+        r = _mbt->write_to_port(_mbt,
+                                _mbt->tx_buffer + _mbt->tx_buf_counter,
+                                _mbt->tx_pkt_size - _mbt->tx_buf_counter,
+                                &_mbt->tx_buf_counter);
+        if(r < 0) {
+            // Transmitting error, stop the transmit.
+            _mbt->tx_buf_counter = _mbt->tx_pkt_size = 0;
         }
         break;
     }
