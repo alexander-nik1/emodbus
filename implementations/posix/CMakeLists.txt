@@ -21,9 +21,9 @@ add_library(emodbus-impl-posix SHARED
 target_link_libraries(emodbus-impl-posix
     pthread
     event_core
-    emodbus-rtu
-    emodbus-tcp
+    emodbus-transport
     emodbus-client
+    emodbus-server
     emb-tcp-client
     emb-tcp-server
     emb-serail-port

@@ -11,7 +11,7 @@ target_link_libraries(client-example
     event_pthreads
     pthread
     emodbus-base
-    emodbus-client-full
+    emodbus-client
     emodbus-impl-posix
 )
 
@@ -19,7 +19,7 @@ target_link_libraries(server-example
     event_pthreads
     pthread
     emodbus-base
-    emodbus-server-full
+    emodbus-server
     emodbus-impl-posix
 )
 
@@ -27,7 +27,7 @@ target_link_libraries(client-cpp-example
     event_pthreads
     pthread
     emodbus-base
-    emodbus-server-full
+    emodbus-server
     emodbus-cpp-impl-posix
 )
 

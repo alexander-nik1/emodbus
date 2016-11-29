@@ -30,12 +30,12 @@ void* thr_proc(void* p) {
 
     // Create the RTU transport
     //struct emb_rtu_via_serial_t* rtu = emb_rtu_via_serial_create(base, 10, "/dev/ttyUSB0", 115200);
-    struct emb_rtu_via_tcp_client_t* rtu = emb_rtu_via_tcp_client_create(base, 40, "192.168.1.138", 4003);
+    struct emb_rtu_via_tcp_client_t* rtu = emb_rtu_via_tcp_client_create(base, 50, "10.1.1.144", 4009);
 
     // Enable a packets dumping
     emb_rtu_via_tcp_client_get_transport(rtu)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
     emb_posix_dumping_stream = stdout;
-    //emb_posix_dumper_enable_rx_tx();
+    emb_posix_dumper_enable_rx_tx();
 
     // Bind the client to the RTU
     client.set_transport(emb_rtu_via_tcp_client_get_transport(rtu));
@@ -62,38 +62,26 @@ int main() {
     pthread_create(&pthr, NULL, thr_proc, NULL);
     sleep(1);   // We must wait here for all initialization is made in started thread.
 
-    emb::client::proxy_t device1(&client, 0x10);
+    emb::client::proxy_t device1(&client, 0x50);
     emb::client::proxy_t device2(&client, 0x30);
 
     device1.set_timeout(1000);
     device2.set_timeout(1000);
 
+    emb::client::read_holding_regs_t rr;
+
     for(int i=0; i<1000; ++i) {
 
         try {
+            rr.build_req(1, 1);
 
-            // Read single 0x0000 register form both (16 and 17) servers
-            std::cout << std::uppercase << std::hex;
-            std::cout << "REG1: 0x" << (int)device1.holdings[0x0000]
-                      << "   "
-                      << "REG2: 0x" << (int)device2.holdings[0x0000]
-                      << std::endl;
-
-            std::cout << std::dec;
-
-            // Read a 0x0000-0x0007 (eight) registers form server 16
-            emb::regs_t regs = device1.holdings[emb::range_t(0x0000, 0x0007)];
-            std::cout << "REGS1: ";
-            for(emb::regs_t::const_iterator i = regs.begin(); i != regs.end(); ++i)
-                std::cout << *i << " ";
-            std::cout << std::endl;
-
-            // Read a 0x0000-0x0007 (eight) registers form server 17
-            regs = device2.holdings[emb::range_t(0x0020, 0x0027)];
-            std::cout << "REGS2: ";
-            for(emb::regs_t::const_iterator i = regs.begin(); i != regs.end(); ++i)
-                std::cout << *i << " ";
-            std::cout << std::endl;
+            int res = client.do_transaction(80, 1000, rr);
+            if(!res)
+                printf("x = 0x%04X\n", rr.get_answer_reg(0));
+            else {
+                std::cerr << "Exception: (" << res << ") "
+                          << emb_strerror(-res) << std::endl;
+            }
         }
         catch(std::exception& e) {
             std::cerr << "Exception: " << e.what() << std::endl;
@@ -101,6 +89,8 @@ int main() {
         catch(int & e) {
             std::cerr << "Exception: (" << e << ") " << emb_strerror(-e) << std::endl;
         }
+
+        sleep(1);
     }
 
     std::cout << "RX bytes: " << emb_posix_dumper_rx_bytes() << std::endl;

@@ -1,139 +1,53 @@
 
-# ===================================================
-# server-full
+aux_source_directory(. LIB_EMODBUS_SERVER_SRC)
 
-aux_source_directory(. LIB_EMODBUS_SERVER_FULL_SRC)
+add_library(emodbus-server SHARED ${LIB_EMODBUS_SERVER_SRC})
 
-add_library(emodbus-server-full SHARED ${LIB_EMODBUS_SERVER_FULL_SRC})
-add_library(emodbus-server-full-static STATIC ${LIB_EMODBUS_SERVER_FULL_SRC})
+if(DEFINED EMB_BUILD_STATIC_LIBS)
+add_library(emodbus-server-static STATIC ${LIB_EMODBUS_SERVER_SRC})
+endif(DEFINED EMB_BUILD_STATIC_LIBS)
 
-# ===================================================
-# server
+if(DEFINED EMB_BUILD_PARTIAL_LIBRARIES)
 
-set(EMODBUS_SERVER_SRC
-    server.c
-    exception.c
-)
+set(EMODBUS_SERVER_SRC server.c exception.c)
+set(EMODBUS_SERVER_READ_BITS read_bits.c)
+set(EMODBUS_SERVER_WRITE_COIL write_coil.c)
+set(EMODBUS_SERVER_WRITE_COILS write_coils.c)
+set(EMODBUS_SERVER_READ_REGS read_regs.c)
+set(EMODBUS_SERVER_WRITE_REG write_single_reg.c)
+set(EMODBUS_SERVER_WRITE_REGS write_multi_regs.c)
+set(EMODBUS_SERVER_MASK_REG write_mask_reg.c)
+set(EMODBUS_SERVER_READ_WRITE_REGS read_write_regs.c)
+set(EMODBUS_SERVER_READ_FILE read_file.c)
+set(EMODBUS_SERVER_WRITE_FILE write_file.c)
+set(EMODBUS_SERVER_READ_FIFO read_fifo.c)
 
 add_library(emodbus-server SHARED ${EMODBUS_SERVER_SRC})
-add_library(emodbus-server-static STATIC ${EMODBUS_SERVER_SRC})
-
-###############################################################################################################
-# Coils
-
-# ===================================================
-# server-read-coils
-
-set(EMODBUS_SERVER_READ_BITS
-    read_bits.c
-)
-
 add_library(emodbus-server-read-bits SHARED ${EMODBUS_SERVER_READ_BITS})
-add_library(emodbus-server-read-bits-static STATIC ${EMODBUS_SERVER_READ_BITS})
-
-# ===================================================
-# server-write-coil
-
-set(EMODBUS_SERVER_WRITE_COIL
-    write_coil.c
-)
-
 add_library(emodbus-server-write-coil SHARED ${EMODBUS_SERVER_WRITE_COIL})
-add_library(emodbus-server-write-coil-static STATIC ${EMODBUS_SERVER_WRITE_COIL})
-
-
-# ===================================================
-# server-write-coils
-
-set(EMODBUS_SERVER_WRITE_COILS
-    write_coils.c
-)
-
 add_library(emodbus-server-write-coils SHARED ${EMODBUS_SERVER_WRITE_COILS})
-add_library(emodbus-server-write-coils-static STATIC ${EMODBUS_SERVER_WRITE_COILS})
-
-###############################################################################################################
-# Holdings
-
-# ===================================================
-# server-read-holdings
-
-set(EMODBUS_SERVER_READ_REGS
-    read_regs.c
-)
-
 add_library(emodbus-server-read-regs SHARED ${EMODBUS_SERVER_READ_REGS})
-add_library(emodbus-server-read-regs-static STATIC ${EMODBUS_SERVER_READ_REGS})
-
-# ===================================================
-# server-write-reg
-
-set(EMODBUS_SERVER_WRITE_REG
-    write_single_reg.c
-)
-
 add_library(emodbus-server-write-reg SHARED ${EMODBUS_SERVER_WRITE_REG})
-add_library(emodbus-server-write-reg-static STATIC ${EMODBUS_SERVER_WRITE_REG})
-
-# ===================================================
-# server-write-regs
-
-set(EMODBUS_SERVER_WRITE_REGS
-    write_multi_regs.c
-)
-
 add_library(emodbus-server-write-regs SHARED ${EMODBUS_SERVER_WRITE_REGS})
-add_library(emodbus-server-write-regs-static STATIC ${EMODBUS_SERVER_WRITE_REGS})
-
-# ===================================================
-# server-mask-reg
-
-set(EMODBUS_SERVER_MASK_REG
-    write_mask_reg.c
-)
-
 add_library(emodbus-server-mask-reg SHARED ${EMODBUS_SERVER_MASK_REG})
-add_library(emodbus-server-mask-reg-static STATIC ${EMODBUS_SERVER_MASK_REG})
-
-# ===================================================
-# server-read-write-regs
-
-set(EMODBUS_SERVER_READ_WRITE_REGS
-    read_write_regs.c
-)
-
 add_library(emodbus-server-read-write-regs SHARED ${EMODBUS_SERVER_READ_WRITE_REGS})
-add_library(emodbus-server-read-write-regs-static STATIC ${EMODBUS_SERVER_READ_WRITE_REGS})
-
-###############################################################################################################
-# Files
-
-# ===================================================
-# server-read-file
-
-set(EMODBUS_SERVER_READ_FILE
-    read_file.c
-)
-
 add_library(emodbus-server-read-file SHARED ${EMODBUS_SERVER_READ_FILE})
-add_library(emodbus-server-read-file-static STATIC ${EMODBUS_SERVER_READ_FILE})
-
-# ===================================================
-# server-write-file
-
-set(EMODBUS_SERVER_WRITE_FILE
-    write_file.c
-)
-
 add_library(emodbus-server-write-file SHARED ${EMODBUS_SERVER_WRITE_FILE})
-add_library(emodbus-server-write-file-static STATIC ${EMODBUS_SERVER_WRITE_FILE})
-
-# ===================================================
-# server-read-fifo
-
-set(EMODBUS_SERVER_READ_FIFO
-    read_fifo.c
-)
-
 add_library(emodbus-server-read-fifo SHARED ${EMODBUS_SERVER_READ_FIFO})
+
+if(DEFINED EMB_BUILD_STATIC_LIBS)
+add_library(emodbus-server-static STATIC ${EMODBUS_SERVER_SRC})
+add_library(emodbus-server-read-bits-static STATIC ${EMODBUS_SERVER_READ_BITS})
+add_library(emodbus-server-write-coil-static STATIC ${EMODBUS_SERVER_WRITE_COIL})
+add_library(emodbus-server-write-coils-static STATIC ${EMODBUS_SERVER_WRITE_COILS})
+add_library(emodbus-server-read-regs-static STATIC ${EMODBUS_SERVER_READ_REGS})
+add_library(emodbus-server-write-reg-static STATIC ${EMODBUS_SERVER_WRITE_REG})
+add_library(emodbus-server-write-regs-static STATIC ${EMODBUS_SERVER_WRITE_REGS})
+add_library(emodbus-server-mask-reg-static STATIC ${EMODBUS_SERVER_MASK_REG})
+add_library(emodbus-server-read-write-regs-static STATIC ${EMODBUS_SERVER_READ_WRITE_REGS})
+add_library(emodbus-server-read-file-static STATIC ${EMODBUS_SERVER_READ_FILE})
+add_library(emodbus-server-write-file-static STATIC ${EMODBUS_SERVER_WRITE_FILE})
 add_library(emodbus-server-read-fifo-static STATIC ${EMODBUS_SERVER_READ_FIFO})
+endif(DEFINED EMB_BUILD_STATIC_LIBS)
+
+endif(DEFINED EMB_BUILD_PARTIAL_LIBRARIES)

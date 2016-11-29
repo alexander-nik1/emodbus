@@ -24,7 +24,7 @@ add_executable(emb_srv_test ${SRV_TEST_SRC})
 
 target_link_libraries(emb_srv_test
     emodbus-base
-    emodbus-server-full
+    emodbus-server
     emodbus-cpp
     pthread
     emodbus-impl-posix
@@ -33,7 +33,7 @@ target_link_libraries(emb_srv_test
 
 target_link_libraries(emb_sync_client_test
     emodbus-base
-    emodbus-client-full
+    emodbus-client
     emodbus-cpp
     pthread
     emodbus-impl-posix
@@ -45,5 +45,5 @@ target_link_libraries(emb_sync_client_test
 
 #target_link_libraries(ev_srv event_core)
 
-#add_executable(tty2tty tty2tty.c)
+add_executable(emb_tty2tty tty2tty.c)
 
