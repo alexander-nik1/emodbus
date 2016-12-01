@@ -43,10 +43,10 @@ extern "C" {
 /// Flag, that enables a dumping all packets into a dbg_print_packet function.
 #define EMB_TRANSPORT_FLAG_DUMD_PAKETS (1 << 0)
 
+#endif // EMODBUS_PACKETS_DUMPING
+
 /// Flag, that tells from high level to low level, about this is a modbus-server.
 #define EMB_TRANSPORT_FLAG_IS_SERVER   (1 << 1)
-
-#endif // EMODBUS_PACKETS_DUMPING
 
 /**
  * @brief Interface of modbus transport
