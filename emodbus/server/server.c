@@ -1,5 +1,6 @@
 
 #include <emodbus/server/server.h>
+#include <emodbus/base/modbus_transport.h>
 #include <emodbus/base/modbus_errno.h>
 #include <string.h>
 

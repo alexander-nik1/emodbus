@@ -3,6 +3,7 @@
 #define MODBUS_ERROR_NUMBER_H
 
 #include <stdint.h>
+#include <errno.h>
 
 /*!
  * \file
@@ -73,6 +74,18 @@ enum emodbus_errno_t {
     EMB_GATEWAY_DEVICE_NO_RESP = EMB_EXCEPTION_BASE + MBE_GATEWAY_DEVICE_NO_RESP,
 
 };
+
+#ifndef ENOMEM
+#define ENOMEM 1
+#endif
+
+#ifndef E2BIG
+#define E2BIG 2
+#endif
+
+#ifndef EINVAL
+#define EINVAL 3
+#endif
 
 #ifdef __cplusplus
 }   // extern "C"

@@ -1,7 +1,7 @@
 
 #include <emodbus/base/modbus_pdu.h>
 #include <emodbus/server/server.h>
-#include <errno.h>
+#include <emodbus/base/modbus_errno.h>
 #include <stdint.h>
 
 #define MB_EXCEPTION_PDU_DATA_SIZE  1
