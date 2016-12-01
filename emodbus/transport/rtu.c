@@ -7,6 +7,7 @@
 #include <string.h>
 #include <emodbus/base/byte-word.h>
 #include <emodbus/transport/add/crc.h>
+#include <emodbus/transport/add/simple-crc.h>
 #include <emodbus/base/modbus_errno.h>
 
 /*!
@@ -20,8 +21,6 @@
 #define read_data_from_port(_mbt_)  emb_rtu_port_event((_mbt_), emb_rtu_data_received_event)
 #define write_data_to_port(_mbt_)   emb_rtu_port_event((_mbt_), emb_rtu_tx_buf_empty_event)
 
-#define CRC_FUNCTION(_buf_, _size_)  crc16(_buf_, _size_)
-
 /**
  * @brief Parse packet
  *
@@ -34,7 +33,7 @@ static void parse_packet(struct emb_rtu_t* _mbt) {
     const unsigned char* buf = _mbt->rx_buffer;
     const unsigned int size = _mbt->rx_buf_counter-2;
     if(size >= 2) { // 4 bytes - minimal packet size
-        const uint16_t crc1 = CRC_FUNCTION(buf, size);
+        const uint16_t crc1 = EMB_RTU_CRC_FUNCTION(buf, size);
         const uint16_t crc2 = MKWORD(buf[size], buf[size+1]);
 #if EMODBUS_PACKETS_DUMPING
         if(_mbt->transport.flags & EMB_TRANSPORT_FLAG_DUMD_PAKETS)
@@ -85,7 +84,7 @@ static int modbus_rtu_send_packet(void *_mbt,
         mbt->tx_buffer[0] = _slave_addr;
         mbt->tx_buffer[1] = _pdu->function;
         memcpy(mbt->tx_buffer + 2, _pdu->data, _pdu->data_size);
-        crc = CRC_FUNCTION(mbt->tx_buffer, sz);
+        crc = EMB_RTU_CRC_FUNCTION(mbt->tx_buffer, sz);
         memcpy(mbt->tx_buffer + sz, &crc, 2);
         mbt->tx_pkt_size = sz + 2;
         mbt->tx_buf_counter = 0;

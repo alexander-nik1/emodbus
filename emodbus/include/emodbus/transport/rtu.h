@@ -12,6 +12,10 @@
 
 #include <emodbus/base/modbus_transport.h>
 
+#ifndef EMB_RTU_CRC_FUNCTION
+#define EMB_RTU_CRC_FUNCTION(_buf_, _size_)  crc16(_buf_, _size_)
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
