@@ -64,7 +64,7 @@ set(CPACK_DEB_PACKAGE_COMPONENT ON)
 
 set(CPACK_COMPONENTS_GROUPING "IGNORE")
 
-set(CPACK_COMPONENTS_ALL "dev;base;server;client;transport;cpp;impl-posix;full")
+set(CPACK_COMPONENTS_ALL "dev;base;server;client;transport;cpp;impl-posix;full;src")
 
 # component dev
 INSTALL(DIRECTORY emodbus/include DESTINATION ${PREFIX}/ COMPONENT dev)
@@ -106,6 +106,14 @@ INSTALL(FILES
         lib/libemodbus-cpp-impl-posix.so
         DESTINATION ${PREFIX}/lib/ COMPONENT full)
 
+# component src
+INSTALL(DIRECTORY emodbus
+        DESTINATION ${PREFIX}/src/
+        COMPONENT src)
+
+INSTALL(DIRECTORY cpp-wrap
+        DESTINATION ${PREFIX}/src/
+        COMPONENT src)
 
 set(MAJOR_VERSION "0")
 set(MINOR_VERSION "2")
