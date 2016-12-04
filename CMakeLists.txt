@@ -19,7 +19,11 @@ endif()
 include_directories(emodbus/include)
 include_directories(cpp-wrap/include)
 
+if(DEFINED EMB_WITHOUT_DUMPING)
+add_definitions(-DEMODBUS_PACKETS_DUMPING=0)
+else()
 add_definitions(-DEMODBUS_PACKETS_DUMPING=1)
+endif()
 
 set(HEADERS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/include)
 

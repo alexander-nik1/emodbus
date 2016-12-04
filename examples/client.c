@@ -67,10 +67,12 @@ void* thr_proc(void* p)
     // Bind the client to the RTU
     emb_posix_sync_client_set_transport(client, emb_rtu_via_serial_get_transport(rtu));
 
+#if EMODBUS_PACKETS_DUMPING
     // Enable the packets dumping
     emb_rtu_via_serial_get_transport(rtu)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
     emb_posix_dumping_stream = stdout;
     emb_posix_dumper_enable_rx_tx();
+#endif // EMODBUS_PACKETS_DUMPING
 
     // Libevent's loop
     event_base_dispatch(base);

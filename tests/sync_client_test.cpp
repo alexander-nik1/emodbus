@@ -64,9 +64,11 @@ void* thr_proc(void* p) {
     //emb_debug_helper.enable_dumping();
     //emb_tcp_via_tcp_client_get_transport(rtu)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
 
+#if EMODBUS_PACKETS_DUMPING
     emb_tcp_via_tcp_client_get_transport(tcp)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
     emb_posix_dumping_stream = stdout;
     //emb_posix_dumper_enable_rx_tx();
+#endif // EMODBUS_PACKETS_DUMPING
 
     client->set_transport(emb_tcp_via_tcp_client_get_transport(tcp));
 
@@ -100,10 +102,10 @@ int main(int argc, char* argv[]) {
     full_test();
 
    // pthread_join(pthr, NULL);
-
+#if EMODBUS_PACKETS_DUMPING
     printf("RX bytes = %ld\n", emb_posix_dumper_rx_bytes());
     printf("TX bytes = %ld\n", emb_posix_dumper_tx_bytes());
-
+#endif // EMODBUS_PACKETS_DUMPING
     return 0;
 }
 

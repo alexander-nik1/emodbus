@@ -32,10 +32,12 @@ void* thr_proc(void* p) {
     //struct emb_rtu_via_serial_t* rtu = emb_rtu_via_serial_create(base, 10, "/dev/ttyUSB0", 115200);
     struct emb_rtu_via_tcp_client_t* rtu = emb_rtu_via_tcp_client_create(base, 50, "10.1.1.144", 4009);
 
+#if EMODBUS_PACKETS_DUMPING
     // Enable a packets dumping
     emb_rtu_via_tcp_client_get_transport(rtu)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
     emb_posix_dumping_stream = stdout;
     emb_posix_dumper_enable_rx_tx();
+#endif // EMODBUS_PACKETS_DUMPING
 
     // Bind the client to the RTU
     client.set_transport(emb_rtu_via_tcp_client_get_transport(rtu));
@@ -92,7 +94,8 @@ int main() {
 
         sleep(1);
     }
-
+#if EMODBUS_PACKETS_DUMPING
     std::cout << "RX bytes: " << emb_posix_dumper_rx_bytes() << std::endl;
     std::cout << "TX bytes: " << emb_posix_dumper_tx_bytes() << std::endl;
+#endif // EMODBUS_PACKETS_DUMPING
 }

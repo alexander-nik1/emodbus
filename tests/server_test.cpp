@@ -371,10 +371,12 @@ int main(int argc, char* argv[]) {
     //ssrv.set_proto(tcp/*rtu*/.get_proto());
     ssrv.set_transport(emb_tcp_via_tcp_server_get_transport(tcp));
 
+#if EMODBUS_PACKETS_DUMPING
     //tcp/*rtu*/.get_proto()->flags |= EMB_PROTO_FLAG_DUMD_PAKETS;
     emb_tcp_via_tcp_server_get_transport(tcp)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
     emb_posix_dumping_stream = stdout;
 //    emb_posix_dumper_enable_rx_tx();
+#endif // EMODBUS_PACKETS_DUMPING
 
     sleep(1);
 

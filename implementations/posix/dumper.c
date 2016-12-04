@@ -3,6 +3,8 @@
 #include <emodbus/base/common.h>
 #include <stdint.h>
 
+#if EMODBUS_PACKETS_DUMPING
+
 FILE* emb_posix_dumping_stream = NULL;
 
 static unsigned long rx_bytes = 0UL;
@@ -51,3 +53,5 @@ void emb_posix_dumper_disable_tx() { emb_dump_tx_data = NULL; }
 
 unsigned long emb_posix_dumper_rx_bytes() { return rx_bytes; }
 unsigned long emb_posix_dumper_tx_bytes() { return tx_bytes; }
+
+#endif // EMODBUS_PACKETS_DUMPING

@@ -211,7 +211,9 @@ int main(int argc, char* argv[]) {
     emb_super_server_init(&mb_ssrv);
     emb_super_server_set_transport(&mb_ssrv, emb_tcp_via_tcp_server_get_transport(mb_tcp));
 
+#if EMODBUS_PACKETS_DUMPING
     emb_tcp_via_tcp_server_get_transport(mb_tcp)->flags |= EMB_TRANSPORT_FLAG_DUMD_PAKETS;
+#endif // EMODBUS_PACKETS_DUMPING
 
     event_base_dispatch(base);
 
