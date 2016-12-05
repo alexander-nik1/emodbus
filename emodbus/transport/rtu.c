@@ -31,7 +31,7 @@
  */
 static void parse_packet(struct emb_rtu_t* _mbt) {
     const unsigned char* buf = _mbt->rx_buffer;
-    const unsigned int size = _mbt->rx_buf_counter-2;
+    const int size = _mbt->rx_buf_counter-2;
     if(size >= 2) { // 4 bytes - minimal packet size
         const uint16_t crc1 = EMB_RTU_CRC_FUNCTION(buf, size);
         const uint16_t crc2 = MKWORD(buf[size], buf[size+1]);
