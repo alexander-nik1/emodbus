@@ -5,11 +5,11 @@ Apply previously collected limitations in all places, where it used.
 
 Make accessible the 0xFFFF file's register.
 
-Add a DEB package with clean sources of emodbus.
-
 Think about: what kinds of DEB packages we are need ?
 
 I need try to use this library somewhere like: AVR or ARM.
+
+Make forst time reconnection timeout is 0, for TCP-client.
 
 Suppose: we have a server, that works via modbus-tcp transport.
 And each new client need to pass an authentication. In this case, user take care of saving a client-id, and authentication info.
