@@ -17,6 +17,7 @@ struct emb_tcp_via_tcp_client_t {
     struct tcp_client_t* tcp_client;
     int opened_flag;
     emb_tcp_via_tcp_client_notifier_t event_notifier;
+    void* notifier_param;
 };
 
 static void tcp_client_notifier(struct tcp_client_t* _ctx,
@@ -36,7 +37,7 @@ static void tcp_client_notifier(struct tcp_client_t* _ctx,
     }
 
     if(_this->event_notifier)
-        _this->event_notifier(_this, _event);
+        _this->event_notifier(_this->notifier_param, _event);
 }
 
 static int read_from_port(struct emb_tcp_t* _mbt,
@@ -124,10 +125,12 @@ emb_tcp_via_tcp_client_get_transport(struct emb_tcp_via_tcp_client_t* _ctx) {
 }
 
 int emb_tcp_via_tcp_client_set_notifier(struct emb_tcp_via_tcp_client_t* _ctx,
-                                        emb_tcp_via_tcp_client_notifier_t _notifier)
+                                        emb_tcp_via_tcp_client_notifier_t _notifier,
+                                        void* _param)
 {
     if(_ctx) {
         _ctx->event_notifier = _notifier;
+        _ctx->notifier_param = _param;
         return 0;
     }
     return -EINVAL;

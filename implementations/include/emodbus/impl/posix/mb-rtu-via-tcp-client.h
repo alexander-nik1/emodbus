@@ -21,7 +21,7 @@ struct emb_rtu_via_tcp_client_t;
  * @param[in] _ctx The RTU via TCP-Server context
  * @param[in] _event The event, @see tcp_client_events_t
  */
-typedef void (*emb_rtu_via_tcp_client_notifier_t)(struct emb_rtu_via_tcp_client_t* _ctx,
+typedef void (*emb_rtu_via_tcp_client_notifier_t)(void* _param,
                                                   enum tcp_client_events_t _event);
 
 /**
@@ -101,7 +101,8 @@ emb_rtu_via_tcp_cli_get_tcp_client(struct emb_rtu_via_tcp_client_t* _ctx);
  * @return Status, 0 if success, or non-zero if there are errors.
  */
 int emb_rtu_via_tcp_client_set_notifier(struct emb_rtu_via_tcp_client_t* _ctx,
-                                        emb_rtu_via_tcp_client_notifier_t _notifier);
+                                        emb_rtu_via_tcp_client_notifier_t _notifier,
+                                        void* _param);
 
 #ifdef __cplusplus
 }

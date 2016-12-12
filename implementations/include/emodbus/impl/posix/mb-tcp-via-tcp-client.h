@@ -12,7 +12,7 @@ extern "C" {
 
 struct emb_tcp_via_tcp_client_t;
 
-typedef void (*emb_tcp_via_tcp_client_notifier_t)(struct emb_tcp_via_tcp_client_t* _ctx,
+typedef void (*emb_tcp_via_tcp_client_notifier_t)(void* _param,
                                                   enum tcp_client_events_t _event);
 
 struct emb_tcp_via_tcp_client_t*
@@ -26,7 +26,8 @@ struct emb_transport_t*
 emb_tcp_via_tcp_client_get_transport(struct emb_tcp_via_tcp_client_t* _ctx);
 
 int emb_tcp_via_tcp_client_set_notifier(struct emb_tcp_via_tcp_client_t* _ctx,
-                                        emb_tcp_via_tcp_client_notifier_t _notifier);
+                                        emb_tcp_via_tcp_client_notifier_t _notifier,
+                                        void* _param);
 
 #ifdef __cplusplus
 };

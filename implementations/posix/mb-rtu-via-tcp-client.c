@@ -20,6 +20,7 @@ struct emb_rtu_via_tcp_client_t
     char tx_buf[MAX_PDU_SIZE];
 
     emb_rtu_via_tcp_client_notifier_t event_notifier;
+    void* notifier_param;
 };
 
 static void tcp_cient_notifier(struct tcp_client_t* _ctx,
@@ -39,7 +40,7 @@ static void tcp_cient_notifier(struct tcp_client_t* _ctx,
     }
 
     if(_this->event_notifier)
-        _this->event_notifier(_this, _event);
+        _this->event_notifier(_this->notifier_param, _event);
 }
 
 static int read_from_port(struct emb_rtu_t* _mbt,
@@ -202,10 +203,12 @@ emb_rtu_via_tcp_cli_get_tcp_client(struct emb_rtu_via_tcp_client_t* _ctx)
 }
 
 int emb_rtu_via_tcp_client_set_notifier(struct emb_rtu_via_tcp_client_t* _ctx,
-                                        emb_rtu_via_tcp_client_notifier_t _notifier)
+                                        emb_rtu_via_tcp_client_notifier_t _notifier,
+                                        void *_param)
 {
     if(_ctx) {
         _ctx->event_notifier = _notifier;
+        _ctx->notifier_param = _param;
         return 0;
     }
     return -EINVAL;
