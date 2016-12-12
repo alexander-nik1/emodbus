@@ -37,6 +37,14 @@ static void tcp_cient_notifier(struct tcp_client_t* _ctx,
     case tcp_cli_data_sent:
         emb_rtu_port_event(&_this->modbus_rtu, emb_rtu_tx_buf_empty_event);
         break;
+
+    case tcp_cli_connected:
+        _this->opened_flag = 1;
+        break;
+
+    case tcp_cli_disconnected:
+        _this->opened_flag = 0;
+        break;
     }
 
     if(_this->event_notifier)
