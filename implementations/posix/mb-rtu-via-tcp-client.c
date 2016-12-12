@@ -6,6 +6,7 @@
 #include <emodbus/base/modbus_pdu.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 struct emb_rtu_via_tcp_client_t
 {
@@ -17,6 +18,8 @@ struct emb_rtu_via_tcp_client_t
 
     char rx_buf[MAX_PDU_SIZE];
     char tx_buf[MAX_PDU_SIZE];
+
+    emb_rtu_via_tcp_client_notifier_t event_notifier;
 };
 
 static void tcp_cient_notifier(struct tcp_client_t* _ctx,
@@ -33,21 +36,10 @@ static void tcp_cient_notifier(struct tcp_client_t* _ctx,
     case tcp_cli_data_sent:
         emb_rtu_port_event(&_this->modbus_rtu, emb_rtu_tx_buf_empty_event);
         break;
-
-    case tcp_cli_connected:
-        printf("================> event: tcp_cli_connected\n"); fflush(stdout);
-        _this->opened_flag = 1;
-        break;
-
-    case tcp_cli_disconnected:
-        printf("================> event: tcp_cli_disconnected\n"); fflush(stdout);
-        _this->opened_flag = 0;
-        break;
-
-    case tcp_cli_bad_try_of_reconnection:
-        printf("================> event: tcp_cli_bad_try_of_connection\n"); fflush(stdout);
-        break;
     }
+
+    if(_this->event_notifier)
+        _this->event_notifier(_this, _event);
 }
 
 static int read_from_port(struct emb_rtu_t* _mbt,
@@ -207,4 +199,14 @@ emb_rtu_via_tcp_cli_get_tcp_client(struct emb_rtu_via_tcp_client_t* _ctx)
     if(_ctx)
         return _ctx->tcp_client;
     return NULL;
+}
+
+int emb_rtu_via_tcp_client_set_notifier(struct emb_rtu_via_tcp_client_t* _ctx,
+                                        emb_rtu_via_tcp_client_notifier_t _notifier)
+{
+    if(_ctx) {
+        _ctx->event_notifier = _notifier;
+        return 0;
+    }
+    return -EINVAL;
 }

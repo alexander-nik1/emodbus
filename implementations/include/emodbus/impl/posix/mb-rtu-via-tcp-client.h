@@ -2,6 +2,7 @@
 #define EMB_RTU_VIA_TCP_CLIENT_H
 
 #include <emodbus/base/modbus_transport.h>
+#include <emodbus/impl/posix/tcp-client.h>
 #include <event2/event.h>
 
 #ifdef __cplusplus
@@ -10,6 +11,18 @@ extern "C" {
 
 /// The RTU via TCP-Server context
 struct emb_rtu_via_tcp_client_t;
+
+/**
+ * @brief emb_tcp_via_tcp_client_notifier_t
+ *
+ * This function can notify user about an
+ * events on the tcp client
+ *
+ * @param[in] _ctx The RTU via TCP-Server context
+ * @param[in] _event The event, @see tcp_client_events_t
+ */
+typedef void (*emb_rtu_via_tcp_client_notifier_t)(struct emb_rtu_via_tcp_client_t* _ctx,
+                                                  enum tcp_client_events_t _event);
 
 /**
  * @brief emb_rtu_via_tcp_client_create
@@ -77,6 +90,18 @@ emb_rtu_via_tcp_client_get_transport(struct emb_rtu_via_tcp_client_t* _ctx);
  */
 struct tcp_client_t*
 emb_rtu_via_tcp_cli_get_tcp_client(struct emb_rtu_via_tcp_client_t* _ctx);
+
+/**
+ * @brief emb_rtu_via_tcp_client_set_notifier
+ *
+ * Set the notifier.
+ *
+ * @param[in] _ctx The RTU via TCP-Server context
+ * @param[in] _notifier The notifier (pointer to function)
+ * @return Status, 0 if success, or non-zero if there are errors.
+ */
+int emb_rtu_via_tcp_client_set_notifier(struct emb_rtu_via_tcp_client_t* _ctx,
+                                        emb_rtu_via_tcp_client_notifier_t _notifier);
 
 #ifdef __cplusplus
 }

@@ -1,7 +1,6 @@
 
 #include <emodbus/transport/tcp.h>
 #include <emodbus/impl/posix/mb-tcp-via-tcp-client.h>
-#include <emodbus/impl/posix/tcp-client.h>
 #include <emodbus/base/add/container_of.h>
 #include <emodbus/base/modbus_pdu.h>
 
@@ -17,9 +16,10 @@ struct emb_tcp_via_tcp_client_t {
     struct emb_tcp_t modbus_tcp;
     struct tcp_client_t* tcp_client;
     int opened_flag;
+    emb_tcp_via_tcp_client_notifier_t event_notifier;
 };
 
-static void tcp_cient_notifier(struct tcp_client_t* _ctx,
+static void tcp_client_notifier(struct tcp_client_t* _ctx,
                                enum tcp_client_events_t _event) {
 
     struct emb_tcp_via_tcp_client_t* _this =
@@ -33,21 +33,10 @@ static void tcp_cient_notifier(struct tcp_client_t* _ctx,
     case tcp_cli_data_sent:
         emb_tcp_port_event(&_this->modbus_tcp, NULL, emb_tcp_tx_buf_empty_event);
         break;
-
-    case tcp_cli_connected:
-        printf("================> event: tcp_cli_connected\n"); fflush(stdout);
-        _this->opened_flag = 1;
-        break;
-
-    case tcp_cli_disconnected:
-        printf("================> event: tcp_cli_disconnected\n"); fflush(stdout);
-        _this->opened_flag = 0;
-        break;
-
-    case tcp_cli_bad_try_of_reconnection:
-        printf("================> event: tcp_cli_bad_try_of_connection\n"); fflush(stdout);
-        break;
     }
+
+    if(_this->event_notifier)
+        _this->event_notifier(_this, _event);
 }
 
 static int read_from_port(struct emb_tcp_t* _mbt,
@@ -97,7 +86,7 @@ emb_tcp_via_tcp_client_create(struct event_base *_base,
     if(res) {
         memset(res, 0, sizeof(struct emb_tcp_via_tcp_client_t));
         emb_tcp_initialize(&res->modbus_tcp);
-        res->tcp_client = tcp_client_new(_base, tcp_cient_notifier);
+        res->tcp_client = tcp_client_new(_base, tcp_client_notifier);
         if(!res->tcp_client) {
             free(res);
             return NULL;
@@ -132,4 +121,14 @@ emb_tcp_via_tcp_client_get_transport(struct emb_tcp_via_tcp_client_t* _ctx) {
     if(_ctx)
         return &_ctx->modbus_tcp.transport;
     return NULL;
+}
+
+int emb_tcp_via_tcp_client_set_notifier(struct emb_tcp_via_tcp_client_t* _ctx,
+                                        emb_tcp_via_tcp_client_notifier_t _notifier)
+{
+    if(_ctx) {
+        _ctx->event_notifier = _notifier;
+        return 0;
+    }
+    return -EINVAL;
 }
