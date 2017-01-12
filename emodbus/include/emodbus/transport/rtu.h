@@ -20,6 +20,14 @@
 extern "C" {
 #endif
 
+/// How much bytes in the packet before PDU
+/// data begins: address + function = 2 bytes
+enum { EMB_RTU_PKT_PREFIX_SIZE = 2 };
+
+/// How much bytes in the packet after PDU
+/// data ends: crc = 2 bytes
+enum { EMB_RTU_PKT_SUFFIX_SIZE = 2 };
+
 /**
  * @brief RTU Transport context.
  *

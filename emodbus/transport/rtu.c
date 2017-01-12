@@ -18,6 +18,10 @@
  *
  */
 
+#ifndef EMB_TRANSPORT_DO_DATA_COPY
+#define EMB_TRANSPORT_DO_DATA_COPY 1
+#endif
+
 #define read_data_from_port(_mbt_)  emb_rtu_port_event((_mbt_), emb_rtu_data_received_event)
 #define write_data_to_port(_mbt_)   emb_rtu_port_event((_mbt_), emb_rtu_tx_buf_empty_event)
 
@@ -54,7 +58,9 @@ static void parse_packet(struct emb_rtu_t* _mbt) {
             }
             rx_pdu->function = buf[1];
             rx_pdu->data_size = size - 2;
+#if EMB_TRANSPORT_DO_DATA_COPY
             memcpy(rx_pdu->data, buf + 2, data_sz);
+#endif  // EMB_TRANSPORT_DO_DATA_COPY
             emb_transport_recv_packet(&_mbt->transport, (int)buf[0], MB_CONST_PDU(rx_pdu));
         }
     }
@@ -83,9 +89,11 @@ static int modbus_rtu_send_packet(void *_mbt,
         uint16_t crc;
         mbt->tx_buffer[0] = _slave_addr;
         mbt->tx_buffer[1] = _pdu->function;
+#if EMB_TRANSPORT_DO_DATA_COPY
         memcpy(mbt->tx_buffer + 2, _pdu->data, _pdu->data_size);
+#endif  // EMB_TRANSPORT_DO_DATA_COPY
         crc = EMB_RTU_CRC_FUNCTION(mbt->tx_buffer, sz);
-        memcpy(mbt->tx_buffer + sz, &crc, 2);
+        *((uint16_t*)(mbt->tx_buffer + sz)) = crc;
         mbt->tx_pkt_size = sz + 2;
         mbt->tx_buf_counter = 0;
         write_data_to_port(mbt);
