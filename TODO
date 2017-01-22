@@ -4,6 +4,9 @@ to give user ability to specialize the sources of the emodbus ? (This file will
 be provided by user, and it should be placed in user-sources tree, not in the 
 emodbus sources)
 
+Add a flag, called 'enabled' for the server. To give a "disabled" mode for the server,
+when it will drop all incoming requests.
+
 For the server, add ability to discard from sending the response to the client,
 when user wants it. This can be done by returning the 0xFF error, when the function is called.
 
