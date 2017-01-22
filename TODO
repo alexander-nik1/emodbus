@@ -1,7 +1,17 @@
 
+Maybe I need to add the emb-config.h file to include it in the emodbus sources,
+to give user ability to specialize the sources of the emodbus ? (This file will 
+be provided by user, and it should be placed in user-sources tree, not in the 
+emodbus sources)
+
+For the server, add ability to discard from sending the response to the client,
+when user wants it. This can be done by returning the 0xFF error, when the function is called.
+
+Add a 0x11 (Report slave ID) function.
+
 Think about checks for client-side low-level functions, and error-returns.
 
-Apply previously collected limitations in all places, where it used.
+Apply previously collected limitations (limits.h) in all places, where it used.
 
 Make accessible the 0xFFFF file's register.
 
