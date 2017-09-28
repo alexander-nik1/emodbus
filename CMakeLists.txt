@@ -27,6 +27,7 @@ endif()
 
 set(HEADERS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 # Disable a warnings around 'offsetof' in C++
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof")
 
