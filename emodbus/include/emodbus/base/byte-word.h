@@ -20,14 +20,28 @@
 #define MKWORD(lbyte, hbyte)    (((uint16_t)((uint8_t)(lbyte))) | (((uint16_t)((uint8_t)(hbyte))) << 8))
 #define MKDWORD(lword, hword)   (((uint32_t)((uint16_t)(lword))) | (((uint32_t)((uint16_t)(hword)) << 8))
 
-#define LIT_END_MK16(ptr, word)     ((unsigned char*)(ptr))[1] = ((word) >> 8), ((unsigned char*)(ptr))[0] = (word);
-#define GET_LIT_END16(ptr)          (((uint16_t)((unsigned char*)(ptr))[1]) << 8 | ((uint16_t)((unsigned char*)(ptr))[0]))
+#define LIT_END_MK16(ptr, word)     ((uint8_t*)(ptr))[1] = (uint8_t)((word) >> 8), ((uint8_t*)(ptr))[0] = (uint8_t)(word);
+#define GET_LIT_END16(ptr)          (((uint16_t)((uint8_t*)(ptr))[1]) << 8 | ((uint16_t)((uint8_t*)(ptr))[0]))
 
-#define BIG_END_MK16(ptr, word)     ((unsigned char*)(ptr))[0] = ((word) >> 8), ((unsigned char*)(ptr))[1] = (word);
-#define GET_BIG_END16(ptr)          (((uint16_t)((unsigned char*)(ptr))[0]) << 8 | ((uint16_t)((unsigned char*)(ptr))[1]))
+#define BIG_END_MK16(ptr, word)     ((uint8_t*)(ptr))[0] = (uint8_t)((word) >> 8), ((uint8_t*)(ptr))[1] = (uint8_t)(word);
+#define GET_BIG_END16(ptr)          (((uint16_t)((uint8_t*)(ptr))[0]) << 8 | ((uint16_t)((uint8_t*)(ptr))[1]))
 
 #define SWAP_BYTES(x)               ((((uint16_t)(x)) >> 8) | (((uint16_t)(x)) << 8))
 #define SWAP_WORDS(x)               ((((uint32_t)(x)) >> 16) | (((uint32_t)(x)) << 16))
+
+#define SWAP_BYTES_PTR(ptr)     \
+    do {                        \
+        register uint8_t t = ((uint8_t*)(ptr))[0];   \
+        ((uint8_t*)(ptr))[0] = ((uint8_t*)(ptr))[1]; \
+        ((uint8_t*)(ptr))[1] = t;                    \
+    } while(0);
+
+#define SWAP_WORDS_PTR(ptr)     \
+    do {                        \
+        register uint16_t t = ((uint16_t*)(ptr))[0];    \
+        ((uint16_t*)(ptr))[0] = ((uint16_t*)(ptr))[1];  \
+        ((uint16_t*)(ptr))[1] = t;                      \
+    } while(0);
 
 #define LOBYTE(word)            ((uint8_t)(word))
 #define HIBYTE(word)            (((uint8_t)(word)) >> 8)

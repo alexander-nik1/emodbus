@@ -87,13 +87,15 @@ static int modbus_rtu_send_packet(void *_mbt,
 
         const int sz = _pdu->data_size + 2;
         uint16_t crc;
+        uint8_t* p;
         mbt->tx_buffer[0] = _slave_addr;
         mbt->tx_buffer[1] = _pdu->function;
 #if EMB_TRANSPORT_DO_DATA_COPY
         memcpy(mbt->tx_buffer + 2, _pdu->data, _pdu->data_size);
 #endif  // EMB_TRANSPORT_DO_DATA_COPY
         crc = EMB_RTU_CRC_FUNCTION(mbt->tx_buffer, sz);
-        *((uint16_t*)(mbt->tx_buffer + sz)) = crc;
+        p = mbt->tx_buffer + sz;
+        LIT_END_MK16(p, crc);
         mbt->tx_pkt_size = sz + 2;
         mbt->tx_buf_counter = 0;
         write_data_to_port(mbt);

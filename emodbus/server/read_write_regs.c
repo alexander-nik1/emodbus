@@ -60,8 +60,8 @@ uint8_t emb_srv_read_write_regs(struct emb_super_server_t* _ssrv,
     rx_data += 9;
     // swap registers for write
     for(i=0; i<wr_quantity; ++i) {
-        const uint16_t tmp = ((uint16_t*)rx_data)[i];
-        ((uint16_t*)rx_data)[i] = SWAP_BYTES(tmp);
+        uint16_t* p = ((uint16_t*)rx_data) + i;
+        SWAP_BYTES_PTR(p);
     }
 
     i = wr_regs->write_regs(wr_regs,
@@ -82,8 +82,7 @@ uint8_t emb_srv_read_write_regs(struct emb_super_server_t* _ssrv,
 
     // swap readed registers
     for(i=0; i<rd_quantity; ++i) {
-        const uint16_t tmp = *((uint16_t*)tx_data);
-        *((uint16_t*)tx_data) = SWAP_BYTES(tmp);
+        SWAP_BYTES_PTR(tx_data);
         tx_data += sizeof(uint16_t);
     }
 

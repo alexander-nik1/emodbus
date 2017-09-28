@@ -56,14 +56,13 @@ uint8_t emb_srv_read_regs(struct emb_super_server_t* _ssrv,
     res = r->read_regs(r,
                        start_addr - r->start,
                        quantity,
-                       (uint16_t*)tx_data);
+                       (void*)tx_data);
     if(res)
         return res;
 
     // Swap all words
     for(i=0; i<quantity; ++i) {
-        const uint16_t tmp = *((uint16_t*)tx_data);
-        *((uint16_t*)tx_data) = SWAP_BYTES(tmp);
+        SWAP_BYTES_PTR(tx_data);
         tx_data += sizeof(uint16_t);
     }
 

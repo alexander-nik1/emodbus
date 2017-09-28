@@ -42,8 +42,8 @@ uint8_t emb_srv_write_regs(struct emb_super_server_t* _ssrv,
     rx_data += 5;
 
     for(i=0; i<quantity; ++i) {
-        const uint16_t tmp = ((uint16_t*)rx_data)[i];
-        ((uint16_t*)rx_data)[i] = SWAP_BYTES(tmp);
+        uint16_t* p = ((uint16_t*)rx_data) + i;
+        SWAP_BYTES_PTR(p);
     }
 
     i = r->write_regs(r,
@@ -53,8 +53,9 @@ uint8_t emb_srv_write_regs(struct emb_super_server_t* _ssrv,
     if(i)
         return i;
 
-    ((uint16_t*)tx_data)[0] = SWAP_BYTES(start_addr);
-    ((uint16_t*)tx_data)[1] = SWAP_BYTES(quantity);
+    BIG_END_MK16(tx_data, start_addr);
+    tx_data += 2;
+    BIG_END_MK16(tx_data, quantity);
 
     _ssrv->tx_pdu->function = 0x10;
     _ssrv->tx_pdu->data_size = WRITE_REGISTERS_ANS_SIZE();
