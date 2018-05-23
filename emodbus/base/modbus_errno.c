@@ -15,6 +15,8 @@
 
 const char* emb_strerror(int _errno) {
 
+    static const char* str_no_error = "(no error)";
+
     if(_errno == modbus_success) {
         static const char* str = "Success";
         return str;
@@ -53,4 +55,5 @@ const char* emb_strerror(int _errno) {
             }
         }
     }
+    return str_no_error;
 }
