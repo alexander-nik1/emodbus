@@ -7,7 +7,6 @@
 #include <sys/select.h>
 
 int ptym_open(char *pts_name, char *pts_name_s, int pts_namesz) {
-	char *ptr;
 	int fdm;
 
 	strncpy(pts_name, "/dev/ptmx", pts_namesz);
@@ -16,7 +15,7 @@ int ptym_open(char *pts_name, char *pts_name_s, int pts_namesz) {
 	fdm = posix_openpt(O_RDWR | O_NONBLOCK);
 	if (fdm < 0)
 		return (-1);
-	if (grantpt(fdm) < 0) {
+    if (grantpt(fdm) < 0) {
 		close(fdm);
 		return (-2);
 	}
@@ -24,13 +23,12 @@ int ptym_open(char *pts_name, char *pts_name_s, int pts_namesz) {
 		close(fdm);
 		return (-3);
 	}
-	if ((ptr = ptsname(fdm)) == NULL) {
+    if (ptsname_r(fdm, pts_name_s, pts_namesz) != 0) {
 		close(fdm);
 		return (-4);
 	}
 
-	strncpy(pts_name_s, ptr, pts_namesz);
-	pts_name[pts_namesz - 1] = '\0';
+    pts_name[pts_namesz - 1] = '\0';
 
 	return (fdm);
 }
