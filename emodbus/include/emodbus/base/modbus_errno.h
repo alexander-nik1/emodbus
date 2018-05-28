@@ -58,6 +58,7 @@ enum emodbus_errno_t {
     modbus_resp_timeout,        ///< Timeout of response waiting
     modbus_resp_buffer_ovf,     ///< Response buffer is too short to store all data
     modbus_resp_wrong_transaction_id, ///< Incorrect transaction Id in received response
+    modbus_timeout,             ///< Timeout
 
     EMB_EXCEPTION_BASE = 1500,
 
