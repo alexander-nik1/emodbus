@@ -65,6 +65,9 @@ static void emb_super_server_on_receive_req(void* _user_data,
 
 static void emb_super_server_on_error(void* _user_data, int _errno) {
     struct emb_super_server_t* ssrv = (struct emb_super_server_t*)_user_data;
+    if(ssrv) {
+        DO_EVENT(ssrv, embsev_transport_error, _errno);
+    }
 }
 
 void emb_super_server_init(struct emb_super_server_t* _ssrv) { }

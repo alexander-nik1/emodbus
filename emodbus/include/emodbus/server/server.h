@@ -16,7 +16,8 @@ enum emb_super_server_event_t {
     embsev_on_receive_pkt,
     embsev_no_srv,
     embsev_mb_exception,
-    embsev_resp_sent
+    embsev_resp_sent,
+    embsev_transport_error
 };
 
 struct emb_server_t;
