@@ -4,7 +4,7 @@
 
 #ifndef container_of
 
-#define my_offsetof(st, m) ((size_t)(&((st *)0)->m))
+#define my_offsetof(st, m) ((unsigned long)(&((st *)0)->m))
 
 #ifdef __cplusplus
 
