@@ -1,4 +1,6 @@
 
+add_subdirectory(naked_rtu)
+
 include_directories(../implementations/include)
 
 add_executable(server-sp-example server-via-serial.c)
