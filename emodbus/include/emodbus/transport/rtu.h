@@ -147,6 +147,38 @@ int emb_rtu_send_packet_sync(struct emb_rtu_t* _mbt,
                                 int _slave_addr,
                                 emb_const_pdu_t* _pdu);
 
+/**
+ * @brief Is there are data to send ?
+ *
+ * (RTU Interface) Called to determine if
+ * there is data to send
+ *
+ * @param [in] _mbt RTU context
+ *
+ * @return 1 if yes, otherwise zero, negative if error
+ */
+int emb_rtu_has_data_to_send(struct emb_rtu_t* _mbt);
+
+/**
+ * @brief Reset the receiver.
+ *
+ * (RTU Interface) Call this function to
+ * stop the receiving and reset the receiver.
+ *
+ * @param [in] _mbt RTU context
+ */
+void emd_rtu_reset_rx(struct emb_rtu_t* _mbt);
+
+/**
+ * @brief Reset the transmitter.
+ *
+ * (RTU Interface) Call this function to
+ * stop the transmitting and reset the transmitter.
+ *
+ * @param [in] _mbt RTU context
+ */
+void emd_rtu_reset_tx(struct emb_rtu_t* _mbt);
+
 #ifdef __cplusplus
 }   // extern "C"
 #endif

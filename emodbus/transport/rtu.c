@@ -181,3 +181,23 @@ int emb_rtu_send_packet_sync(struct emb_rtu_t* _mbt,
     else
         return r;
 }
+
+int emb_rtu_has_data_to_send(struct emb_rtu_t* _mbt) {
+    if(!_mbt)
+        return -EINVAL;
+
+    return (_mbt->tx_pkt_size > 0) && (_mbt->tx_buf_counter < _mbt->tx_pkt_size);
+}
+
+void emd_rtu_reset_rx(struct emb_rtu_t* _mbt) {
+    if(_mbt) {
+        _mbt->rx_buf_counter = 0;
+    }
+}
+
+void emd_rtu_reset_tx(struct emb_rtu_t* _mbt) {
+    if(_mbt) {
+        _mbt->tx_buf_counter = _mbt->tx_pkt_size = 0;
+    }
+}
+
