@@ -49,6 +49,37 @@ extern "C" {
 #define EMB_TRANSPORT_FLAG_IS_SERVER   (1 << 1)
 
 /**
+ * @brief Data store for transmitting.
+ *
+ * All necessary parameters for encode/decode packets of all transports.
+ */
+struct emb_transport_info_t
+{
+    /**
+     * @brief Transaction ID (used in ModbusTCP)
+     */
+    uint32_t transaction_id;
+
+    /**
+     * @brief Server (slave) address (Id).
+     */
+    uint8_t server_id;
+
+    /**
+     * @brief Some flags for transport level
+     */
+    uint32_t flags;
+
+    /**
+     * @brief PDU storage pointer.
+     */
+    emb_pdu_t* pdu;
+};
+
+typedef void (*emb_on_rx_pdu_t)(const struct emb_transport_info_t* _info, void* _context);
+typedef void (*emb_on_error_t)(int _errno, void* _context);
+
+/**
  * @brief Interface of modbus transport
  *
  * This interface connects high and low level of modbus.

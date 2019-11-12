@@ -12,8 +12,9 @@ struct rtu_via_tty_t
     unsigned baudrate;
     int is_opened;
 
-    char rx_buf[MAX_PDU_SIZE];
-    char tx_buf[MAX_PDU_SIZE];
+    uint8_t rx_buf[MAX_PDU_SIZE];
+    uint8_t tx_buf[MAX_PDU_SIZE];
+    unsigned int rx_counter;
 };
 
 void rtu_via_tty_init(struct rtu_via_tty_t* _ctx,

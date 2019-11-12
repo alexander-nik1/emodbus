@@ -33,16 +33,16 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof")
 
 add_subdirectory(emodbus)
 
-add_subdirectory(cpp-wrap)
+#add_subdirectory(cpp-wrap)
 
-add_subdirectory(implementations)
+#add_subdirectory(implementations)
 
 if(NOT DEFINED EMB_WITHOUT_TESTS)
-add_subdirectory(tests)
+#add_subdirectory(tests)
 endif()
 
 if(NOT DEFINED EMB_WITHOUT_EXAMPLES)
-add_subdirectory(examples)
+#add_subdirectory(examples)
 endif()
 
 FILE(GLOB_RECURSE LibFiles "*.hpp" "*.h" README TODO)
@@ -94,10 +94,10 @@ INSTALL(FILES
 INSTALL(FILES lib/libemodbus-cpp.so DESTINATION ${PREFIX}/lib/ COMPONENT cpp)
 
 # component impl-posix
-INSTALL(FILES
-        lib/libemodbus-impl-posix.so
-        lib/libemodbus-cpp-impl-posix.so
-        DESTINATION ${PREFIX}/lib/ COMPONENT impl-posix)
+#INSTALL(FILES
+#        lib/libemodbus-impl-posix.so
+#        lib/libemodbus-cpp-impl-posix.so
+#        DESTINATION ${PREFIX}/lib/ COMPONENT impl-posix)
 
 # component full
 INSTALL(FILES

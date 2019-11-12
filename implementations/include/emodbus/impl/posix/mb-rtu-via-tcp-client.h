@@ -44,7 +44,7 @@ struct emb_rtu_via_tcp_client_t*
 emb_rtu_via_tcp_client_create(struct event_base *_base,
                               unsigned int _timeout_ms,
                               const char* _ip_addr,
-                              unsigned int _port);
+                              unsigned short _port);
 
 /**
  * @brief emb_rtu_via_tcp_client_set_timeout

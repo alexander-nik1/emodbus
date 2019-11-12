@@ -19,8 +19,13 @@ emb_rtu_via_serial_create(struct event_base *_base,
 
 void emb_rtu_via_serial_destroy(struct emb_rtu_via_serial_t* _ctx);
 
-struct emb_transport_t*
-emb_rtu_via_serial_get_transport(struct emb_rtu_via_serial_t* _ctx);
+void emb_rtu_via_serial_set_cb(struct emb_rtu_via_serial_t* _ctx,
+                               emb_on_rx_pdu_t _on_rx,
+                               emb_on_error_t _on_err,
+                               void* _context);
+
+void emb_rtu_via_serial_send(struct emb_rtu_via_serial_t* _ctx,
+                             const struct emb_transport_info_t* _info);
 
 #ifdef __cplusplus
 };
