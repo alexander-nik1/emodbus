@@ -2,7 +2,7 @@
 #ifndef EMODBUS_SERVER_BASE_H
 #define EMODBUS_SERVER_BASE_H
 
-#include <emodbus/base/modbus_transport.h>
+#include <emodbus/base/modbus_adu.h>
 #include <emodbus/server/bits.h>
 #include <emodbus/server/regs.h>
 #include <emodbus/server/file.h>
@@ -51,12 +51,6 @@ struct emb_server_t {
 
 struct emb_super_server_t {
 
-    /// Low level context
-    struct emb_transport_t* transport;
-
-    /// The state of the modbus server
-    //enum emb_super_server_state_t state;
-
     struct emb_server_t* (*get_server)(struct emb_super_server_t* _ssrv,
                                        uint8_t _address);
 
@@ -72,8 +66,9 @@ int emb_build_exception_pdu(emb_pdu_t* _result,
                             uint8_t _func,
                             uint8_t _errno);
 
-void emb_super_server_set_transport(struct emb_super_server_t* _ssrv,
-                                    struct emb_transport_t* _transport);
+int emb_super_server_process_req(struct emb_super_server_t* _ssrv,
+                                 const  emb_adu_t* _rx_adu,
+                                 emb_adu_t* _tx_adu);
 
 //**********************************************************************
 // Coils and Discrete inputs.

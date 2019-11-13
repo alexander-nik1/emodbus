@@ -14,190 +14,70 @@
  * \file
  * \brief RTU Transport.
  *
- * This file contains an RTU transport realizations.
+ * This file contains an RTU transport realization.
  *
  */
 
-#ifndef EMB_TRANSPORT_DO_DATA_COPY
-#define EMB_TRANSPORT_DO_DATA_COPY 1
-#endif
+int emb_rtu_encode_packet(const emb_adu_t* _adu,
+                          uint8_t* _packet,
+                          unsigned int _pkt_size)
+{
+    if(!_adu || !_adu->pdu || !_packet || _pkt_size == 0)
+        return -EINVAL;
 
-#define read_data_from_port(_mbt_)  emb_rtu_port_event((_mbt_), emb_rtu_data_received_event)
-#define write_data_to_port(_mbt_)   emb_rtu_port_event((_mbt_), emb_rtu_tx_buf_empty_event)
+    if((_adu->pdu->data_size + 4) <= _pkt_size) {
 
-/**
- * @brief Parse packet
- *
- * This function checks validity of received packet.
- * And if it is valid, then sends it to high level.
- *
- * @param [in] _mbt RTU context
- */
-static void parse_packet(struct emb_rtu_t* _mbt) {
-    const unsigned char* buf = _mbt->rx_buffer;
-    const int size = _mbt->rx_buf_counter-2;
-    if(size >= 2) { // 4 bytes - minimal packet size
-        const uint16_t crc1 = EMB_RTU_CRC_FUNCTION(buf, size);
-        const uint16_t crc2 = MKWORD(buf[size], buf[size+1]);
-#if EMODBUS_PACKETS_DUMPING
-        if(_mbt->transport.flags & EMB_TRANSPORT_FLAG_DUMD_PAKETS)
-            if(emb_dump_rx_data)
-                emb_dump_rx_data(_mbt->rx_buffer, _mbt->rx_buf_counter);
-#endif // EMODBUS_PACKETS_DUMPING
-        if(crc1 != crc2) {
-            emb_transport_error(&_mbt->transport, -modbus_bad_crc);
-            return;
-        }
-        emb_pdu_t* const rx_pdu = _mbt->transport.rx_pdu;
-        if(rx_pdu) {
-            const unsigned int data_sz = size - 2;
-            const unsigned int max_sz = rx_pdu->max_size;
-            if(data_sz > max_sz) {
-                emb_transport_error(&_mbt->transport, -modbus_resp_buffer_ovf);
-                return;
-            }
-            rx_pdu->function = buf[1];
-            rx_pdu->data_size = size - 2;
-#if EMB_TRANSPORT_DO_DATA_COPY
-            memcpy(rx_pdu->data, buf + 2, data_sz);
-#endif  // EMB_TRANSPORT_DO_DATA_COPY
-            emb_transport_recv_packet(&_mbt->transport, (int)buf[0], MB_CONST_PDU(rx_pdu));
-        }
-    }
-}
+        emb_const_pdu_t* pdu = MB_CONST_PDU(_adu->pdu);
 
-/**
- * @brief Send a PDU.
- *
- * (Transport interface) This function will send packet (CRC suffix automatically added).
- *
- * @param [in] _mbt RTU context
- * @param [in] _slave_addr Address of slave
- * @param [in] _pdu PDU, that will be sent.
- *
- * @return Zero on success, error on fail.
- */
-static int modbus_rtu_send_packet(void *_mbt,
-                           int _slave_addr,
-                           emb_const_pdu_t *_pdu) {
-
-    struct emb_rtu_t* mbt = (struct emb_rtu_t*)_mbt;
-
-    if((_pdu->data_size + 4) <= mbt->tx_buf_size) {
-
-        const int sz = _pdu->data_size + 2;
+        const unsigned int sz = pdu->data_size + 2;
         uint16_t crc;
         uint8_t* p;
-        mbt->tx_buffer[0] = _slave_addr;
-        mbt->tx_buffer[1] = _pdu->function;
-#if EMB_TRANSPORT_DO_DATA_COPY
-        memcpy(mbt->tx_buffer + 2, _pdu->data, _pdu->data_size);
-#endif  // EMB_TRANSPORT_DO_DATA_COPY
-        crc = EMB_RTU_CRC_FUNCTION(mbt->tx_buffer, sz);
-        p = mbt->tx_buffer + sz;
+
+        _packet[0] = _adu->server_id;
+        _packet[1] = pdu->function;
+
+        if(_adu->flags & EMB_RTU_DO_DATA_COPY)
+            memcpy(_packet + 2, pdu->data, pdu->data_size);
+
+        crc = EMB_RTU_CRC_FUNCTION(_packet, (uint16_t)sz);
+        p = _packet + sz;
         LIT_END_MK16(p, crc);
-        mbt->tx_pkt_size = sz + 2;
-        mbt->tx_buf_counter = 0;
-        write_data_to_port(mbt);
-#if EMODBUS_PACKETS_DUMPING
-        if(mbt->transport.flags & EMB_TRANSPORT_FLAG_DUMD_PAKETS)
-            if(emb_dump_tx_data)
-                emb_dump_tx_data(mbt->tx_buffer, mbt->tx_pkt_size);
-#endif // EMODBUS_PACKETS_DUMPING
-        return 0;
+
+        return (int)sz + 2;
     }
     else
         return -modbus_buffer_overflow;
 }
 
-void emb_rtu_initialize(struct emb_rtu_t* _mbt) {
-    _mbt->rx_buf_counter = 0;
-    _mbt->tx_buf_counter = 0;
-    _mbt->tx_pkt_size = 0;
+int emb_rtu_decode_packet(const uint8_t* _packet,
+                          unsigned int _pkt_size,
+                          emb_adu_t* _result)
+{
+    if(!_result || !_result->pdu || !_packet || _pkt_size == 0)
+        return -EINVAL;
 
-    // Setup transport
-    _mbt->transport.send_packet = modbus_rtu_send_packet;
-    _mbt->transport.transport_context = _mbt;
+    if(_pkt_size >= 4) {
+        const unsigned int size = _pkt_size - 2;
+        const uint16_t crc1 = EMB_RTU_CRC_FUNCTION(_packet, (uint16_t)size);
+        const uint16_t crc2 = (uint16_t)MKWORD(_packet[size], _packet[size+1]);
+        const unsigned int data_sz = size - 2;
 
-    _mbt->tx_pdu = NULL;
-}
+        if(crc1 != crc2)
+            return -modbus_bad_crc;
 
-void emb_rtu_on_char_timeout(struct emb_rtu_t* _mbt) {
-    parse_packet(_mbt);
-    //printf("cleaning _mbt->rx_buf_counter = %d\n", _mbt->rx_buf_counter);
-    //fflush(stdout);
-    _mbt->rx_buf_counter = 0;
-}
+        if(data_sz > (_result->pdu->max_size))
+            return -modbus_buffer_overflow;
 
-void emb_rtu_on_error(struct emb_rtu_t* _mbt,
-                      int _errno) {
-    emb_transport_error(&_mbt->transport, _errno);
-}
+        _result->server_id = _packet[0];
+        _result->transaction_id = 0;
 
-void emb_rtu_port_event(struct emb_rtu_t* _mbt,
-                        enum emb_rtu_port_event_t _event) {
+        _result->pdu->function = _packet[1];
+        _result->pdu->data_size = (uint8_t)size - 2;
+        if(_result->flags & EMB_RTU_DO_DATA_COPY)
+            memcpy(_result->pdu->data, _packet + 2, data_sz);
 
-    int r;
-
-    switch(_event) {
-    case emb_rtu_data_received_event:
-        r = _mbt->read_from_port(_mbt,
-                                 _mbt->rx_buffer + _mbt->rx_buf_counter,
-                                 _mbt->rx_buf_size - _mbt->rx_buf_counter);
-        if(r > 0) {
-            _mbt->rx_buf_counter += r;
-            _mbt->emb_rtu_on_char(_mbt);
-        }
-        else {
-            // Receiving error, cleaning rx buffer.
-            _mbt->rx_buf_counter = 0;
-        }
-        break;
-
-    case emb_rtu_tx_buf_empty_event:
-        r = _mbt->write_to_port(_mbt,
-                                _mbt->tx_buffer + _mbt->tx_buf_counter,
-                                _mbt->tx_pkt_size - _mbt->tx_buf_counter,
-                                &_mbt->tx_buf_counter);
-        if(r < 0) {
-            // Transmitting error, stop the transmit.
-            _mbt->tx_buf_counter = _mbt->tx_pkt_size = 0;
-        }
-        break;
-    }
-}
-
-int emb_rtu_send_packet_sync(struct emb_rtu_t* _mbt,
-                             int _slave_addr,
-                             emb_const_pdu_t *_pdu) {
-    int r;
-    _mbt->tx_pdu = _pdu;
-    if((r = modbus_rtu_send_packet(_mbt, _slave_addr, _pdu)) == 0) {
-        while(_mbt->tx_buf_counter < _mbt->tx_pkt_size) {
-            write_data_to_port(_mbt);
-        }
         return 0;
     }
     else
-        return r;
+        return -1;
 }
-
-int emb_rtu_has_data_to_send(struct emb_rtu_t* _mbt) {
-    if(!_mbt)
-        return -EINVAL;
-
-    return (_mbt->tx_pkt_size > 0) && (_mbt->tx_buf_counter < _mbt->tx_pkt_size);
-}
-
-void emd_rtu_reset_rx(struct emb_rtu_t* _mbt) {
-    if(_mbt) {
-        _mbt->rx_buf_counter = 0;
-    }
-}
-
-void emd_rtu_reset_tx(struct emb_rtu_t* _mbt) {
-    if(_mbt) {
-        _mbt->tx_buf_counter = _mbt->tx_pkt_size = 0;
-    }
-}
-

@@ -11,75 +11,81 @@
     if((_ssrv_)->on_event)          \
         (_ssrv_)->on_event((_ssrv_), (_event_), _data_)
 
-static void emb_super_server_on_receive_req(void* _user_data,
-                                            int _slave_addr,
-                                            emb_const_pdu_t* _req) {
-
-    struct emb_super_server_t* ssrv = (struct emb_super_server_t*)_user_data;
+int emb_super_server_process_req(struct emb_super_server_t* _ssrv,
+                                 const emb_adu_t* _rx_adu,
+                                 emb_adu_t* _tx_adu)
+{
     struct emb_server_t* srv;
     emb_srv_function_t func;
     uint8_t res;
 
-    DO_EVENT(ssrv, embsev_on_receive_pkt, 0);
+    if(!(_ssrv && _rx_adu && _rx_adu->pdu && _tx_adu && _tx_adu->pdu))
+        return 0;
 
-    if(!ssrv->get_server) {
-        DO_EVENT(ssrv, embsev_no_srv, 0);
-        return;
+    DO_EVENT(_ssrv, embsev_on_receive_pkt, 0);
+
+    if(!_ssrv->get_server) {
+        DO_EVENT(_ssrv, embsev_no_srv, 0);
+        return 0;
     }
 
-    if(!(srv = ssrv->get_server(ssrv, _slave_addr))) {
-        DO_EVENT(ssrv, embsev_no_srv, 0);
-        return;
+    if(!(srv = _ssrv->get_server(_ssrv, _rx_adu->server_id))) {
+        DO_EVENT(_ssrv, embsev_no_srv, 0);
+        return 0;
     }
+
+    _ssrv->rx_pdu = _rx_adu->pdu;
+    _ssrv->tx_pdu = _tx_adu->pdu;
 
     // ok, here we are have the found server.
     // this means, that a response is should be sent.
     do {
         if(!srv->get_function) {
-            build_exception_pdu(ssrv, MBE_ILLEGAL_FUNCTION);
-            DO_EVENT(ssrv, embsev_mb_exception, MBE_ILLEGAL_FUNCTION);
+            build_exception_pdu(_ssrv, MBE_ILLEGAL_FUNCTION);
+            DO_EVENT(_ssrv, embsev_mb_exception, MBE_ILLEGAL_FUNCTION);
             break;
         }
 
-        func = srv->get_function(srv, _req->function);
+        func = srv->get_function(srv, _rx_adu->pdu->function);
 
         if(!func) {
-            build_exception_pdu(ssrv, MBE_ILLEGAL_FUNCTION);
-            DO_EVENT(ssrv, embsev_mb_exception, MBE_ILLEGAL_FUNCTION);
+            build_exception_pdu(_ssrv, MBE_ILLEGAL_FUNCTION);
+            DO_EVENT(_ssrv, embsev_mb_exception, MBE_ILLEGAL_FUNCTION);
             break;
         }
 
-        if((res = func(ssrv, srv))) {
-            build_exception_pdu(ssrv, res);
-            DO_EVENT(ssrv, embsev_mb_exception, res);
+        if((res = func(_ssrv, srv))) {
+            build_exception_pdu(_ssrv, res);
+            DO_EVENT(_ssrv, embsev_mb_exception, res);
             break;
         }
 
     } while(0);
 
     if(!(srv->flags & EMB_SRV_BROADCAST_FLAG)) {
-        emb_transport_send_packet(ssrv->transport, _slave_addr, MB_CONST_PDU(ssrv->tx_pdu));
-        DO_EVENT(ssrv, embsev_resp_sent, 0);
+
+        _tx_adu->flags = _rx_adu->flags;
+        _tx_adu->server_id = _rx_adu->server_id;
+        _tx_adu->transaction_id = _rx_adu->transaction_id;
+
+        DO_EVENT(_ssrv, embsev_resp_sent, 0);
+        return 1;
     }
+
+    return 0;
 }
 
 static void emb_super_server_on_error(void* _user_data, int _errno) {
     struct emb_super_server_t* ssrv = (struct emb_super_server_t*)_user_data;
     if(ssrv) {
-        DO_EVENT(ssrv, embsev_transport_error, _errno);
+        DO_EVENT(ssrv, embsev_transport_error, (uint8_t)_errno);
     }
 }
 
-void emb_super_server_init(struct emb_super_server_t* _ssrv) { }
-
-void emb_super_server_set_transport(struct emb_super_server_t* _ssrv,
-                                    struct emb_transport_t *_transport) {
-    if(_transport) {
-        _ssrv->transport = _transport;
-        _transport->high_level_context = _ssrv;
-        _transport->recv_packet = emb_super_server_on_receive_req;
-        _transport->error = emb_super_server_on_error;
-        _transport->rx_pdu = _ssrv->rx_pdu;
-        _transport->flags |= EMB_TRANSPORT_FLAG_IS_SERVER;
+void emb_super_server_init(struct emb_super_server_t* _ssrv)
+{
+    if(_ssrv) {
+        _ssrv->rx_pdu = NULL;
+        _ssrv->tx_pdu = NULL;
     }
 }

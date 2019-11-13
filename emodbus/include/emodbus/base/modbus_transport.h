@@ -48,6 +48,9 @@ extern "C" {
 /// Flag, that tells from high level to low level, about this is a modbus-server.
 #define EMB_TRANSPORT_FLAG_IS_SERVER   (1 << 1)
 
+//typedef void (*emb_on_rx_pdu_t)(const emb_adu_t* _info, void* _context);
+//typedef void (*emb_on_error_t)(int _errno, void* _context);
+
 /**
  * @brief Interface of modbus transport
  *
