@@ -59,16 +59,16 @@ int emb_read_bits_make_req(emb_pdu_t* _result_req,
 /**
  * @brief Get starting address from request
  * @param[in] _req Request, from which reads a starting address
- * @return Starting address
+ * @return Starting address, or negative code if error
  */
-uint16_t emb_read_bits_get_starting_addr(emb_const_pdu_t* _req);
+int emb_read_bits_get_starting_addr(emb_const_pdu_t* _req);
 
 /**
  * @brief Get quantity from request
  * @param[in] _req Request, from which reads a quantity
- * @return Quantity
+ * @return Quantity, or negative code if error
  */
-uint16_t emb_read_bits_get_quantity(emb_const_pdu_t* _req);
+int emb_read_bits_get_quantity(emb_const_pdu_t* _req);
 
 /**
  * @brief Get bits from answer
@@ -77,9 +77,9 @@ uint16_t emb_read_bits_get_quantity(emb_const_pdu_t* _req);
  *
  * @param[in] _ans Answer
  * @param[in] _bit_offset Offset of the bit inside answer.
- * @return Bit value.
+ * @return Bit value (0 or 1), or negative code if error
  */
-char emb_read_bits_get_bit(emb_const_pdu_t* _answer,
+int emb_read_bits_get_bit(emb_const_pdu_t* _answer,
                              uint16_t _bit_offset);
 
 /**
@@ -89,9 +89,9 @@ char emb_read_bits_get_bit(emb_const_pdu_t* _answer,
  *
  * @param[in] _ans Answer
  * @param[in] _byte_offset Offset to the byte in the answer.
- * @return An eight bits values. (One byte from answer)
+ * @return An eight bits values. (One byte from answer), or negative code if error
  */
-uint8_t emb_read_bits_get_byte(emb_const_pdu_t* _answer,
+int emb_read_bits_get_byte(emb_const_pdu_t* _answer,
                                uint8_t _byte_offset);
 
 #ifdef __cplusplus
