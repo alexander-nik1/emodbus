@@ -7,62 +7,53 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct emb_rtu_via_serial_t {
-    struct emb_rtu_t modbus_rtu;
+struct emb_rtu_via_serial_t
+{
     struct serial_port_t* serial;
     struct event* char_timeout_timer;
     struct timeval char_pause;
 
-    char rx_buf[MAX_PDU_SIZE];
-    char tx_buf[MAX_PDU_SIZE];
+    uint8_t rx_buf[MAX_PDU_SIZE];
+    uint8_t tx_buf[MAX_PDU_SIZE];
+    unsigned int rx_counter;
+
+    emb_pdu_t rx_pdu;
+
+    emb_on_rx_pdu_t on_rx_pdu;
+    emb_on_error_t on_error;
+    void* cb_ctx;
 };
 
-void serial_port_notifier(void* _ctx,
-                          enum serial_port_events_t _event) {
+static void serial_port_notifier(void* _ctx,
+                                 enum serial_port_events_t _event) {
 
     struct emb_rtu_via_serial_t* ctx = (struct emb_rtu_via_serial_t*)_ctx;
     if(ctx) {
-        switch(_event) {
-        case serial_port_data_received_event:
-            emb_rtu_port_event(&ctx->modbus_rtu, emb_rtu_data_received_event);
-            break;
-        case serial_port_data_sent_event:
-            emb_rtu_port_event(&ctx->modbus_rtu, emb_rtu_tx_buf_empty_event);
-            break;
+        int r;
+        if(_event == serial_port_data_received_event) {
+            r = serial_port_read(ctx->serial,
+                                 ctx->rx_buf + ctx->rx_counter,
+                                 sizeof(ctx->rx_buf) - ctx->rx_counter);
+            if(r > 0) {
+                ctx->rx_counter += (unsigned int)r;
+                event_add(ctx->char_timeout_timer, &ctx->char_pause);
+            }
+            else
+                ctx->rx_counter = 0;
         }
     }
 }
 
-static void modbus_rtu_on_char(struct emb_rtu_t* _emb) {
-    struct emb_rtu_via_serial_t* _this =
-            container_of(_emb, struct emb_rtu_via_serial_t, modbus_rtu);
-    event_add(_this->char_timeout_timer, &_this->char_pause);
-}
-
 static void on_timer(evutil_socket_t _fd, short _what, void *_arg) {
-    struct emb_rtu_via_serial_t* _this = (struct emb_rtu_via_serial_t*)_arg;
-    emb_rtu_on_char_timeout(&_this->modbus_rtu);
-}
+    (void)_fd;
+    (void)_what;
+    struct emb_rtu_via_serial_t* ctx = (struct emb_rtu_via_serial_t*)_arg;
+    struct emb_transport_info_t info;
+    info.pdu = &ctx->rx_pdu;
+    if(emb_rtu_decode_packet(ctx->rx_buf, ctx->rx_counter, &info) == 0) {
 
-static int read_from_port(struct emb_rtu_t* _mbt,
-                          void* _p_buf,
-                          unsigned int _buf_size) {
-    if(_mbt) {
-        struct emb_rtu_via_serial_t* _this = container_of(_mbt, struct emb_rtu_via_serial_t, modbus_rtu);
-        return serial_port_read(_this->serial, _p_buf, _buf_size);
     }
-    return 0;
-}
-
-static int write_to_port(struct emb_rtu_t* _mbt,
-                         const void* _p_data,
-                         unsigned int _sz_to_write,
-                         unsigned int* _wrote) {
-    if(_mbt) {
-        struct emb_rtu_via_serial_t* _this = container_of(_mbt, struct emb_rtu_via_serial_t, modbus_rtu);
-        return serial_port_write(_this->serial, _p_data, _sz_to_write, _wrote);
-    }
-    return 0;
+    ctx->rx_counter = 0;
 }
 
 struct emb_rtu_via_serial_t*
@@ -77,17 +68,8 @@ emb_rtu_via_serial_create(struct event_base *_base,
     if(ctx) {
         memset(ctx, 0, sizeof(struct emb_rtu_via_serial_t));
 
-        ctx->modbus_rtu.rx_buffer = ctx->rx_buf;
-        ctx->modbus_rtu.tx_buffer = ctx->tx_buf;
-        ctx->modbus_rtu.rx_buf_size = MAX_PDU_SIZE;
-        ctx->modbus_rtu.tx_buf_size = MAX_PDU_SIZE;
-
-        ctx->modbus_rtu.emb_rtu_on_char = modbus_rtu_on_char;
-
-        ctx->modbus_rtu.read_from_port = read_from_port;
-        ctx->modbus_rtu.write_to_port = write_to_port;
-
-        emb_rtu_initialize(&ctx->modbus_rtu);
+        ctx->rx_pdu.data = ctx->tx_buf + 2;
+        ctx->rx_pdu.max_size = MAX_PDU_SIZE - 4;
 
         ctx->serial = serial_port_create(_base, _dev_name, _baudrate);
         if(!ctx->serial) {
@@ -122,14 +104,33 @@ void emb_rtu_via_serial_destroy(struct emb_rtu_via_serial_t* _ctx) {
     if(_ctx) {
         if(_ctx->serial)
             serial_port_destroy(_ctx->serial);
+        if(_ctx->char_timeout_timer) {
+            event_del(_ctx->char_timeout_timer);
+            event_free(_ctx->char_timeout_timer);
+        }
         free(_ctx);
     }
 }
 
-struct emb_transport_t*
-emb_rtu_via_serial_get_transport(struct emb_rtu_via_serial_t* _ctx) {
+void emb_rtu_via_serial_set_cb(struct emb_rtu_via_serial_t* _ctx,
+                               emb_on_rx_pdu_t _on_rx,
+                               emb_on_error_t _on_err,
+                               void* _context)
+{
     if(_ctx) {
-        return &_ctx->modbus_rtu.transport;
+        _ctx->on_rx_pdu = _on_rx;
+        _ctx->on_error = _on_err;
+        _ctx->cb_ctx = _context;
     }
-    return NULL;
+}
+
+void emb_rtu_via_serial_send(struct emb_rtu_via_serial_t* _ctx,
+                             const struct emb_transport_info_t* _info)
+{
+    if(_ctx && _info) {
+        const int r = emb_rtu_encode_packet(_info, _ctx->tx_buf, sizeof(_ctx->tx_buf));
+        if(r > 0) {
+            serial_port_write(&_ctx->serial, _ctx->tx_buf, (unsigned int)r, NULL);
+        }
+    }
 }

@@ -11,51 +11,15 @@
 #include <unistd.h>
 #include <errno.h>
 
-static void modbus_rtu_on_char(struct emb_rtu_t* _emb) {
-    if(_emb) {
-        struct rtu_via_tty_t* _this =
-                container_of(_emb, struct rtu_via_tty_t, rtu);
-    }
-//    event_add(_this->char_timeout_timer, &_this->char_pause);
-}
-
-static int read_from_port(struct emb_rtu_t* _mbt,
-                          void* _p_buf,
-                          unsigned int _buf_size)
-{
-    if(_mbt) {
-        struct rtu_via_tty_t* _this =
-                container_of(_mbt, struct rtu_via_tty_t, rtu);
-        return read(_this->fd, _p_buf, _buf_size);
-    }
-    return 0;
-}
-
 static int write_to_port(struct emb_rtu_t* _mbt,
                          const void* _p_data,
-                         unsigned int _sz_to_write,
-                         unsigned int* _wrote)
+                         unsigned int _sz_to_write)
 {
     if(_mbt) {
         struct rtu_via_tty_t* _this =
                 container_of(_mbt, struct rtu_via_tty_t, rtu);
 
-        int counter = _sz_to_write;
-        const uint8_t* p_data = (uint8_t*)_p_data;
 
-        while(counter > 0) {
-            int res = write(_this->fd, p_data, counter);
-            if(res > 0) {
-                counter -= res;
-                if(_wrote)
-                    *_wrote += res;
-            }
-            else if(counter < 0) {
-                fprintf(stderr, "%s(): Error with write() call: %m\n", __FUNCTION__);
-                return -1;
-            }
-        }
-        return _sz_to_write;
     }
     return -EINVAL;
 }
@@ -69,15 +33,11 @@ void rtu_via_tty_init(struct rtu_via_tty_t* _ctx,
         _ctx->baudrate = _baudrate;
         _ctx->fd = -1;
         _ctx->is_opened = 0;
+        _ctx->rx_counter = 0;
 
-        _ctx->rtu.rx_buffer = _ctx->rx_buf;
         _ctx->rtu.tx_buffer = _ctx->tx_buf;
-        _ctx->rtu.rx_buf_size = MAX_PDU_SIZE;
         _ctx->rtu.tx_buf_size = MAX_PDU_SIZE;
 
-        _ctx->rtu.emb_rtu_on_char = modbus_rtu_on_char;
-
-        _ctx->rtu.read_from_port = read_from_port;
         _ctx->rtu.write_to_port = write_to_port;
 
         emb_rtu_initialize(&_ctx->rtu);
@@ -324,13 +284,25 @@ int rtu_via_tty_receive_pdu(struct rtu_via_tty_t* _ctx,
 
         FD_SET(_ctx->fd, &rfds);
 
+        _ctx->rx_counter = 0;
+
         tv.tv_sec = 0;
         tv.tv_usec = _timeout_msec * 1000;
 
         ret = select(_ctx->fd+1, &rfds, NULL, NULL, _timeout_msec >= 0 ? &tv : NULL);
         if(ret > 0) {   // one or more events is happen
             DBG("Read event (first symbol)\n");
-            emb_rtu_port_event(&_ctx->rtu, emb_rtu_data_received_event);
+
+            ret = (int)read(_ctx->fd,
+                            _ctx->rx_buf + _ctx->rx_counter,
+                            sizeof(_ctx->rx_buf) - _ctx->rx_counter);
+            if(ret <= 0) {
+                _ctx->rx_counter = 0;
+                return ret;
+            }
+            else {
+                _ctx->rx_counter += (unsigned int)ret;
+            }
         }
         else if(!ret) { // timeout
             DBG("RECEIVE Timeout event\n");
@@ -355,19 +327,29 @@ int rtu_via_tty_receive_pdu(struct rtu_via_tty_t* _ctx,
             ret = select(_ctx->fd+1, &rfds, NULL, NULL, &tv);
             if(ret > 0) { // we have the some data to read
                 DBG("Read event\n");
-                emb_rtu_port_event(&_ctx->rtu, emb_rtu_data_received_event);
+
+                ret = (int)read(_ctx->fd,
+                                _ctx->rx_buf + _ctx->rx_counter,
+                                sizeof(_ctx->rx_buf) - _ctx->rx_counter);
+
+                if(ret <= 0) {
+                    _ctx->rx_counter = 0;
+                    return ret;
+                }
+                else {
+                    _ctx->rx_counter += (unsigned int)ret;
+                }
             }
             else if(!ret) { // timeout of 3.5 symbols
                 DBG("RD Timeout event (end of packet)\n");
 
                 /// TODO GET SYSTEM TIME HERE
-                emb_rtu_on_char_timeout(&_ctx->rtu);
-
+                emb_rtu_on_rx_data(&_ctx->rtu, _ctx->rx_buf, _ctx->rx_counter);
                 return 0;
             }
             else { // error
                 fprintf(stderr, "%s: select() returns error: %m\n", __FUNCTION__);
-                emd_rtu_reset_rx(&_ctx->rtu);
+                _ctx->rx_counter = 0;
                 return -errno;
             }
         }
@@ -396,7 +378,21 @@ int rtu_via_tty_send_pdu(struct rtu_via_tty_t* _ctx,
         ret = select(_ctx->fd+1, NULL, &wfds, NULL, _timeout_msec >= 0 ? &tv : NULL);
         if(ret > 0) {   // we are wrote something
             DBG("Write event\n");
-            emb_rtu_port_event(&_ctx->rtu, emb_rtu_tx_buf_empty_event);
+
+            int counter = (int)_sz_to_write;
+            const uint8_t* p_data = (const uint8_t*)_p_data;
+
+            while(counter > 0) {
+                int res = (int)write(_this->fd, p_data, (size_t)counter);
+                if(res > 0) {
+                    counter -= res;
+                }
+                else if(counter < 0) {
+                    fprintf(stderr, "%s(): Error with write() call: %m\n", __FUNCTION__);
+                    return -1;
+                }
+            }
+            return (int)_sz_to_write;
         }
         else if(!ret) { // timeout
             DBG("Writing: Timeout event\n");
@@ -404,7 +400,6 @@ int rtu_via_tty_send_pdu(struct rtu_via_tty_t* _ctx,
         }
         else { // error
             fprintf(stderr, "%s: select() returns error: %m\n", __FUNCTION__);
-            emd_rtu_reset_tx(&_ctx->rtu);
             return -errno;
         }
     }
