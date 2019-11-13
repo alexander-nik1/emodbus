@@ -177,7 +177,7 @@ struct emb_server_t
     /**
      * @brief Flags for server
      *
-     * EMB_SRV_BROADCAST_FLAG - Do not send answer anyway.
+     * EMB_SRV_BROADCAST_FLAG - Do not send answer in anyway.
      *
      */
     uint8_t flags;
@@ -262,27 +262,71 @@ int emb_super_server_process_req(struct emb_super_server_t* _ssrv,
 //**********************************************************************
 // Coils and Discrete inputs.
 
+/**
+ * @brief Process read bits requests
+ *
+ * This function implements a next modbus-functions:
+ * Read Coils (0x01),
+ * Read Discrete Inputs (0x02)
+ *
+ *
+ * @see emb_srv_function_t
+ */
 uint8_t emb_srv_read_bits(struct emb_super_server_t* _ssrv,
                           struct emb_server_t* _srv);
 
+/**
+ * @brief Process Read Coil (0x05) request
+ *
+ * @see emb_srv_function_t
+ */
 uint8_t emb_srv_write_coil(struct emb_super_server_t* _ssrv,
                            struct emb_server_t* _srv);
 
+/**
+ * @brief Process Write Coils (0x0F) request
+ *
+ * @see emb_srv_function_t
+ */
 uint8_t emb_srv_write_coils(struct emb_super_server_t* _ssrv,
                             struct emb_server_t* _srv);
 
 //**********************************************************************
 // Holding and Input registers
 
+/**
+ * @brief Process read registers requests
+ *
+ * This function implements a next modbus-functions:
+ * Read Holdings (0x03),
+ * Read Input Registers (0x04)
+ *
+ * @see emb_srv_function_t
+ */
 uint8_t emb_srv_read_regs(struct emb_super_server_t* _ssrv,
                           struct emb_server_t* _srv);
 
+/**
+ * @brief Process Write Single Reg (0x06) request
+ *
+ * @see emb_srv_function_t
+ */
 uint8_t emb_srv_write_reg(struct emb_super_server_t* _ssrv,
                           struct emb_server_t* _srv);
 
+/**
+ * @brief Process Write Multiple Registers (0x10) request
+ *
+ * @see emb_srv_function_t
+ */
 uint8_t emb_srv_write_regs(struct emb_super_server_t* _ssrv,
                            struct emb_server_t* _srv);
 
+/**
+ * @brief Process Mask Write Register (0x16) request
+ *
+ * @see emb_srv_function_t
+ */
 uint8_t emb_srv_mask_reg(struct emb_super_server_t* _ssrv,
                          struct emb_server_t* _srv);
 
@@ -290,15 +334,30 @@ uint8_t emb_srv_mask_reg(struct emb_super_server_t* _ssrv,
 enum { EMB_SRV_RDWR_REGS_MAX_READ_REGS = 0x007D };
 enum { EMB_SRV_RDWR_REGS_MAX_WRITE_REGS = 0x0079 };
 
+/**
+ * @brief Process Read/Write Multiple registers (0x17) request
+ *
+ * @see emb_srv_function_t
+ */
 uint8_t emb_srv_read_write_regs(struct emb_super_server_t* _ssrv,
                                 struct emb_server_t* _srv);
 
 //**********************************************************************
 // File records
 
+/**
+ * @brief Process Read File Record (0x14) request
+ *
+ * @see emb_srv_function_t
+ */
 uint8_t emb_srv_read_file(struct emb_super_server_t* _ssrv,
                           struct emb_server_t* _srv);
 
+/**
+ * @brief Process Write File Record (0x15) request
+ *
+ * @see emb_srv_function_t
+ */
 uint8_t emb_srv_write_file(struct emb_super_server_t* _ssrv,
                            struct emb_server_t* _srv);
 
@@ -306,6 +365,12 @@ uint8_t emb_srv_write_file(struct emb_super_server_t* _ssrv,
 // FIFOs
 
 enum { EMB_SRV_READ_FIFO_MAX_REGS = 31 };
+
+/**
+ * @brief Process Read FIFO Queue (0x18) request
+ *
+ * @see emb_srv_function_t
+ */
 
 uint8_t emb_srv_read_fifo(struct emb_super_server_t* _ssrv,
                           struct emb_server_t* _srv);
