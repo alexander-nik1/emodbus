@@ -9,9 +9,7 @@
 uint8_t emb_srv_write_file(struct emb_super_server_t* _ssrv,
                            struct emb_server_t* _srv) {
 
-    enum { reference_type = 0x06 };
-
-    uint8_t* rx_data = _ssrv->rx_pdu->data;
+	uint8_t* rx_data = _ssrv->rx_pdu->data;
 
     const uint8_t byte_count = rx_data[0];
 

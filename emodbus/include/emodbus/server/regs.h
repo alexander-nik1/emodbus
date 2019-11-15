@@ -12,6 +12,8 @@ extern "C" {
  * \file
  * \brief Server, registers definitions
  *
+ * It used in the 0x03,0x04,0x06,0x10,0x16,0x17 modbus-functions.
+ *
  */
 
 /**

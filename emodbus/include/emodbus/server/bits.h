@@ -12,6 +12,8 @@ extern "C" {
  * \file
  * \brief Server, bits definitions
  *
+ * It used in the 0x01,0x02,0x05,0x0F modbus-functions.
+ *
  */
 
 /**
@@ -45,9 +47,9 @@ struct emb_srv_bits_t
      * @see emb_srv_read_bits
      */
     uint8_t (*read_bits)(struct emb_srv_bits_t* _coils,
-                          uint16_t _offset,
-                          uint16_t _quantity,
-                          uint8_t* _pvalues);
+						 uint16_t _offset,
+						 uint16_t _quantity,
+						 uint8_t* _pvalues);
 
     /**
      * @brief Write bits
@@ -69,9 +71,9 @@ struct emb_srv_bits_t
      * @see emb_srv_write_coils
      */
     uint8_t (*write_bits)(struct emb_srv_bits_t* _coils,
-                           uint16_t _offset,
-                           uint16_t _quantity,
-                           const uint8_t* _pvalues);
+						  uint16_t _offset,
+						  uint16_t _quantity,
+						  const uint8_t* _pvalues);
 };
 
 #ifdef __cplusplus
