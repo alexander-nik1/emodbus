@@ -23,7 +23,7 @@ extern "C" {
  */
 struct _emb_adu_t
 {
-    uint32_t transaction_id;    ///< Transaction ID (used in ModbusTCP)
+    uint16_t transaction_id;    ///< Transaction ID (used in ModbusTCP)
     uint8_t server_id;          ///< Server (slave) address (Id).
     uint32_t flags;             ///< Some flags for transport level
     emb_pdu_t* pdu;             ///< PDU storage pointer.

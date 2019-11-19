@@ -16,10 +16,20 @@
 extern "C" {
 #endif
 
-enum { emb_tcp_mbap_size = 7 };
+#define EMB_TCP_DO_DATA_COPY  (1 << 0)
 
-enum { emb_tcp_rx_buf_size = MAX_PDU_SIZE + emb_tcp_mbap_size };
-enum { emb_tcp_tx_buf_size = MAX_PDU_SIZE + emb_tcp_mbap_size };
+typedef struct __attribute__ ((packed))
+{
+    uint16_t transact_id;
+    uint16_t proto_id;
+    uint16_t length;
+    uint8_t unit_id;
+} emb_tcp_header_t;
+
+enum { emb_tcp_header_size = sizeof(emb_tcp_header_t) };
+
+enum { emb_tcp_rx_buf_size = MAX_PDU_SIZE + emb_tcp_header_size };
+enum { emb_tcp_tx_buf_size = MAX_PDU_SIZE + emb_tcp_header_size };
 
 struct emb_tcp_t {
 
