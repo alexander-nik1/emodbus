@@ -19,7 +19,7 @@ int emb_read_bits_calc_req_data_size() {
 
 int emb_read_bits_calc_answer_data_size(uint16_t _quantity) {
     if( 1 <= _quantity && _quantity <= EMB_READ_BITS_MAX_QUANTITY ) {
-        const uint8_t bytes_count = (_quantity / 8) + ((_quantity & 7) ? 1 : 0);
+        const uint8_t bytes_count = (uint8_t)((_quantity / 8) + ((_quantity & 7) ? 1 : 0));
         return READ_COILS_ANS_SIZE(bytes_count);
     }
     else {
