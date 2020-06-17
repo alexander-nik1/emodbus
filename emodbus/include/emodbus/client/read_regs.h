@@ -13,8 +13,7 @@
 
 #include <stdint.h>
 
-#include <emodbus/base/modbus_pdu.h>
-#include <emodbus/client/client_base.h>
+#include <emodbus/base/modbus_xdu.h>
 
 #ifdef __cplusplus
 extern "C" {

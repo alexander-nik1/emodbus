@@ -1,17 +1,19 @@
 
 #include <emodbus/transport/tcp.h>
-#include <emodbus/base/modbus_transport.h>
+//#include <emodbus/base/modbus_transport.h>
 #include <emodbus/base/common.h>
 #include <emodbus/base/byte-word.h>
 #include <emodbus/base/modbus_errno.h>
-#include <emodbus/base/modbus_adu.h>
+#include <emodbus/base/modbus_xdu.h>
 
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 
+#if 0
 #define read_data_from_port(_mbt_)  emb_tcp_port_event((_mbt_), (_mbt_)->tcp_client_id, emb_tcp_data_received_event)
 #define write_data_to_port(_mbt_)   emb_tcp_port_event((_mbt_), (_mbt_)->tcp_client_id, emb_tcp_tx_buf_empty_event)
+#endif
 
 int emb_tcp_decode_packet(const uint8_t* _packet,
                           unsigned int _pkt_size,
@@ -20,7 +22,7 @@ int emb_tcp_decode_packet(const uint8_t* _packet,
     const emb_tcp_header_t* hdr;
     uint16_t pdu_length;
 
-    if(!_result || !_result->pdu || !_packet)
+    if(!_result || !_packet)
         return -EINVAL;
 
     if(_pkt_size < (sizeof(emb_tcp_header_t) + 2))
@@ -35,19 +37,20 @@ int emb_tcp_decode_packet(const uint8_t* _packet,
     if(hdr->proto_id != 0x0000)
         return -EINVAL;
 
-    _result->pdu->data_size = (uint8_t)pdu_length - 1;
+    _result->pdu.data_size = (uint8_t)pdu_length - 1;
 
-    if(_result->pdu->max_size < _result->pdu->data_size)
+    if(_result->pdu.max_size < _result->pdu.data_size)
         return -modbus_buffer_overflow;
 
     _result->transaction_id = SWAP_BYTES(hdr->transact_id);
     _result->server_id = hdr->unit_id;
-    _result->pdu->function = _packet[emb_tcp_header_size];
+    _result->pdu.function = _packet[emb_tcp_header_size];
     if(_result->flags & EMB_TCP_DO_DATA_COPY)
-        memcpy(_result->pdu->data, _result + (emb_tcp_header_size+1), _result->pdu->data_size);
+        memcpy(_result->pdu.data, _result + (emb_tcp_header_size+1), _result->pdu.data_size);
     return 0;
 }
 
+#if 0
 static int parse_packet(struct emb_tcp_t* _mbt) {
 
     _mbt->curr_rx_length = -1;
@@ -98,6 +101,7 @@ static int parse_packet(struct emb_tcp_t* _mbt) {
     }
     return 0;
 }
+#endif
 
 int emb_tcp_encode_packet(const emb_adu_t *_adu,
                           uint8_t* _packet,
@@ -106,27 +110,27 @@ int emb_tcp_encode_packet(const emb_adu_t *_adu,
     emb_tcp_header_t* hdr;
     uint16_t length;
 
-    if(!_adu || !_adu->pdu || !_packet || _pkt_size < sizeof(emb_tcp_header_t))
+    if(!_adu || !_packet || _pkt_size < sizeof(emb_tcp_header_t))
         return -EINVAL;
 
     hdr = (emb_tcp_header_t*)_packet;
     hdr->transact_id = SWAP_BYTES(_adu->transaction_id);
     hdr->proto_id = 0x0000;
-    length = _adu->pdu->data_size + 2;
+    length = _adu->pdu.data_size + 2;
     hdr->length = SWAP_BYTES(length);
     hdr->unit_id = _adu->server_id;
 
-    length = sizeof(emb_tcp_header_t) + _adu->pdu->data_size + 1;
+    length = sizeof(emb_tcp_header_t) + _adu->pdu.data_size + 1;
 
     if(_pkt_size < length)
         return -modbus_buffer_overflow;
 
     _packet += sizeof(emb_tcp_header_t);
 
-    *_packet++ = _adu->pdu->function;
+    *_packet++ = _adu->pdu.function;
 
     if(_adu->flags & EMB_TCP_DO_DATA_COPY)
-        memcpy(_packet, _adu->pdu->data, _adu->pdu->data_size);
+        memcpy(_packet, _adu->pdu.data, _adu->pdu.data_size);
 
     return length;
 }
@@ -142,7 +146,7 @@ int emb_tcp_encode_packet(const emb_adu_t *_adu,
  *
  * @return Zero on success, error on fail.
  */
-
+#if 0
 static int modbus_tcp_send_packet(void *_mbt,
                                   int _slave_addr,
                                   emb_const_pdu_t *_pdu) {
@@ -272,3 +276,4 @@ void emb_tcp_port_event(struct emb_tcp_t* _mbt,
         break;
     }
 }
+#endif

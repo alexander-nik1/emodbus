@@ -1,5 +1,5 @@
 
-#include <emodbus/base/modbus_pdu.h>
+#include <emodbus/base/modbus_xdu.h>
 #include <emodbus/server/server.h>
 #include <emodbus/base/modbus_errno.h>
 #include <stdint.h>

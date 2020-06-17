@@ -1,25 +1,25 @@
 
-#ifndef THE_CS_CONTAINER_OF_H
-#define THE_CS_CONTAINER_OF_H
+#ifndef EMB_CONTAINER_OF_H
+#define EMB_CONTAINER_OF_H
 
-#ifndef container_of
+#ifndef emb_container_of
 
-#define my_offsetof(st, m) ((unsigned long)(&((st *)0)->m))
+#define emb_offsetof(st, m) ((unsigned long)(&((st *)0)->m))
 
 #ifdef __cplusplus
 
-#define container_of(_ptr_, _type_, _member_)   \
-    ((_type_*)(((char*)_ptr_) - my_offsetof(_type_, _member_)))
+#define emb_container_of(_ptr_, _type_, _member_)   \
+    ((_type_*)(((char*)_ptr_) - emb_offsetof(_type_, _member_)))
 
 #else
 
-#define container_of(ptr, _type_, member) ({      \
+#define emb_container_of(ptr, _type_, member) ({      \
     const typeof( ((_type_ *)0)->member )         \
     *__mptr = (ptr);                            \
-    (_type_ *)( (char *)__mptr - my_offsetof(_type_,member) );})
+    (_type_ *)( (char *)__mptr - emb_offsetof(_type_,member) );})
 
 #endif
 
-#endif // container_of
+#endif // emb_container_of
 
-#endif // THE_CS_CONTAINER_OF_H
+#endif // EMB_CONTAINER_OF_H

@@ -13,7 +13,7 @@
 #define CLIENT_REQ_ON_ERROR(_req_, _addr_, _errno_)        \
     if((_req_->procs) && (_req_->procs->on_error))         \
         _req_->procs->on_error(_req_, _addr_, _errno_)
-
+/*
 static void emb_client_on_receive_pkt(void* _user_data,
                            int _slave_addr,
                            emb_const_pdu_t* _pkt) {
@@ -24,7 +24,7 @@ static void emb_client_on_receive_pkt(void* _user_data,
 
     cli->curr_transaction = (struct emb_client_transaction_t*)0;
 
-    cli->transport->rx_pdu = NULL;
+    //cli->transport->rx_pdu = NULL;
 
     do {
 
@@ -100,7 +100,7 @@ int emb_client_do_transaction(struct emb_client_t* _cli,
         return -EBUSY;
     _cli->curr_addr = _slave_addr;
     _cli->curr_transaction = _transact;
-    _cli->transport->rx_pdu = _transact->resp_pdu;
+    _cli->transport->rx_pdu = _transact->ans_pdu;
     emb_transport_send_packet(_cli->transport, _slave_addr, _transact->req_pdu);
     return 0;
 }
@@ -115,3 +115,4 @@ void emb_client_set_transport(struct emb_client_t* _cli,
         _transport->flags &= (~EMB_TRANSPORT_FLAG_IS_SERVER);
     }
 }
+*/

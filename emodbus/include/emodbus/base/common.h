@@ -24,7 +24,7 @@
 #define NULL ((void*)0)
 #endif
 
-#include "modbus_pdu.h"
+#include "modbus_xdu.h"
 #include <stdint.h>
 #include <stdio.h>
 

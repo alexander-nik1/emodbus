@@ -1,6 +1,5 @@
 
 #include <emodbus/server/server.h>
-#include <emodbus/base/modbus_transport.h>
 #include <emodbus/base/modbus_errno.h>
 #include <string.h>
 
@@ -19,8 +18,8 @@ int emb_super_server_process_req(struct emb_super_server_t* _ssrv,
     emb_srv_function_t func;
     uint8_t res;
 
-    if(!(_ssrv && _rx_adu && _rx_adu->pdu && _tx_adu && _tx_adu->pdu))
-        return 0;
+    if(!(_ssrv && _rx_adu && _tx_adu))
+        return -EINVAL;
 
     DO_EVENT(_ssrv, embsev_on_receive_pkt, 0);
 
@@ -34,8 +33,8 @@ int emb_super_server_process_req(struct emb_super_server_t* _ssrv,
         return 0;
     }
 
-    _ssrv->rx_pdu = _rx_adu->pdu;
-    _ssrv->tx_pdu = _tx_adu->pdu;
+    _ssrv->rx_pdu = &_rx_adu->pdu;
+    _ssrv->tx_pdu = &_tx_adu->pdu;
 
     // ok, here we are have the found server.
     // this means, that a response is should be sent.
@@ -46,7 +45,7 @@ int emb_super_server_process_req(struct emb_super_server_t* _ssrv,
             break;
         }
 
-        func = srv->get_function(srv, _rx_adu->pdu->function);
+        func = srv->get_function(srv, _rx_adu->pdu.function);
 
         if(!func) {
             build_exception_pdu(_ssrv, MBE_ILLEGAL_FUNCTION);

@@ -47,7 +47,8 @@ const char* emb_strerror(int _errno);
  * @brief The modbus_errno_t enum
  * Possible errors
  */
-enum emodbus_errno_t {
+enum emodbus_errno_t
+{
     modbus_success,             ///< No error
     modbus_bad_crc = 1000,      ///< Incorrect CRC in received packet
     modbus_buffer_overflow,     ///< Overflow of the buffer
@@ -59,6 +60,7 @@ enum emodbus_errno_t {
     modbus_resp_buffer_ovf,     ///< Response buffer is too short to store all data
     modbus_resp_wrong_transaction_id, ///< Incorrect transaction Id in received response
     modbus_timeout,             ///< Timeout
+    modbus_invalid_argument,    ///< Invalid argument
 
     EMB_EXCEPTION_BASE = 1500,
 

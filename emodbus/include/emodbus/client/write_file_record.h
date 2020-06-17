@@ -9,8 +9,7 @@
  *
  */
 
-#include <emodbus/base/modbus_pdu.h>
-#include <stdint.h>
+#include <emodbus/base/modbus_xdu.h>
 
 #ifdef __cplusplus
 extern "C" {

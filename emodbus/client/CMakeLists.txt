@@ -1,5 +1,7 @@
 
-include_directories(../base/)
+include_directories(
+    ../emodbus/include
+)
 
 aux_source_directory(. LIB_EMODBUS_CLIENT_SRC)
 

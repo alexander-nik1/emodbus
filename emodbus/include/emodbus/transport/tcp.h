@@ -2,6 +2,7 @@
 #ifndef MODBUS_MASTER_TCP_H
 #define MODBUS_MASTER_TCP_H
 
+
 /*!
  * \file
  * \brief TCP Transport.
@@ -10,7 +11,7 @@
  *
  */
 
-#include <emodbus/base/modbus_transport.h>
+#include <emodbus/base/modbus_xdu.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,6 +32,15 @@ enum { emb_tcp_header_size = sizeof(emb_tcp_header_t) };
 enum { emb_tcp_rx_buf_size = MAX_PDU_SIZE + emb_tcp_header_size };
 enum { emb_tcp_tx_buf_size = MAX_PDU_SIZE + emb_tcp_header_size };
 
+
+int emb_tcp_encode_packet(const emb_adu_t *_adu,
+                          uint8_t* _packet,
+                          unsigned int _pkt_size);
+
+int emb_tcp_decode_packet(const uint8_t* _packet,
+                          unsigned int _pkt_size,
+                          emb_adu_t* _result);
+#if 0
 struct emb_tcp_t {
 
     unsigned int rx_pkt_counter;
@@ -102,7 +112,7 @@ enum emb_tcp_port_event_t {
 void emb_tcp_port_event(struct emb_tcp_t* _mbt,
                         void* _tcp_client_id,
                         enum emb_tcp_port_event_t _event);
-
+#endif
 #ifdef __cplusplus
 }   // extern "C"
 #endif

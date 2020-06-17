@@ -1,7 +1,7 @@
 
 #include <emodbus/base/modbus_errno.h>
 #include <emodbus/base/add/container_of.h>
-#include "rtu_via_tty.h"
+#include <emodbus/impl/posix/serial_port.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -11,38 +11,18 @@
 #include <unistd.h>
 #include <errno.h>
 
-static int write_to_port(struct emb_rtu_t* _mbt,
-                         const void* _p_data,
-                         unsigned int _sz_to_write)
-{
-    if(_mbt) {
-        struct rtu_via_tty_t* _this =
-                container_of(_mbt, struct rtu_via_tty_t, rtu);
-    }
-    return -EINVAL;
-}
-
-void rtu_via_tty_init(struct rtu_via_tty_t* _ctx,
-                     const char* _tty_name,
-                     unsigned int _baudrate)
+void serial_port_init(struct serial_port_t* _ctx)
 {
     if(_ctx) {
-        _ctx->tty_name = _tty_name;
-        _ctx->baudrate = _baudrate;
         _ctx->fd = -1;
-        _ctx->is_opened = 0;
-        _ctx->rx_counter = 0;
-
-        _ctx->rtu.tx_buffer = _ctx->tx_buf;
-        _ctx->rtu.tx_buf_size = MAX_PDU_SIZE;
-
-        _ctx->rtu.write_to_port = write_to_port;
-
-        emb_rtu_initialize(&_ctx->rtu);
+        _ctx->rx_bytes_counter = 0UL;
+        _ctx->tx_bytes_counter = 0UL;
+        _ctx->tx_packets = 0UL;
+        _ctx->rx_packets = 0UL;
     }
 }
 
-int rtu_via_tty_open(struct rtu_via_tty_t* _ctx)
+int serial_port_open(struct serial_port_t* _ctx)
 {
     struct termios options;
 
@@ -107,25 +87,24 @@ int rtu_via_tty_open(struct rtu_via_tty_t* _ctx)
 
         tcsetattr(_ctx->fd, TCSANOW, &options);
 
-        if(rtu_via_tty_set_baudrate(_ctx, _ctx->baudrate)) {
+        if(serial_port_set_baudrate(_ctx, _ctx->baudrate)) {
             fprintf(stderr, "%s: Error with serial_port_set_baudrate() call: %m\n", __FUNCTION__);
             break;
         }
-        _ctx->is_opened = 1;
         return 0;
 
     } while(0);
 
-    rtu_via_tty_close(_ctx);
+    serial_port_close(_ctx);
 
     return -1;
 }
 
-void rtu_via_tty_close(struct rtu_via_tty_t* _ctx)
+void serial_port_close(struct serial_port_t* _ctx)
 {
-    if(_ctx) {
-        _ctx->is_opened = 0;
+    if(_ctx && _ctx->fd >= 0) {
         close(_ctx->fd);
+        _ctx->fd = -1;
     }
 }
 
@@ -227,11 +206,11 @@ static speed_t posix_serial_port_get_speedt_by_baudrate(unsigned int _baudrate)
 #ifdef B4000000
         GSBB_BAUD_CASE(4000000)
 #endif
-        default: return -1;
+        default: return (speed_t)-1;
     }
 }
 
-int rtu_via_tty_set_baudrate(struct rtu_via_tty_t *_ctx,
+int serial_port_set_baudrate(struct serial_port_t *_ctx,
                              unsigned int _baudrate)
 {
     if(_ctx) {
@@ -263,13 +242,14 @@ int rtu_via_tty_set_baudrate(struct rtu_via_tty_t *_ctx,
 
 #define DBG(...) // printf(__VA_ARGS__)
 
-int rtu_via_tty_receive_pdu(struct rtu_via_tty_t* _ctx,
-                            int _timeout_msec)
+int serial_port_receive(struct serial_port_t* _ctx, void* _p_buffer, unsigned int _max_size)
 {
-    if(_ctx && _ctx->is_opened) {
+    if(_ctx && _ctx->fd >= 0 && _p_buffer && _max_size) {
 
         struct timeval tv;
         int ret;
+        int counter = 0;
+        uint8_t* rx_buf = (uint8_t*)_p_buffer;
 
         fd_set rfds;
 
@@ -282,24 +262,21 @@ int rtu_via_tty_receive_pdu(struct rtu_via_tty_t* _ctx,
 
         FD_SET(_ctx->fd, &rfds);
 
-        _ctx->rx_counter = 0;
-
         tv.tv_sec = 0;
-        tv.tv_usec = _timeout_msec * 1000;
+        tv.tv_usec = (__suseconds_t)_ctx->timeout_ms * 1000;
 
-        ret = select(_ctx->fd+1, &rfds, NULL, NULL, _timeout_msec >= 0 ? &tv : NULL);
+        ret = select(_ctx->fd+1, &rfds, NULL, NULL, tv.tv_usec >= 0 ? &tv : NULL);
         if(ret > 0) {   // one or more events is happen
             DBG("Read event (first symbol)\n");
 
             ret = (int)read(_ctx->fd,
-                            _ctx->rx_buf + _ctx->rx_counter,
-                            sizeof(_ctx->rx_buf) - _ctx->rx_counter);
+                            rx_buf + counter,
+                            _max_size - (unsigned int)counter);
             if(ret <= 0) {
-                _ctx->rx_counter = 0;
                 return ret;
             }
             else {
-                _ctx->rx_counter += (unsigned int)ret;
+                counter += (unsigned int)ret;
             }
         }
         else if(!ret) { // timeout
@@ -320,34 +297,32 @@ int rtu_via_tty_receive_pdu(struct rtu_via_tty_t* _ctx,
             FD_SET(_ctx->fd, &rfds);
 
             tv.tv_sec = 0;
-            tv.tv_usec = 1000000 * 35 / _ctx->baudrate;
+            if(_ctx->override_final_delay_ms)
+                tv.tv_usec = (long)_ctx->override_final_delay_ms * 1000;
+            else
+                tv.tv_usec = 1000000 * 35 / _ctx->baudrate;
 
             ret = select(_ctx->fd+1, &rfds, NULL, NULL, &tv);
             if(ret > 0) { // we have the some data to read
                 DBG("Read event\n");
 
                 ret = (int)read(_ctx->fd,
-                                _ctx->rx_buf + _ctx->rx_counter,
-                                sizeof(_ctx->rx_buf) - _ctx->rx_counter);
+                                rx_buf + counter,
+                                _max_size - (unsigned int)counter);
 
                 if(ret <= 0) {
-                    _ctx->rx_counter = 0;
                     return ret;
                 }
                 else {
-                    _ctx->rx_counter += (unsigned int)ret;
+                    counter += (unsigned int)ret;
                 }
             }
             else if(!ret) { // timeout of 3.5 symbols
                 DBG("RD Timeout event (end of packet)\n");
-
-                /// TODO GET SYSTEM TIME HERE
-                emb_rtu_on_rx_data(&_ctx->rtu, _ctx->rx_buf, _ctx->rx_counter);
-                return 0;
+                return counter;
             }
             else { // error
                 fprintf(stderr, "%s: select() returns error: %m\n", __FUNCTION__);
-                _ctx->rx_counter = 0;
                 return -errno;
             }
         }
@@ -355,33 +330,30 @@ int rtu_via_tty_receive_pdu(struct rtu_via_tty_t* _ctx,
     return -EINVAL;
 }
 
-int rtu_via_tty_send_pdu(struct rtu_via_tty_t* _ctx,
-                         int _timeout_msec)
+int serial_port_send(struct serial_port_t* _ctx, const void* _p_data, unsigned int _size)
 {
-    if(_ctx && _ctx->is_opened) {
+    if(_ctx && _ctx->fd >= 0 && _p_data && _size) {
         struct timeval tv;
         int ret;
 
         fd_set wfds;
-
-        /// TODO COMPARE SYSTEM TIME AND WAIT FOR remainder of 3.5 IF NEED (!)
 
         FD_ZERO(&wfds);
 
         FD_SET(_ctx->fd, &wfds);
 
         tv.tv_sec = 0;
-        tv.tv_usec = _timeout_msec * 1000;
+        tv.tv_usec = (__suseconds_t)_ctx->timeout_ms * 1000;
 
-        ret = select(_ctx->fd+1, NULL, &wfds, NULL, _timeout_msec >= 0 ? &tv : NULL);
+        ret = select(_ctx->fd+1, NULL, &wfds, NULL, tv.tv_usec >= 0 ? &tv : NULL);
         if(ret > 0) {   // we are wrote something
             DBG("Write event\n");
 
-            int counter = (int)_sz_to_write;
+            int counter = (int)_size;
             const uint8_t* p_data = (const uint8_t*)_p_data;
 
             while(counter > 0) {
-                int res = (int)write(_this->fd, p_data, (size_t)counter);
+                int res = (int)write(_ctx->fd, p_data, (size_t)counter);
                 if(res > 0) {
                     counter -= res;
                 }
@@ -390,7 +362,7 @@ int rtu_via_tty_send_pdu(struct rtu_via_tty_t* _ctx,
                     return -1;
                 }
             }
-            return (int)_sz_to_write;
+            return (int)_size;
         }
         else if(!ret) { // timeout
             DBG("Writing: Timeout event\n");
@@ -401,8 +373,5 @@ int rtu_via_tty_send_pdu(struct rtu_via_tty_t* _ctx,
             return -errno;
         }
     }
-
-
-    /// TODO GET SYSTEM TIME HERE
     return 0;
 }

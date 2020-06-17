@@ -25,7 +25,8 @@ enum { MAX_PDU_DATA_SIZE = MAX_PDU_SIZE - (1 + 2) };
  * @detailed You should use this object, where imply change data of this PDU
  *
  */
-struct _emb_pdu_t {
+struct _emb_pdu_t
+{
     uint8_t function;   ///< Function of this PDU
     uint8_t data_size;  ///< Size of data of this PDU
     uint8_t max_size;   ///< Maximum size (when this PDU is used as receive place)
@@ -41,7 +42,8 @@ typedef struct _emb_pdu_t emb_pdu_t;
  * to change any data in this structure
  *
  */
-struct _emb_const_pdu_t {
+struct _emb_const_pdu_t
+{
     uint8_t function;       ///< Function of this PDU
     uint8_t data_size;      ///< Size of data of this PDU
     uint8_t max_size;       ///< Maximum size (when this PDU is used as receive place)
@@ -57,6 +59,21 @@ typedef const struct _emb_const_pdu_t emb_const_pdu_t;
 #define MB_CONST_PDU(_pdu_) ((emb_const_pdu_t*)(_pdu_))
 
 /**
+ * @brief Data store for ADU.
+ *
+ * Application data unit structure
+ */
+struct _emb_adu_t
+{
+    uint16_t transaction_id;    ///< Transaction ID (used in ModbusTCP)
+    uint8_t server_id;          ///< Server (slave) address (Id).
+    uint32_t flags;             ///< Some flags for transport level
+    emb_pdu_t pdu;              ///< PDU
+};
+
+typedef struct _emb_adu_t emb_adu_t;
+
+/**
  * @brief Check a PDU for modbus-exception
  *
  * This function checks a 8-th bit of a function byte, and
@@ -66,7 +83,9 @@ typedef const struct _emb_const_pdu_t emb_const_pdu_t;
  * @return returns zero if this PDU have no exception code,
  * otherwise it returns a modbus-exception code plus 1500.
  */
-int emb_check_pdu_for_exception(emb_const_pdu_t *_pdu);
+
+#define emb_check_pdu_for_exception(_p_pdu_)    \
+    ((!!((_p_pdu_)->function & 0x80)) ? -(((const uint8_t*)(_p_pdu_)->data)[0] + 1500) : 0)
 
 #ifdef __cplusplus
 }   // extern "C"

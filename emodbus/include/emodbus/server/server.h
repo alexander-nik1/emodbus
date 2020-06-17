@@ -2,7 +2,7 @@
 #ifndef EMODBUS_SERVER_BASE_H
 #define EMODBUS_SERVER_BASE_H
 
-#include <emodbus/base/modbus_adu.h>
+#include <emodbus/base/modbus_xdu.h>
 #include <emodbus/server/bits.h>
 #include <emodbus/server/regs.h>
 #include <emodbus/server/file.h>
@@ -222,7 +222,7 @@ struct emb_super_server_t
     void (*on_event)(struct emb_super_server_t* _ssrv, enum emb_super_server_event_t _event, uint8_t _data);
 
 
-    emb_pdu_t* rx_pdu;  ///< Current received PDU
+    const emb_pdu_t* rx_pdu;  ///< Current received PDU
     emb_pdu_t* tx_pdu;  ///< Current PDU for sending
 };
 

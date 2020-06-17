@@ -84,7 +84,7 @@ int emb_read_file_make_req(emb_pdu_t* _result_req,
 }
 
 int emb_read_file_get_answer_length(emb_const_pdu_t* _answer) {
-    return ((uint8_t*)_answer->data)[0];
+    return ((const uint8_t*)_answer->data)[0];
 }
 
 emb_read_file_subansw_t* emb_read_file_next_subanswer(emb_const_pdu_t* _answer,
@@ -100,14 +100,14 @@ emb_read_file_subansw_t* emb_read_file_next_subanswer(emb_const_pdu_t* _answer,
         return NULL;
 
     if(!_subanswer) {
-        sa = (emb_read_file_subansw_t*)(((uint8_t*)_answer->data)+1);
+        sa = (emb_read_file_subansw_t*)(((const uint8_t*)_answer->data)+1);
     }
     else {
-        sa = (emb_read_file_subansw_t*)(((uint8_t*)_subanswer) + _subanswer->length + 1);
+        sa = (emb_read_file_subansw_t*)(((const uint8_t*)_subanswer) + _subanswer->length + 1);
     }
 
     offs_to_next = (((unsigned int)sa) + sa->length + 1);
-    end_of_answer = (((unsigned int)_answer->data) +  answer_size);
+    end_of_answer = (((unsigned int)_answer->data) + (unsigned)answer_size);
 
     if(offs_to_next > end_of_answer)
         return NULL;

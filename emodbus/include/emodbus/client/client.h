@@ -1,9 +1,8 @@
 
-#ifndef MODBUS_CLIENT_H
-#define MODBUS_CLIENT_H
+#ifndef EMB_CLIENT_H
+#define EMB_CLIENT_H
 
-#include <emodbus/base/modbus_transport.h>
-#include <emodbus/client/client_base.h>
+#include <emodbus/base/modbus_xdu.h>
 #include <stdint.h>
 
 /*!
@@ -41,12 +40,15 @@ struct emb_client_req_procs_t {
  * This is a ONE request descriptor for client.
  *
  */
-struct emb_client_transaction_t {
-    emb_const_pdu_t* req_pdu;               ///< Receive PDU
-    emb_pdu_t* resp_pdu;                    ///< Response PDU
+struct emb_client_transaction_t
+{
+    emb_adu_t* req_pdu;                     ///< Receive ADU
+    emb_adu_t* ans_pdu;                     ///< Answer ADU
     struct emb_client_req_procs_t* procs;   ///< Callbacks for this request
     void* user_data;                        ///< Some user data for high-level :)
 };
+
+int emb_client_send_request(struct emb_client_transaction_t* _req);
 
 /**
  * @brief The emb_client_t struct
@@ -54,11 +56,8 @@ struct emb_client_transaction_t {
  * This is a ONE modbus client cntext.
  *
  */
-struct emb_client_t {
-
-    /// Low level context
-    struct emb_transport_t* transport;
-
+struct emb_client_t
+{
     /// This variable saves a current-request address
     int curr_addr;
 
@@ -121,4 +120,4 @@ void emb_client_set_transport(struct emb_client_t* _cli,
 }   // extern "C"
 #endif
 
-#endif // MODBUS_CLIENT_H
+#endif // EMB_CLIENT_H

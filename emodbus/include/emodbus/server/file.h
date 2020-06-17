@@ -3,7 +3,7 @@
 #define EMODBUS_SERVER_FILES_H
 
 #include <stdint.h>
-#include <emodbus/base/modbus_pdu.h>
+#include <emodbus/base/modbus_xdu.h>
 
 #ifdef __cplusplus
 extern "C" {

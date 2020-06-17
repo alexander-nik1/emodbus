@@ -9,7 +9,7 @@
  *
  */
 
-#include <emodbus/base/modbus_pdu.h>
+#include <emodbus/base/modbus_xdu.h>
 #include <stdint.h>
 
 #ifdef __cplusplus

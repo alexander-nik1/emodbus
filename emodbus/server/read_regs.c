@@ -43,12 +43,12 @@ uint8_t emb_srv_read_regs(struct emb_super_server_t* _ssrv,
     if(!r->read_regs)
         return MBE_ILLEGAL_DATA_ADDR;
 
-    *tx_data = quantity*2;  // byte count
+    *tx_data = (uint8_t)(quantity * 2);  // byte count
 
     ++tx_data; // skip byte-count
 
     _ssrv->tx_pdu->function = function;
-    _ssrv->tx_pdu->data_size = READ_HOLDINGS_ANS_SIZE(quantity);
+    _ssrv->tx_pdu->data_size = (uint8_t)READ_HOLDINGS_ANS_SIZE(quantity);
 
     if(_ssrv->tx_pdu->data_size > _ssrv->tx_pdu->max_size)
         return MBE_SLAVE_FAILURE;

@@ -10,7 +10,7 @@
  *
  */
 
-#include <emodbus/base/modbus_adu.h>
+#include <emodbus/base/modbus_xdu.h>
 
 #ifndef EMB_RTU_CRC_FUNCTION
 #define EMB_RTU_CRC_FUNCTION(_buf_, _size_)  crc16(_buf_, _size_)
@@ -19,8 +19,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define EMB_RTU_DO_DATA_COPY  (1 << 0)
 
 /**
  * @brief RTU Encode packet
