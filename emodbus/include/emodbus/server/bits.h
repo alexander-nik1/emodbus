@@ -26,7 +26,7 @@ extern "C" {
 struct emb_srv_bits_t
 {
     uint16_t start; ///< Begining address of bits range
-    uint16_t size;  ///< Nuber of bits in the range
+    uint32_t size;  ///< Nuber of bits in the range
 
     /**
      * @brief Read bits

@@ -26,7 +26,7 @@ extern "C" {
 struct emb_srv_regs_t {
 
     uint16_t start; ///< Begining address of registers range
-    uint16_t size;  ///< Nuber of registers in the range
+    uint32_t size;  ///< Nuber of registers in the range
 
     /**
      * @brief Read registers
