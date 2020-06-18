@@ -319,6 +319,8 @@ int serial_port_receive(struct serial_port_t* _ctx, void* _p_buffer, unsigned in
             }
             else if(!ret) { // timeout of 3.5 symbols
                 DBG("RD Timeout event (end of packet)\n");
+                _ctx->rx_bytes_counter += (unsigned int)counter;
+                _ctx->rx_packets ++;
                 return counter;
             }
             else { // error
@@ -362,6 +364,8 @@ int serial_port_send(struct serial_port_t* _ctx, const void* _p_data, unsigned i
                     return -1;
                 }
             }
+            _ctx->tx_bytes_counter += (unsigned int)counter;
+            _ctx->tx_packets ++;
             return (int)_size;
         }
         else if(!ret) { // timeout
