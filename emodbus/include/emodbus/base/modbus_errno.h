@@ -17,7 +17,8 @@
 extern "C" {
 #endif
 
-enum modbus_exception_code_t{
+enum modbus_exception_code_t
+{
     MBE_ILLEGAL_FUNCTION = 0x01,
     MBE_ILLEGAL_DATA_ADDR = 0x02,
     MBE_ILLEGAL_DATA_VALUE = 0x03,
@@ -61,6 +62,7 @@ enum emodbus_errno_t
     modbus_resp_wrong_transaction_id, ///< Incorrect transaction Id in received response
     modbus_timeout,             ///< Timeout
     modbus_invalid_argument,    ///< Invalid argument
+    modbus_invalid_proto_id,    ///< Invalid protocol Id
 
     EMB_EXCEPTION_BASE = 1500,
 

@@ -37,6 +37,7 @@ const char* emb_strerror(int _errno) {
             EMB_CASE_ERROR_STRING(modbus_resp_wrong_transaction_id, "Incorrect transaction Id in received response");
             EMB_CASE_ERROR_STRING(modbus_timeout, "Timeout");
             EMB_CASE_ERROR_STRING(modbus_invalid_argument, "Invalid argument");
+            EMB_CASE_ERROR_STRING(modbus_invalid_proto_id, "Invalid protocol Id");
             default: return (const char*)0;
         }
     }
