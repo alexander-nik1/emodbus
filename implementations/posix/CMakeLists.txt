@@ -1,12 +1,12 @@
 
-#add_library(emb-tcp-client STATIC tcp-client.c)
-
-#add_library(emb-tcp-server STATIC tcp-server.c)
-
 include_directories(
     ${CMAKE_SOURCE_DIR}/emodbus/include
     ${CMAKE_SOURCE_DIR}/implementations/include
 )
+
+#add_library(emb-tcp-client STATIC tcp-client.c)
+
+add_library(emb-tcp-server STATIC tcp-server.c)
 
 add_library(emb-serail-port STATIC
     serial_port.c

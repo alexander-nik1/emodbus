@@ -17,8 +17,6 @@
 extern "C" {
 #endif
 
-#define EMB_TCP_DO_DATA_COPY  (1 << 0)
-
 typedef struct __attribute__ ((packed))
 {
     uint16_t transact_id;

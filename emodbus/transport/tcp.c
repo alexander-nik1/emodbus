@@ -45,8 +45,8 @@ int emb_tcp_decode_packet(const uint8_t* _packet,
     _result->transaction_id = SWAP_BYTES(hdr->transact_id);
     _result->server_id = hdr->unit_id;
     _result->pdu.function = _packet[emb_tcp_header_size];
-    if(_result->flags & EMB_TCP_DO_DATA_COPY)
-        memcpy(_result->pdu.data, _result + (emb_tcp_header_size+1), _result->pdu.data_size);
+//    if(_result->flags & EMB_TCP_DO_DATA_COPY)
+        memcpy(_result->pdu.data, _packet + (emb_tcp_header_size+1), _result->pdu.data_size);
     return 0;
 }
 
@@ -129,7 +129,7 @@ int emb_tcp_encode_packet(const emb_adu_t *_adu,
 
     *_packet++ = _adu->pdu.function;
 
-    if(_adu->flags & EMB_TCP_DO_DATA_COPY)
+//    if(_adu->flags & EMB_TCP_DO_DATA_COPY)
         memcpy(_packet, _adu->pdu.data, _adu->pdu.data_size);
 
     return length;
