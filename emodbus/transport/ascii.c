@@ -97,8 +97,6 @@ int emb_ascii_encode_packet(const emb_adu_t* _adu,
         *iterator++ = CR;
         *iterator++ = LF;
 
-        printf("===>> %.*s\n", pkt_size, _packet);
-
         return pkt_size;
     }
     else {
@@ -140,13 +138,10 @@ int emb_ascii_decode_packet(const uint8_t* _packet,
     if(crc != calc_crc(_packet+1, (_pkt_size-1-2-2)))
         return -modbus_bad_crc;
 
-    printf("== data: ");
     for(i=0; i<data_size; ++i) {
         const uint8_t v = ascii2bin(_packet[5+i*2], _packet[5+i*2+1]);
         ((uint8_t*)_result->pdu.data)[i] = v;
-        printf("%02X ", v);
     }
-    printf("\n");
 
     _result->pdu.data_size = data_size;
 
