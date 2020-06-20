@@ -63,6 +63,7 @@ enum emodbus_errno_t
     modbus_timeout,             ///< Timeout
     modbus_invalid_argument,    ///< Invalid argument
     modbus_invalid_proto_id,    ///< Invalid protocol Id
+    modbus_invalid_packet_format, ///< Invalid packet format
 
     EMB_EXCEPTION_BASE = 1500,
 

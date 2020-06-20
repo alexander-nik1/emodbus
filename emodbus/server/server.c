@@ -74,13 +74,6 @@ int emb_super_server_process_req(struct emb_super_server_t* _ssrv,
     return 0;
 }
 
-static void emb_super_server_on_error(void* _user_data, int _errno) {
-    struct emb_super_server_t* ssrv = (struct emb_super_server_t*)_user_data;
-    if(ssrv) {
-        DO_EVENT(ssrv, embsev_transport_error, (uint8_t)_errno);
-    }
-}
-
 void emb_super_server_init(struct emb_super_server_t* _ssrv)
 {
     if(_ssrv) {

@@ -1,6 +1,6 @@
 
-#ifndef EMB_TRANSPORT_RTU_H
-#define EMB_TRANSPORT_RTU_H
+#ifndef EMB_TRANSPORT_ASCII_H
+#define EMB_TRANSPORT_ASCII_H
 
 /*!
  * \file
@@ -12,8 +12,8 @@
 
 #include <emodbus/base/modbus_xdu.h>
 
-#ifndef EMB_RTU_CRC_FUNCTION
-#define EMB_RTU_CRC_FUNCTION(_buf_, _size_)  crc16(_buf_, _size_)
+#ifndef EMB_ASCII_CRC_FUNCTION
+#define EMB_ASCII_CRC_FUNCTION(_buf_, _size_)  crc16(_buf_, _size_)
 #endif
 
 #ifdef __cplusplus
@@ -21,7 +21,7 @@ extern "C" {
 #endif
 
 /**
- * @brief RTU Encode packet
+ * @brief ASCII Encode packet
  *
  * Encodes packet to sending over RTU protocol.
  *
@@ -32,9 +32,9 @@ extern "C" {
  * @return number bytes to send if no errors, otherwise negative value.
  */
 
-int emb_rtu_encode_packet(const emb_adu_t *_adu,
-                          uint8_t* _packet,
-                          unsigned int _pkt_size);
+int emb_ascii_encode_packet(const emb_adu_t *_adu,
+                            uint8_t* _packet,
+                            unsigned int _max_pkt_size);
 
 /**
  * @brief RTU Decode packet
@@ -48,12 +48,12 @@ int emb_rtu_encode_packet(const emb_adu_t *_adu,
  * @return 0 if no errors, otherwise negative value.
  */
 
-int emb_rtu_decode_packet(const uint8_t* _packet,
-                          unsigned int _pkt_size,
-                          emb_adu_t* _result);
+int emb_ascii_decode_packet(const uint8_t* _packet,
+                            unsigned int _pkt_size,
+                            emb_adu_t* _result);
 
 #ifdef __cplusplus
 }   // extern "C"
 #endif
 
-#endif // EMB_TRANSPORT_RTU_H
+#endif // EMB_TRANSPORT_ASCII_H

@@ -46,6 +46,15 @@ target_link_libraries(emb_tcp_srv_test
     event_core
 )
 
+add_executable(emb_ascii_srv_test ascii_srv_test.c)
+
+target_link_libraries(emb_ascii_srv_test
+    emodbus-base
+    emodbus-server
+    emodbus-ascii
+    emb-serail-port
+)
+
 #target_link_libraries(emb_srv_test
 #    emodbus-base
 #    emodbus-server
