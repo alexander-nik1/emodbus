@@ -6,7 +6,7 @@ include_directories(
 
 #add_library(emb-tcp-client STATIC tcp-client.c)
 
-add_library(emb-tcp-server STATIC tcp-server.c)
+add_library(emb-tcp-server-event STATIC tcp-server-event.c)
 
 add_library(emb-serail-port STATIC
     serial_port.c

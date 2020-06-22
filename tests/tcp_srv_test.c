@@ -6,7 +6,7 @@
 #include "emodbus/base/modbus_errno.h"
 #include "emodbus/server/server.h"
 #include "emodbus/transport/tcp.h"
-#include "emodbus/impl/posix/tcp-server.h"
+#include "emodbus/impl/posix/tcp-server-event.h"
 
 #define ARR_SIZE(_arr_)     (sizeof(_arr_)/sizeof(_arr_[0]))
 
@@ -199,7 +199,7 @@ static emb_adu_t tx_adu = {
     }
 };
 
-static void tcp_server_notifier(struct tcp_server_t* _ctx,
+static void tcp_server_notifier(struct tcp_server_event_t* _ctx,
                          void* _client_id,
                          enum tcp_server_events_t _event)
 {
@@ -262,7 +262,7 @@ int main()
 
     emb_super_server_init(&emb_super_server);
 
-    struct tcp_server_t* tcp_server;
+    struct tcp_server_event_t* tcp_server;
 
 
     base = event_base_new();
