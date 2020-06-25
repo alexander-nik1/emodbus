@@ -1,12 +1,11 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <event2/event.h>
 
 #include "emodbus/base/modbus_errno.h"
 #include "emodbus/server/server.h"
 #include "emodbus/transport/tcp.h"
-#include "emodbus/impl/posix/tcp-server-event.h"
+#include "emodbus/impl/posix/tcp-server.h"
 
 #define ARR_SIZE(_arr_)     (sizeof(_arr_)/sizeof(_arr_[0]))
 
@@ -40,7 +39,8 @@ uint8_t holdings1_write_regs(struct emb_srv_regs_t* _rr,
     return 0;
 }
 
-static struct emb_srv_regs_t holdings1 = {
+static struct emb_srv_regs_t holdings1 =
+{
     .start = 0x1000,
     .size = sizeof(holdings1_regs)/sizeof(uint16_t),
     .read_regs = holdings1_read_regs,
@@ -199,62 +199,10 @@ static emb_adu_t tx_adu = {
     }
 };
 
-static void tcp_server_notifier(struct tcp_server_event_t* _ctx,
-                         void* _client_id,
-                         enum tcp_server_events_t _event)
-{
-    (void)_ctx;
-    (void)_client_id;
-    int tmp;
-
-    //if()
-
-    switch(_event) {
-    case tcp_srv_data_received:
-
-        memset(buf, 0, sizeof(buf));
-        memset(rx_buf, 0, sizeof(rx_buf));
-
-        tmp = tcp_server_read(_ctx, _client_id, buf, sizeof(buf));
-        if(tmp < 0) {
-            fprintf(stderr, "Error with tcp_server_read(): %s\n", emb_strerror(-tmp));
-            break;
-        }
-        else if(tmp == 0) {
-            break;
-        }
-
-        tmp = emb_tcp_decode_packet(buf, (unsigned int)tmp, &rx_adu);
-        if(tmp != 0) {
-            fprintf(stderr, "Error with emb_tcp_decode_packet(): %d\n", tmp);
-            break;
-        }
-
-        tmp = emb_super_server_process_req(&emb_super_server, &rx_adu, &tx_adu);
-        if(tmp < 0) {
-            fprintf(stderr, "Error with emb_super_server_process_req() :%d\n", tmp);
-            break;
-        }
-
-        tmp = emb_tcp_encode_packet(&tx_adu, buf, sizeof(buf));
-        if(tmp < 0) {
-            fprintf(stderr, "Error with emb_tcp_encode_packet() :%d\n", tmp);
-            break;
-        }
-
-        tmp = tcp_server_write(_ctx, _client_id, buf, (size_t)tmp);
-        if(tmp < 0) {
-            fprintf(stderr, "Error with serial_port_send(): %d\n", tmp);
-        }
-        break;
-    case tcp_srv_data_sent:
-        break;
-    }
-}
-
 int main()
 {
-    struct event_base* base;
+    int tmp;
+    tcp_server_t tcp_server;
 
     memset(holdings1_regs, 0, sizeof(holdings1_regs));
 
@@ -262,24 +210,50 @@ int main()
 
     emb_super_server_init(&emb_super_server);
 
-    struct tcp_server_event_t* tcp_server;
-
-
-    base = event_base_new();
-    if(!base) {
-        fprintf(stderr, "Error with event_base_new(): %m\n");
-        return -1;
+    if(tcp_server_init(&tcp_server, htonl(INADDR_ANY), 2020)) {
+        fprintf(stderr, "Error with tcp_server_init() : %m\n");
     }
 
-    tcp_server = tcp_server_new(base, tcp_server_notifier, 8502);
-    if(!tcp_server) {
-        fprintf(stderr, "Error with tcp_server_new(): %m\n/");
-        return -1;
+    for (;;) {
+        int client_id;
+
+        tmp = tcp_server_receive(&tcp_server, &client_id, buf, sizeof(buf), 1000);
+        if(tmp == -ETIMEDOUT) {
+            continue;
+        }
+        else if(tmp < 0) {
+            fprintf(stderr, "Error with tcp_server_read(): %s\n", emb_strerror(-tmp));
+            break;
+        }
+        else if(tmp == 0) {
+            continue;
+        }
+
+        tmp = emb_tcp_decode_packet(buf, (unsigned int)tmp, &rx_adu);
+        if(tmp != 0) {
+            fprintf(stderr, "Error with emb_tcp_decode_packet(): %d\n", tmp);
+            continue;
+        }
+
+        tmp = emb_super_server_process_req(&emb_super_server, &rx_adu, &tx_adu);
+        if(tmp < 0) {
+            fprintf(stderr, "Error with emb_super_server_process_req() :%d\n", tmp);
+            continue;
+        }
+
+        tmp = emb_tcp_encode_packet(&tx_adu, buf, sizeof(buf));
+        if(tmp < 0) {
+            fprintf(stderr, "Error with emb_tcp_encode_packet() :%d\n", tmp);
+            continue;
+        }
+
+        tcp_server_send(&tcp_server, client_id, buf, (unsigned int)tmp);
+        if(tmp < 0) {
+            fprintf(stderr, "Error with serial_port_send(): %d\n", tmp);
+        }
     }
 
-    event_base_dispatch(base);
-
-    tcp_server_free(tcp_server);
+    tcp_server_deinit(&tcp_server);
 
     return 0;
 }
