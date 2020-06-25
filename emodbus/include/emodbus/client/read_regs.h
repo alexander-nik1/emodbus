@@ -34,7 +34,7 @@ int emb_read_regs_calc_req_data_size();
 /**
  * @brief Calculate the answer size
  * @param[in] _quantity The quantity of registers
- * @return The size of answer's data size
+ * @return The size of answer's data size, or negative if errors
  */
 int emb_read_regs_calc_answer_data_size(uint16_t _quantity);
 
@@ -58,16 +58,16 @@ int emb_read_regs_make_req(emb_pdu_t* _result_req,
 /**
  * @brief Get starting address from request
  * @param[in] _req Request, from which reads a starting address
- * @return Starting address
+ * @return Starting address, or negative if errors
  */
-uint16_t emb_read_regs_get_starting_addr(emb_const_pdu_t* _req);
+int emb_read_regs_get_req_starting_addr(emb_const_pdu_t* _req);
 
 /**
  * @brief Get quantity from request
  * @param[in] _req Request, from which reads a quantity
- * @return Quantity
+ * @return Quantity, or negative if errors
  */
-uint16_t emb_read_regs_get_quantity(emb_const_pdu_t* _req);
+int emb_read_regs_get_req_quantity(emb_const_pdu_t* _req);
 
 /**
  * @brief Get register from answer
@@ -76,9 +76,9 @@ uint16_t emb_read_regs_get_quantity(emb_const_pdu_t* _req);
  *
  * @param[in] _ans Answer
  * @param[in] _reg_offset Offset of the register inside answer.
- * @return Register value.
+ * @return Register value, or negative if errors
  */
-uint16_t emb_read_regs_get_reg(emb_const_pdu_t* _answer,
+int emb_read_regs_get_ans_reg(emb_const_pdu_t* _answer,
                                     uint16_t _reg_offset);
 
 /**
@@ -90,8 +90,9 @@ uint16_t emb_read_regs_get_reg(emb_const_pdu_t* _answer,
  * @param[in] _reg_offset Offset of the first register inside answer.
  * @param[in] _n_regs Number of registers to read
  * @param[in] _p_data Pointer to place, where data to be copied.
+ * @return 0 on success, otherwise negative error.
  */
-void emb_read_regs_get_regs(emb_const_pdu_t* _answer,
+int emb_read_regs_get_ans_regs(emb_const_pdu_t* _answer,
                             uint16_t _reg_offset,
                             uint16_t _n_regs,
                             uint16_t* _p_data);
@@ -104,7 +105,7 @@ void emb_read_regs_get_regs(emb_const_pdu_t* _answer,
  * @param[in] _ans Answer
  * @return Registers number.
  */
-int emb_read_regs_get_regs_n(emb_const_pdu_t* _answer);
+int emb_read_regs_get_ans_regs_n(emb_const_pdu_t* _answer);
 
 #ifdef __cplusplus
 }   // extern "C"

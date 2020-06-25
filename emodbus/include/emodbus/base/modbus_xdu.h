@@ -30,7 +30,7 @@ struct _emb_pdu_t
     uint8_t function;   ///< Function of this PDU
     uint8_t data_size;  ///< Size of data of this PDU
     uint8_t max_size;   ///< Maximum size (when this PDU is used as receive place)
-    void* data;         ///< Data of this PDU
+    uint8_t* data;      ///< Data of this PDU
 };
 
 typedef struct _emb_pdu_t emb_pdu_t;
@@ -47,7 +47,7 @@ struct _emb_const_pdu_t
     uint8_t function;       ///< Function of this PDU
     uint8_t data_size;      ///< Size of data of this PDU
     uint8_t max_size;       ///< Maximum size (when this PDU is used as receive place)
-    const void* data;       ///< Data of this PDU
+    const uint8_t* data;    ///< Data of this PDU
 };
 
 typedef const struct _emb_const_pdu_t emb_const_pdu_t;
