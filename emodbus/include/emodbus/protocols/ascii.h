@@ -1,6 +1,6 @@
 
-#ifndef EMB_TRANSPORT_ASCII_H
-#define EMB_TRANSPORT_ASCII_H
+#ifndef EMB_PROTOCOL_ASCII_H
+#define EMB_PROTOCOL_ASCII_H
 
 /*!
  * \file
@@ -52,4 +52,4 @@ int emb_ascii_decode_packet(const uint8_t* _packet,
 }   // extern "C"
 #endif
 
-#endif // EMB_TRANSPORT_ASCII_H
+#endif // EMB_PROTOCOL_ASCII_H

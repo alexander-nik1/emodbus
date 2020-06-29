@@ -1,6 +1,6 @@
 
-#ifndef EMB_TRANSPORT_RTU_H
-#define EMB_TRANSPORT_RTU_H
+#ifndef EMB_PROTOCOL_RTU_H
+#define EMB_PROTOCOL_RTU_H
 
 /*!
  * \file
@@ -56,4 +56,4 @@ int emb_rtu_decode_packet(const uint8_t* _packet,
 }   // extern "C"
 #endif
 
-#endif // EMB_TRANSPORT_RTU_H
+#endif // EMB_PROTOCOL_RTU_H

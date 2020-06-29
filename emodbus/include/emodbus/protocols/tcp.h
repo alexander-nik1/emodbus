@@ -1,6 +1,6 @@
 
-#ifndef EMB_TRANSPORT_TCP_H
-#define EMB_TRANSPORT_TCP_H
+#ifndef EMB_PROTOCOL_TCP_H
+#define EMB_PROTOCOL_TCP_H
 
 
 /*!
@@ -66,4 +66,4 @@ int emb_tcp_decode_packet(const uint8_t* _packet,
 }   // extern "C"
 #endif
 
-#endif // EMB_TRANSPORT_TCP_H
+#endif // EMB_PROTOCOL_TCP_H
