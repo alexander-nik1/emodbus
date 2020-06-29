@@ -1,12 +1,12 @@
 
-#include <emodbus/transport/rtu.h>
+#include <emodbus/protocols/rtu.h>
 #include <emodbus/base/common.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 #include <emodbus/base/byte-word.h>
-#include <emodbus/transport/add/crc.h>
-#include <emodbus/transport/add/simple-crc.h>
+#include <emodbus/protocols/add/crc.h>
+#include <emodbus/protocols/add/simple-crc.h>
 #include <emodbus/base/modbus_errno.h>
 #include <stdint.h>
 
@@ -79,8 +79,8 @@ int emb_rtu_decode_packet(const uint8_t* _packet,
         //if(_result->flags & EMB_RTU_DO_DATA_COPY)
             memcpy(_result->pdu.data, _packet + 2, data_sz);
 
-        return 0;
+        return modbus_success;
     }
     else
-        return -1;
+        return -modbus_invalid_argument;
 }

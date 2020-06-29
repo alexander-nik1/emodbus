@@ -1,5 +1,5 @@
 
-#include <emodbus/transport/add/simple-crc.h>
+#include <emodbus/protocols/add/simple-crc.h>
 
 uint16_t simple_crc16(const uint8_t* buf, unsigned int len) {
     unsigned int pos;

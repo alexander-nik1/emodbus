@@ -1,5 +1,5 @@
 
-#include <emodbus/transport/tcp.h>
+#include <emodbus/protocols/tcp.h>
 #include <emodbus/base/common.h>
 #include <emodbus/base/byte-word.h>
 #include <emodbus/base/modbus_errno.h>
