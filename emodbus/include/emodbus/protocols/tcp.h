@@ -5,9 +5,9 @@
 
 /*!
  * \file
- * \brief TCP Transport.
+ * \brief TCP Protocol.
  *
- * This file contains an TCP transport decalrations.
+ * This file contains an TCP protocol decalrations.
  *
  */
 

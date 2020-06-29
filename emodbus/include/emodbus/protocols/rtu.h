@@ -4,9 +4,9 @@
 
 /*!
  * \file
- * \brief RTU Transport.
+ * \brief RTU Protocol.
  *
- * This file contains an RTU transport decalrations.
+ * This file contains an RTU protocol decalrations.
  *
  */
 

@@ -4,17 +4,13 @@
 
 /*!
  * \file
- * \brief RTU Transport.
+ * \brief RTU Protocol.
  *
- * This file contains an RTU transport decalrations.
+ * This file contains an RTU protocol decalrations.
  *
  */
 
 #include <emodbus/base/modbus_xdu.h>
-
-#ifndef EMB_ASCII_CRC_FUNCTION
-#define EMB_ASCII_CRC_FUNCTION(_buf_, _size_)  crc16(_buf_, _size_)
-#endif
 
 #ifdef __cplusplus
 extern "C" {
