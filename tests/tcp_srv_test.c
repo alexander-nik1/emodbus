@@ -4,20 +4,53 @@
 
 #include "emodbus/base/modbus_errno.h"
 #include "emodbus/server/server.h"
-#include "emodbus/transport/tcp.h"
+#include "emodbus/protocols/tcp.h"
 #include "emodbus/impl/posix/tcp-server.h"
 
 #define ARR_SIZE(_arr_)     (sizeof(_arr_)/sizeof(_arr_[0]))
 
-static int is_addr_belongs_to_holdings(uint16_t _addr, const struct emb_srv_regs_t* _holdings)
+// =============================================================================================
+// Coils/Discrete inputs
+
+static uint8_t coils[65536/8];
+
+uint8_t read_bits(struct emb_srv_bits_t* _coils,
+                     uint16_t _offset,
+                     uint16_t _quantity,
+                     uint8_t* _pvalues)
 {
-    return ((_holdings->start <= _addr) && (_addr < _holdings->start + _holdings->size));
+    (void)_coils;
+    printf("Read coils: _offset:0x%04X, _quantity:0x%04X\n", _offset, _quantity);
+    //memcpy(_pvalues, bits + _offset, _quantity);
+
+
+
+    return 0;
 }
 
-// =============================================================================================
-// Holding registers: 0x1000-0x100F
+uint8_t write_bits(struct emb_srv_bits_t* _coils,
+                      uint16_t _offset,
+                      uint16_t _quantity,
+                      const uint8_t* _pvalues)
+{
+    (void)_coils;
+    //memcpy(holdings1_regs + _offset, _pvalues, _quantity);
+    printf("Write coils: _offset:0x%04X, _quantity:0x%04X\n", _offset, _quantity);
+    return 0;
+}
 
-static uint16_t holdings1_regs[0x10];
+static struct emb_srv_bits_t coils1 =
+{
+    .start = 0,
+    .size = sizeof(coils)*8,
+    .read_bits = read_bits,
+    .write_bits = write_bits
+};
+
+// =============================================================================================
+// Input/Holding registers
+
+static uint16_t holdings1_regs[65536];
 
 uint8_t holdings1_read_regs(struct emb_srv_regs_t* _rr,
                             uint16_t _offset,
@@ -41,7 +74,7 @@ uint8_t holdings1_write_regs(struct emb_srv_regs_t* _rr,
 
 static struct emb_srv_regs_t holdings1 =
 {
-    .start = 0x1000,
+    .start = 0,
     .size = sizeof(holdings1_regs)/sizeof(uint16_t),
     .read_regs = holdings1_read_regs,
     .write_regs = holdings1_write_regs
@@ -54,29 +87,28 @@ static struct emb_srv_bits_t* get_coils(struct emb_server_t* _srv, uint16_t _beg
 {
     (void)_srv;
     (void)_begin;
-    return NULL;
+    return &coils1;
 }
 
 static struct emb_srv_bits_t* get_discrete_inputs(struct emb_server_t* _srv, uint16_t _begin)
 {
     (void)_srv;
     (void)_begin;
-    return NULL;
+    return &coils1;
 }
 
 static struct emb_srv_regs_t* get_holding_regs(struct emb_server_t* _srv, uint16_t _begin)
 {
     (void)_srv;
-    if(is_addr_belongs_to_holdings(_begin, &holdings1))
-        return &holdings1;
-    return NULL;
+    (void)_begin;
+    return &holdings1;
 }
 
 static struct emb_srv_regs_t* get_input_regs(struct emb_server_t* _srv, uint16_t _begin)
 {
     (void)_srv;
     (void)_begin;
-    return NULL;
+    return &holdings1;
 }
 
 static struct emb_srv_file_t* get_file(struct emb_server_t* _srv, uint16_t _fileno/*, uint16_t _begin*/)

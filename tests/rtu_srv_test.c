@@ -5,7 +5,7 @@
 
 #include "emodbus/base/modbus_errno.h"
 #include "emodbus/server/server.h"
-#include "emodbus/transport/rtu.h"
+#include "emodbus/protocols/rtu.h"
 #include "emodbus/impl/posix/serial_port.h"
 
 #define ARR_SIZE(_arr_)     (sizeof(_arr_)/sizeof(_arr_[0]))
