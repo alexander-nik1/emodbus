@@ -31,11 +31,11 @@ int emb_rdwr_regs_calc_answer_data_size(uint16_t _rd_quantity)
 }
 
 int emb_rdwr_regs_make_req(emb_pdu_t* _result_req,
-                           uint16_t _rd_address,
-                           uint16_t _rd_quantity,
                            uint16_t _wr_address,
                            uint16_t _wr_quantity,
-                           const uint16_t* _wr_data)
+                           const uint16_t* _wr_data,
+                           uint16_t _rd_address,
+                           uint16_t _rd_quantity)
 {
     int i;
     uint8_t* data_addr;

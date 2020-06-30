@@ -174,3 +174,42 @@ int emb_sync_client_write_regs(emb_sync_client_t* _cli,
     }
     return modbus_success;
 }
+
+int emb_sync_client_rdwr_regs(emb_sync_client_t* _cli,
+                              uint8_t _server_id,
+                              uint16_t _wr_addr,
+                              uint16_t _wr_quantity,
+                              const uint16_t* _wr_values,
+                              uint16_t _rd_addr,
+                              uint16_t _rd_quantity,
+                              uint16_t* _rd_values)
+{
+    int res;
+
+    if(!(_cli && _cli->ans_adu && _cli->req_adu && _wr_values && _rd_values))
+        return -modbus_invalid_argument;
+
+    _cli->req_adu->server_id = _server_id;
+
+    res = emb_rdwr_regs_make_req(&_cli->req_adu->pdu,
+                                 _wr_addr,
+                                 _wr_quantity,
+                                 _wr_values,
+                                 _rd_addr,
+                                 _rd_quantity);
+    if(res != modbus_success)
+        return res;
+
+    res = emb_sync_client_do_request(_cli, _cli->req_adu, _cli->ans_adu);
+    if(res != modbus_success)
+        return res;
+
+    res = emb_rdwr_regs_get_answ_regs_n(MB_CONST_PDU(&_cli->ans_adu->pdu));
+    if(res < 0)
+        return res;
+    else if(res != _rd_quantity)
+        return -modbus_wrong_resp_quantity;
+
+    return emb_rdwr_regs_get_answ_regs(MB_CONST_PDU(&_cli->ans_adu->pdu),
+                                       0, (uint16_t)res, _rd_values);
+}

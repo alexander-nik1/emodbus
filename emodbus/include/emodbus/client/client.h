@@ -71,6 +71,15 @@ int emb_sync_client_write_regs(emb_sync_client_t* _cli,
                                uint32_t _quantity,
                                const uint16_t* _values);
 
+int emb_sync_client_rdwr_regs(emb_sync_client_t* _cli,
+                              uint8_t _server_id,
+                              uint16_t _wr_addr,
+                              uint16_t _wr_quantity,
+                              const uint16_t* _wr_values,
+                              uint16_t _rd_addr,
+                              uint16_t _rd_quantity,
+                              uint16_t* _rd_values);
+
 #ifdef __cplusplus
 }   // extern "C"
 #endif
