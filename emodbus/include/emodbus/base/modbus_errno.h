@@ -64,6 +64,7 @@ enum emodbus_errno_t
     modbus_invalid_argument,    ///< Invalid argument
     modbus_invalid_proto_id,    ///< Invalid protocol Id
     modbus_invalid_packet_format, ///< Invalid packet format
+    modbus_wrong_resp_quantity, ///< Wrong quantity in response
 
     EMB_EXCEPTION_BASE = 1500,
 

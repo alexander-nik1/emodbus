@@ -1,8 +1,9 @@
 
-#ifndef MODBUS_MASTER_WRITE_SINGLE_REGISTER
-#define MODBUS_MASTER_WRITE_SINGLE_REGISTER
+#ifndef EMB_CLIENT_WRITE_SINGLE_REGISTER
+#define EMB_CLIENT_WRITE_SINGLE_REGISTER
 
 #include <stdint.h>
+#include <emodbus/base/modbus_xdu.h>
 
 /*!
  * \file
@@ -52,7 +53,7 @@ int emb_write_reg_make_req(emb_pdu_t* _result_req,
  * @param[in] _pdu Can be an answer or a request for this modbus-function.
  * @return Address of a holding register.
  */
-uint16_t emb_write_reg_get_address(emb_const_pdu_t* _pdu);
+int emb_write_reg_get_address(emb_const_pdu_t* _pdu);
 
 /**
  * @brief Get value
@@ -64,10 +65,10 @@ uint16_t emb_write_reg_get_address(emb_const_pdu_t* _pdu);
  * @param[in] _pdu Can be an answer or a request for this modbus-function.
  * @return Value for a holding register.
  */
-uint16_t emb_write_reg_get_value(emb_const_pdu_t* _pdu);
+int emb_write_reg_get_value(emb_const_pdu_t* _pdu);
 
 #ifdef __cplusplus
 }   // extern "C"
 #endif
 
-#endif // MODBUS_MASTER_WRITE_SINGLE_REGISTER
+#endif // EMB_CLIENT_WRITE_SINGLE_REGISTER

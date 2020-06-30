@@ -52,39 +52,39 @@ int emb_rdwr_regs_make_req(emb_pdu_t* _result_req,
 /**
  * @brief Get read address from request
  * @param[in] _req Request, from which reads an address.
- * @return Starting address.
+ * @return Starting address, or negative if errors.
  */
-uint16_t emb_rdwr_regs_get_req_rd_address(emb_const_pdu_t* _req);
+int emb_rdwr_regs_get_req_rd_address(emb_const_pdu_t* _req);
 
 /**
  * @brief Get read quantity from request
  * @param[in] _req Request, from which reads the quantity.
- * @return The quantity.
+ * @return The quantity, or negative if errors.
  */
-uint16_t emb_rdwr_regs_get_req_rd_quantity(emb_const_pdu_t* _req);
+int emb_rdwr_regs_get_req_rd_quantity(emb_const_pdu_t* _req);
 
 /**
  * @brief Get write address from request
  * @param[in] _req Request, from which reads an address.
- * @return Starting address.
+ * @return Starting address, or negative if errors.
  */
-uint16_t emb_rdwr_regs_get_req_wr_address(emb_const_pdu_t* _req);
+int emb_rdwr_regs_get_req_wr_address(emb_const_pdu_t* _req);
 
 /**
  * @brief Get write quantity from request
  * @param[in] _req Request, from which reads the quantity.
- * @return The quantity.
+ * @return The quantity, or negative if errors.
  */
-uint16_t emb_rdwr_regs_get_req_wr_quantity(emb_const_pdu_t* _req);
+int emb_rdwr_regs_get_req_wr_quantity(emb_const_pdu_t* _req);
 
 
 /**
  * @brief Get answer's readed data (one register)
  * @param[in] _req Answer, from which reads the register data.
  * @param[in] _offset The offset within answer to the needed register.
- * @return The readed data.
+ * @return The readed data, or negative if errors.
  */
-uint16_t emb_rdwr_regs_get_answ_reg(emb_const_pdu_t* _answer, uint16_t _offset);
+int emb_rdwr_regs_get_answ_reg(emb_const_pdu_t* _answer, uint16_t _offset);
 
 
 /**

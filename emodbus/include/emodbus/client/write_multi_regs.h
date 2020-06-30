@@ -1,6 +1,6 @@
 
-#ifndef MODBUS_MASTER_WRITE_MULTIPLE_REGISTER
-#define MODBUS_MASTER_WRITE_MULTIPLE_REGISTER
+#ifndef EMB_CLIENT_WRITE_MULTIPLE_REGISTER
+#define EMB_CLIENT_WRITE_MULTIPLE_REGISTER
 
 /*!
  * \file
@@ -52,14 +52,14 @@ int emb_write_regs_make_req(emb_pdu_t* _result_req,
  * @param[in] _req Request, from which reads an address.
  * @return Starting address.
  */
-uint16_t emb_write_regs_get_req_address(emb_const_pdu_t* _req);
+int emb_write_regs_get_req_address(emb_const_pdu_t* _req);
 
 /**
  * @brief Get quantity
  * @param[in] _req Request, from which reads the quantity.
  * @return The quantity.
  */
-uint16_t emb_write_regs_get_req_quantity(emb_const_pdu_t* _req);
+int emb_write_regs_get_req_quantity(emb_const_pdu_t* _req);
 
 /**
  * @brief Get request's register data
@@ -75,17 +75,17 @@ int emb_write_regs_get_req_data(emb_const_pdu_t* _req, uint16_t _offset);
  * @param[in] _answer THe answer, from which reads the address.
  * @return Starting address.
  */
-uint16_t emb_write_regs_get_answer_address(emb_const_pdu_t* _answer);
+int emb_write_regs_get_answer_address(emb_const_pdu_t* _answer);
 
 /**
  * @brief Get quantityb
  * @param[in] _answer THe answer, from which reads the quantity.
  * @return Starting address.
  */
-uint16_t emb_write_regs_get_answer_quantity(emb_const_pdu_t* _answer);
+int emb_write_regs_get_answer_quantity(emb_const_pdu_t* _answer);
 
 #ifdef __cplusplus
 }   // extern "C"
 #endif
 
-#endif // MODBUS_MASTER_WRITE_MULTIPLE_REGISTER
+#endif // EMB_CLIENT_WRITE_MULTIPLE_REGISTER

@@ -4,6 +4,7 @@
 #include <emodbus/base/common.h>
 #include <emodbus/client/write_single_reg.h>
 #include <emodbus/base/calc_pdu_size.h>
+#include <emodbus/base/modbus_errno.h>
 
 /*!
  * \file
@@ -26,24 +27,44 @@ int emb_write_reg_make_req(emb_pdu_t* _result_req,
                            uint16_t _value) {
 
     if(_result_req->max_size < emb_write_reg_calc_req_data_size()) {
-        return -ENOMEM;
+        return -modbus_invalid_argument;
     }
 
     _result_req->data_size = WRITE_REGISTER_REQ_SIZE();
     _result_req->function = 0x06;
 
-    ((uint16_t*)_result_req->data)[0] = SWAP_BYTES(_address);
-    ((uint16_t*)_result_req->data)[1] = SWAP_BYTES(_value);
+    _result_req->data[0] = (uint8_t)(_address >> 8);
+    _result_req->data[1] = (uint8_t)_address;
 
-    return 0;
+    _result_req->data[2] = (uint8_t)(_value >> 8);
+    _result_req->data[3] = (uint8_t)_value;
+
+
+    return modbus_success;
 }
 
-uint16_t emb_write_reg_get_address(emb_const_pdu_t* _pdu) {
-    const uint16_t x = ((uint16_t*)_pdu->data)[0];
-    return SWAP_BYTES(x);
+int emb_write_reg_get_address(emb_const_pdu_t* _pdu)
+{
+    if(_pdu && _pdu->data && _pdu->data_size >= 2) {
+        uint16_t x = _pdu->data[0];
+        x <<= 8;
+        x |= _pdu->data[1];
+        return x;
+    }
+    else {
+        return -modbus_invalid_argument;
+    }
 }
 
-uint16_t emb_write_reg_get_value(emb_const_pdu_t* _pdu) {
-    const uint16_t x = ((uint16_t*)_pdu->data)[1];
-    return SWAP_BYTES(x);
+int emb_write_reg_get_value(emb_const_pdu_t* _pdu)
+{
+    if(_pdu && _pdu->data && _pdu->data_size >= 4) {
+        uint16_t x = _pdu->data[2];
+        x <<= 8;
+        x |= _pdu->data[3];
+        return x;
+    }
+    else {
+        return -modbus_invalid_argument;
+    }
 }

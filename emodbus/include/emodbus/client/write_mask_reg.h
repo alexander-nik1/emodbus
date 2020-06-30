@@ -1,8 +1,9 @@
 
-#ifndef MODBUS_MASTER_WRITE_MASK_REGISTER
-#define MODBUS_MASTER_WRITE_MASK_REGISTER
+#ifndef EMB_CLIENT_WRITE_MASK_REGISTER
+#define EMB_CLIENT_WRITE_MASK_REGISTER
 
 #include <stdint.h>
+#include <emodbus/base/modbus_xdu.h>
 
 /*!
  * \file
@@ -52,9 +53,9 @@ int emb_write_mask_reg_make_req(emb_pdu_t* _result_req,
  * request or answer.
  *
  * @param[in] _pdu Can be an answer or a request for this modbus-function.
- * @return Starting address of holding register.
+ * @return Starting address of holding register, or negative if errors.
  */
-uint16_t emb_write_mask_reg_get_address(emb_const_pdu_t* _pdu);
+int emb_write_mask_reg_get_address(emb_const_pdu_t* _pdu);
 
 /**
  * @brief Get AND mask
@@ -64,9 +65,9 @@ uint16_t emb_write_mask_reg_get_address(emb_const_pdu_t* _pdu);
  * request or answer.
  *
  * @param[in] _pdu Can be an answer or a request for this modbus-function.
- * @return AND mask
+ * @return AND mask, or negative if errors.
  */
-uint16_t emb_write_mask_reg_get_and_mask(emb_const_pdu_t* _pdu);
+int emb_write_mask_reg_get_and_mask(emb_const_pdu_t* _pdu);
 
 /**
  * @brief Get OR mask
@@ -76,13 +77,13 @@ uint16_t emb_write_mask_reg_get_and_mask(emb_const_pdu_t* _pdu);
  * request or answer.
  *
  * @param[in] _pdu Can be an answer or a request for this modbus-function.
- * @return OR mask
+ * @return OR mask, or negative if errors.
  */
-uint16_t emb_write_mask_reg_get_or_mask(emb_const_pdu_t* _pdu);
+int emb_write_mask_reg_get_or_mask(emb_const_pdu_t* _pdu);
 
 
 #ifdef __cplusplus
 }   // extern "C"
 #endif
 
-#endif // MODBUS_MASTER_WRITE_MASK_REGISTER
+#endif // EMB_CLIENT_WRITE_MASK_REGISTER

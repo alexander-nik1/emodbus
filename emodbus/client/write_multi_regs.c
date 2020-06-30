@@ -4,6 +4,8 @@
 #include <emodbus/base/common.h>
 #include <emodbus/client/write_multi_regs.h>
 #include <emodbus/base/calc_pdu_size.h>
+#include <emodbus/base/modbus_errno.h>
+#include <emodbus/base/limits.h>
 
 /*!
  * \file
@@ -17,68 +19,112 @@ int emb_write_regs_calc_req_data_size(uint16_t _quantity) {
     return WRITE_REGISTERS_REQ_SIZE(_quantity);
 }
 
-int emb_write_regs_calc_answer_data_size() {
+int emb_write_regs_calc_answer_data_size()
+{
     return WRITE_REGISTERS_ANS_SIZE();
 }
 
 int emb_write_regs_make_req(emb_pdu_t *_result_req,
                             uint16_t _address,
                             uint16_t _quantity,
-                            const uint16_t* _data) {
+                            const uint16_t* _data)
+{
+    if(!(_result_req && _data))
+        return -modbus_invalid_argument;
 
-    if(_result_req->max_size < emb_write_regs_calc_req_data_size(_quantity)) {
-        return -ENOMEM;
-    }
+    if(_result_req->max_size < emb_write_regs_calc_req_data_size(_quantity))
+        return -modbus_invalid_argument;
 
-    if(1 <= _quantity && _quantity <= 123) {
-
-        uint16_t* data_addr = (uint16_t*)(((uint8_t*)_result_req->data) + 5);
+    if(EMB_WRITE_REGS_MIN_QUANTITY <= _quantity && _quantity <= EMB_WRITE_REGS_MAX_QUANTITY) {
 
         int i;
+        uint8_t* data_addr = _result_req->data;
 
         _result_req->function = 0x10;
-        _result_req->data_size = WRITE_REGISTERS_REQ_SIZE(_quantity);
+        _result_req->data_size = (uint8_t)WRITE_REGISTERS_REQ_SIZE(_quantity);
 
-        ((uint16_t*)_result_req->data)[0] = SWAP_BYTES(_address);
-        ((uint16_t*)_result_req->data)[1] = SWAP_BYTES(_quantity);
-        ((uint8_t*)_result_req->data)[4] = (uint8_t)(_quantity * 2);
+        *data_addr++ = (uint8_t)(_address >> 8);
+        *data_addr++ = (uint8_t)_address;
+
+        *data_addr++ = (uint8_t)(_quantity >> 8);
+        *data_addr++ = (uint8_t)_quantity;
+
+        *data_addr++ = (uint8_t)(_quantity * 2);
 
         for(i=0; i<_quantity; ++i) {
-            const uint16_t data = ((uint16_t*)_data)[i];
-            data_addr[i] = SWAP_BYTES(data);
+            const uint16_t data = _data[i];
+            *data_addr++ = (uint8_t)(data >> 8);
+            *data_addr++ = (uint8_t)data;
         }
 
-        return 0;
+        return modbus_success;
     }
     else
-        return -EINVAL;
+        return -modbus_invalid_argument;
 }
 
-uint16_t emb_write_regs_get_req_address(emb_const_pdu_t* _req) {
-    const uint16_t x = ((uint16_t*)_req->data)[0];
-    return SWAP_BYTES(x);
-}
-
-uint16_t emb_write_regs_get_req_quantity(emb_const_pdu_t* _req) {
-    const uint16_t x = ((uint16_t*)_req->data)[1];
-    return SWAP_BYTES(x);
-}
-
-int emb_write_regs_get_req_data(emb_const_pdu_t* _req, uint16_t _offset) {
-    if(_offset < emb_write_regs_get_req_quantity(_req)) {
-        const uint16_t* data_addr = (uint16_t*)(((uint8_t*)_req->data) + 5);
-        const uint16_t x = data_addr[_offset];
-        return SWAP_BYTES(x);
+int emb_write_regs_get_req_address(emb_const_pdu_t* _req)
+{
+    if(_req && _req->data && _req->data_size >= 2) {
+        uint16_t x = _req->data[0];
+        x <<= 8;
+        x |= _req->data[1];
+        return x;
     }
-    return -1;
+    else {
+        return -modbus_invalid_argument;
+    }
 }
 
-uint16_t emb_write_regs_get_answer_address(emb_const_pdu_t* _answer) {
-    const uint16_t x = ((uint16_t*)_answer->data)[0];
-    return SWAP_BYTES(x);
+int emb_write_regs_get_req_quantity(emb_const_pdu_t* _req)
+{
+    if(_req && _req->data && _req->data_size >= 4) {
+        uint16_t x = _req->data[2];
+        x <<= 8;
+        x |= _req->data[3];
+        return x;
+    }
+    else {
+        return -modbus_invalid_argument;
+    }
 }
 
-uint16_t emb_write_regs_get_answer_quantity(emb_const_pdu_t* _answer) {
-    const uint16_t x = ((uint16_t*)_answer->data)[1];
-    return SWAP_BYTES(x);
+int emb_write_regs_get_req_data(emb_const_pdu_t* _req, uint16_t _offset)
+{
+    const unsigned int byte_off = _offset * 2 + 5;
+    if(_req && _req->data && _req->data_size >= (byte_off + 1)) {
+        uint16_t x = _req->data[byte_off];
+        x <<= 8;
+        x |= _req->data[byte_off + 1];
+        return x;
+    }
+    else {
+        return -modbus_invalid_argument;
+    }
+}
+
+int emb_write_regs_get_answer_address(emb_const_pdu_t* _answer)
+{
+    if(_answer && _answer->data && _answer->data_size >= 2) {
+        uint16_t x = _answer->data[0];
+        x <<= 8;
+        x |= _answer->data[1];
+        return x;
+    }
+    else {
+        return -modbus_invalid_argument;
+    }
+}
+
+int emb_write_regs_get_answer_quantity(emb_const_pdu_t* _answer)
+{
+    if(_answer && _answer->data && _answer->data_size >= 4) {
+        uint16_t x = _answer->data[2];
+        x <<= 8;
+        x |= _answer->data[3];
+        return x;
+    }
+    else {
+        return -modbus_invalid_argument;
+    }
 }

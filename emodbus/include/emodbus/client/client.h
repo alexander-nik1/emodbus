@@ -3,6 +3,10 @@
 #define EMB_CLIENT_H
 
 #include <emodbus/base/modbus_xdu.h>
+
+#include <emodbus/client/read_bits.h>
+#include <emodbus/client/read_regs.h>
+
 #include <stdint.h>
 
 /*!
@@ -23,6 +27,8 @@ extern "C" {
  */
 typedef struct __emb_sync_client_t
 {
+    emb_adu_t* req_adu;
+    emb_adu_t* ans_adu;
     int (*send_adu)(struct __emb_sync_client_t* _cli, const emb_adu_t* _adu);
     int (*recv_adu)(struct __emb_sync_client_t* _cli, emb_adu_t* _adu);
 } emb_sync_client_t;
@@ -39,6 +45,31 @@ typedef struct __emb_sync_client_t
  * it will return a error code. You can see it by emb_strerror() function.
  */
 int emb_sync_client_do_request(emb_sync_client_t* _cli, const emb_adu_t* _req_adu, emb_adu_t* _ans_adu);
+
+
+int emb_sync_client_read_regs(emb_sync_client_t* _cli,
+                              uint8_t _server_id,
+                              enum EMB_RR_TYPE _rr_type,
+                              uint16_t _start_address,
+                              uint32_t _quantity,
+                              uint16_t* _result);
+
+int emb_sync_client_mask_reg(emb_sync_client_t* _cli,
+                             uint8_t _server_id,
+                             uint16_t _address,
+                             uint16_t _and_mask,
+                             uint16_t _or_mask);
+
+int emb_sync_client_write_reg(emb_sync_client_t* _cli,
+                              uint8_t _server_id,
+                              uint16_t _address,
+                              uint16_t _value);
+
+int emb_sync_client_write_regs(emb_sync_client_t* _cli,
+                               uint8_t _server_id,
+                               uint16_t _start_address,
+                               uint32_t _quantity,
+                               const uint16_t* _values);
 
 #ifdef __cplusplus
 }   // extern "C"
