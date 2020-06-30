@@ -1,6 +1,8 @@
 
 #include <emodbus/impl/posix/tcp-server.h>
 
+#define DBGOUT(...) // printf(__VA_ARGS__)
+
 int tcp_server_init(tcp_server_t* _srv, in_addr_t _addr, uint16_t _port)
 {
     if(_srv) {
@@ -16,14 +18,14 @@ int tcp_server_init(tcp_server_t* _srv, in_addr_t _addr, uint16_t _port)
             /*just exit lol!*/
             return -1;
         }
-        printf("Server-socket() is OK...\n");
+        DBGOUT("Server-socket() is OK...\n");
         /*"address already in use" error message */
         if(setsockopt(_srv->listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
         {
             perror("Server-setsockopt() error lol!");
             return -1;
         }
-        printf("Server-setsockopt() is OK...\n");
+        DBGOUT("Server-setsockopt() is OK...\n");
 
         /* bind */
         _srv->serveraddr.sin_family = AF_INET;
@@ -31,14 +33,14 @@ int tcp_server_init(tcp_server_t* _srv, in_addr_t _addr, uint16_t _port)
         _srv->serveraddr.sin_port = htons(_port);
         memset(&(_srv->serveraddr.sin_zero), '\0', 8);
 
-        printf("Using %s, listening at %d\n", inet_ntoa(_srv->serveraddr.sin_addr), _port);
+        DBGOUT("Using %s, listening at %d\n", inet_ntoa(_srv->serveraddr.sin_addr), _port);
 
         if(bind(_srv->listener, (struct sockaddr *)&_srv->serveraddr, sizeof(_srv->serveraddr)) == -1)
         {
             perror("Server-bind() error lol!");
             return -1;
         }
-        printf("Server-bind() is OK...\n");
+        DBGOUT("Server-bind() is OK...\n");
 
         /* listen */
         if(listen(_srv->listener, 10) == -1)
@@ -46,7 +48,7 @@ int tcp_server_init(tcp_server_t* _srv, in_addr_t _addr, uint16_t _port)
             perror("Server-listen() error lol!");
             return -1;
         }
-        printf("Server-listen() is OK...\n");
+        DBGOUT("Server-listen() is OK...\n");
 
         /* add the listener to the master set */
         FD_SET(_srv->listener, &_srv->master);
@@ -91,13 +93,13 @@ int tcp_server_receive(tcp_server_t* _srv, int *_client_id,
         sel_res = select(_srv->fdmax+1, &_srv->read_fds, NULL, NULL, &tv);
 
         if(sel_res == 0) {
-            printf("Server-select() timeout\n");
+            DBGOUT("Server-select() timeout\n");
             return -ETIMEDOUT;
         }
         else if(sel_res < 0) {
             perror("Server-select() error lol!");
         }
-        printf("Server-select() is OK...\n");
+        DBGOUT("Server-select() is OK...\n");
 
         /*run through the existing connections looking for data to be read*/
         for(i = 0; i <= _srv->fdmax; i++)
@@ -114,14 +116,14 @@ int tcp_server_receive(tcp_server_t* _srv, int *_client_id,
                     }
                     else
                     {
-                        printf("Server-accept() is OK...\n");
+                        DBGOUT("Server-accept() is OK...\n");
 
                         FD_SET(newfd, &_srv->master); /* add to master set */
                         if(newfd > _srv->fdmax)
                         { /* keep track of the maximum */
                             _srv->fdmax = newfd;
                         }
-                        printf("New connection from %s on socket %d\n", inet_ntoa(clientaddr.sin_addr), newfd);
+                        DBGOUT("New connection from %s on socket %d\n", inet_ntoa(clientaddr.sin_addr), newfd);
                     }
                 }
                 else
@@ -132,7 +134,7 @@ int tcp_server_receive(tcp_server_t* _srv, int *_client_id,
                         /* got error or connection closed by client */
                         if(nbytes == 0)
                             /* connection closed */
-                            printf("Socket %d connection closed\n", i);
+                            DBGOUT("Socket %d connection closed\n", i);
 
                         else
                             perror("recv() error lol!");
@@ -157,7 +159,7 @@ int tcp_server_receive(tcp_server_t* _srv, int *_client_id,
                                 /* except the listener and ourselves */
                                 if(j != _srv->listener /*&& j != i*/)
                                 {
-                                    printf("Sending\n");
+                                    DBGOUT("Sending\n");
                                     if(send(j, _buffer, (size_t)nbytes, 0) == -1)
                                         perror("send() error lol!");
                                 }

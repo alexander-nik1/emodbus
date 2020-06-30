@@ -18,7 +18,7 @@ static int is_addr_belongs_to_holdings(uint16_t _addr, const struct emb_srv_regs
 // =============================================================================================
 // Holding registers: 0x1000-0x100F
 
-static uint16_t holdings1_regs[0x10];
+static uint16_t holdings1_regs[0x10000];
 
 uint8_t holdings1_read_regs(struct emb_srv_regs_t* _rr,
                             uint16_t _offset,
@@ -44,8 +44,9 @@ uint8_t holdings1_write_regs(struct emb_srv_regs_t* _rr,
     return 0;
 }
 
-static struct emb_srv_regs_t holdings1 = {
-    .start = 0x1000,
+static struct emb_srv_regs_t holdings1 =
+{
+    .start = 0,
     .size = sizeof(holdings1_regs)/sizeof(uint16_t),
     .read_regs = holdings1_read_regs,
     .write_regs = holdings1_write_regs
@@ -204,7 +205,7 @@ void print_adu(FILE* _f, const emb_adu_t* _adu)
 
 int main()
 {
-    uint8_t buf[256+16];
+    uint8_t buf[256 * 2 + 16];
 
     uint8_t rx_buf[MAX_PDU_DATA_SIZE];
     uint8_t tx_buf[MAX_PDU_DATA_SIZE];
