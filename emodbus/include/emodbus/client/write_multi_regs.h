@@ -19,7 +19,7 @@ extern "C" {
 /**
  * @brief Calculate the request size
  * @param _quantity The quantity of registers
- * @return The size of request's data size
+ * @return The size of request's data size, or negative if errors.
  */
 int emb_write_regs_calc_req_data_size(uint16_t _quantity);
 
@@ -40,7 +40,7 @@ int emb_write_regs_calc_answer_data_size();
  * \param[in] _address Starting address for writing to.
  * \param[in] _quantity Number of registers, that will be written.
  * \param[in] _data The data, that will be written.
- * @return Zero if a request is ready, otherwise error code.
+ * @return Zero if a request is ready, or negative if errors.
  */
 int emb_write_regs_make_req(emb_pdu_t* _result_req,
                             uint16_t _address,
@@ -50,14 +50,14 @@ int emb_write_regs_make_req(emb_pdu_t* _result_req,
 /**
  * @brief Get starting address
  * @param[in] _req Request, from which reads an address.
- * @return Starting address.
+ * @return Starting address, or negative if errors.
  */
 int emb_write_regs_get_req_address(emb_const_pdu_t* _req);
 
 /**
  * @brief Get quantity
  * @param[in] _req Request, from which reads the quantity.
- * @return The quantity.
+ * @return The quantity, or negative if errors.
  */
 int emb_write_regs_get_req_quantity(emb_const_pdu_t* _req);
 
@@ -65,7 +65,7 @@ int emb_write_regs_get_req_quantity(emb_const_pdu_t* _req);
  * @brief Get request's register data
  * @param[in] _req Request, from which reads the register data.
  * @param[in] _offset The offset within request to the needed register.
- * @return The register data.
+ * @return The register data, or negative if errors.
  */
 int emb_write_regs_get_req_data(emb_const_pdu_t* _req, uint16_t _offset);
 
@@ -73,14 +73,14 @@ int emb_write_regs_get_req_data(emb_const_pdu_t* _req, uint16_t _offset);
 /**
  * @brief Get starting address
  * @param[in] _answer THe answer, from which reads the address.
- * @return Starting address.
+ * @return Starting address, or negative if errors.
  */
 int emb_write_regs_get_answer_address(emb_const_pdu_t* _answer);
 
 /**
  * @brief Get quantityb
  * @param[in] _answer THe answer, from which reads the quantity.
- * @return Starting address.
+ * @return Starting address, or negative if errors.
  */
 int emb_write_regs_get_answer_quantity(emb_const_pdu_t* _answer);
 

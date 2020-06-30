@@ -1,6 +1,6 @@
 
-#ifndef MODBUS_MASTER_READ_REGISTERS
-#define MODBUS_MASTER_READ_REGISTERS
+#ifndef EMB_CLIENT_READ_REGISTERS
+#define EMB_CLIENT_READ_REGISTERS
 
 /*!
  * \file
@@ -103,7 +103,7 @@ int emb_read_regs_get_ans_regs(emb_const_pdu_t* _answer,
  * Function returns a registers number from answer
  *
  * @param[in] _ans Answer
- * @return Registers number.
+ * @return Registers number, or negative if errors.
  */
 int emb_read_regs_get_ans_regs_n(emb_const_pdu_t* _answer);
 
@@ -111,4 +111,4 @@ int emb_read_regs_get_ans_regs_n(emb_const_pdu_t* _answer);
 }   // extern "C"
 #endif
 
-#endif // MODBUS_MASTER_READ_REGISTERS
+#endif // EMB_CLIENT_READ_REGISTERS

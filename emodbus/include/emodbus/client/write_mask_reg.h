@@ -38,7 +38,7 @@ int emb_write_mask_reg_calc_answer_data_size();
  * \param[in] _result_req Starting address of holding register.
  * \param[in] _and_mask AND mask
  * \param[in] _or_mask OR mask
- * @return Zero if a request is ready, otherwise error code.
+ * @return Zero if a request is ready, or negative if errors.
  */
 int emb_write_mask_reg_make_req(emb_pdu_t* _result_req,
                                 uint16_t _address,

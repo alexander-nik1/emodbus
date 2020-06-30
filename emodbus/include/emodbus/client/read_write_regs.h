@@ -1,6 +1,6 @@
 
-#ifndef MODBUS_MASTER_READ_WRITE_REGISTERS
-#define MODBUS_MASTER_READ_WRITE_REGISTERS
+#ifndef EMB_CLIENT_READ_WRITE_REGISTERS
+#define EMB_CLIENT_READ_WRITE_REGISTERS
 
 /*!
  * \file
@@ -26,7 +26,7 @@ int emb_rdwr_regs_calc_req_data_size(uint16_t _wr_quantity);
 
 /**
  * @brief Calculate the answer size
- * @return The size of answer's data size
+ * @return The size of answer's data size, or negative if errors.
  */
 int emb_rdwr_regs_calc_answer_data_size(uint16_t _rd_quantity);
 
@@ -43,11 +43,11 @@ int emb_rdwr_regs_calc_answer_data_size(uint16_t _rd_quantity);
  * @return Zero if a request is ready, otherwise error code.
  */
 int emb_rdwr_regs_make_req(emb_pdu_t* _result_req,
-                           uint16_t _rd_address,
-                           uint16_t _rd_quantity,
                            uint16_t _wr_address,
                            uint16_t _wr_quantity,
-                           const uint16_t* _wr_data);
+                           const uint16_t* _wr_data,
+                           uint16_t _rd_address,
+                           uint16_t _rd_quantity);
 
 /**
  * @brief Get read address from request
@@ -93,7 +93,7 @@ int emb_rdwr_regs_get_answ_reg(emb_const_pdu_t* _answer, uint16_t _offset);
  * @param[in] _offset The offset within answer to the needed registers.
  * @param[in] _n_regs The number of registers to be read
  * @param[in] A pointer to the buffer for writing the data.
- * @return The readed data.
+ * @return The readed data, or negative if errors.
  */
 int emb_rdwr_regs_get_answ_regs(emb_const_pdu_t* _answer, uint16_t _offset,
                                 uint16_t _n_regs, uint16_t* _p_data);
@@ -101,7 +101,7 @@ int emb_rdwr_regs_get_answ_regs(emb_const_pdu_t* _answer, uint16_t _offset,
 /**
  * @brief Get answer's number of readed registers
  * @param[in] _req Answer.
- * @return The number of previously readed registers.
+ * @return The number of previously readed registers, or negative if errors.
  */
 int emb_rdwr_regs_get_answ_regs_n(emb_const_pdu_t* _answer);
 
@@ -109,4 +109,4 @@ int emb_rdwr_regs_get_answ_regs_n(emb_const_pdu_t* _answer);
 }   // extern "C"
 #endif
 
-#endif // MODBUS_MASTER_READ_WRITE_REGISTERS
+#endif // EMB_CLIENT_READ_WRITE_REGISTERS

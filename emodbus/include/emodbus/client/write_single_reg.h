@@ -51,7 +51,7 @@ int emb_write_reg_make_req(emb_pdu_t* _result_req,
  * request or answer.
  *
  * @param[in] _pdu Can be an answer or a request for this modbus-function.
- * @return Address of a holding register.
+ * @return Address of a holding register, or negative if errors.
  */
 int emb_write_reg_get_address(emb_const_pdu_t* _pdu);
 
@@ -63,7 +63,7 @@ int emb_write_reg_get_address(emb_const_pdu_t* _pdu);
  * request or answer.
  *
  * @param[in] _pdu Can be an answer or a request for this modbus-function.
- * @return Value for a holding register.
+ * @return Value for a holding register, or negative if errors.
  */
 int emb_write_reg_get_value(emb_const_pdu_t* _pdu);
 
