@@ -27,6 +27,7 @@ include_directories(../implementations/include)
 
 #add_executable(emb_srv_test ${SRV_TEST_SRC})
 
+
 add_executable(emb_rtu_srv_test rtu_srv_test.c)
 
 target_link_libraries(emb_rtu_srv_test
@@ -35,6 +36,7 @@ target_link_libraries(emb_rtu_srv_test
     emodbus-rtu
     emb-serail-port
 )
+
 
 add_executable(emb_tcp_srv_test tcp_srv_test.c)
 
@@ -46,6 +48,7 @@ target_link_libraries(emb_tcp_srv_test
     event_core
 )
 
+
 add_executable(emb_ascii_srv_test ascii_srv_test.c)
 
 target_link_libraries(emb_ascii_srv_test
@@ -53,6 +56,26 @@ target_link_libraries(emb_ascii_srv_test
     emodbus-server
     emodbus-ascii
     emb-serail-port
+)
+
+
+add_executable(emb_rtu_cli_test rtu_cli_test.c)
+
+target_link_libraries(emb_rtu_cli_test
+    emodbus-base
+    emodbus-client
+    emodbus-rtu
+    emodbus-tcp
+    emodbus-ascii
+    emb-serail-port
+    emb-tcp-server
+)
+
+
+add_executable(emb_tcp_server_test tcp_server_test.c)
+
+target_link_libraries(emb_tcp_server_test
+    emb-tcp-server
 )
 
 #target_link_libraries(emb_srv_test
