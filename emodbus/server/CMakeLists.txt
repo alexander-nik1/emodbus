@@ -1,13 +1,9 @@
 
 aux_source_directory(. LIB_EMODBUS_SERVER_SRC)
 
-add_library(emodbus-server SHARED ${LIB_EMODBUS_SERVER_SRC})
+add_library(emodbus-full-server SHARED ${LIB_EMODBUS_SERVER_SRC})
 
-if(DEFINED EMB_BUILD_STATIC_LIBS)
-add_library(emodbus-server-static STATIC ${LIB_EMODBUS_SERVER_SRC})
-endif(DEFINED EMB_BUILD_STATIC_LIBS)
-
-if(DEFINED EMB_BUILD_PARTIAL_LIBRARIES)
+add_library(emodbus-full-server-static STATIC ${LIB_EMODBUS_SERVER_SRC})
 
 set(EMODBUS_SERVER_SRC server.c exception.c)
 set(EMODBUS_SERVER_READ_BITS read_bits.c)
@@ -35,7 +31,6 @@ add_library(emodbus-server-read-file SHARED ${EMODBUS_SERVER_READ_FILE})
 add_library(emodbus-server-write-file SHARED ${EMODBUS_SERVER_WRITE_FILE})
 add_library(emodbus-server-read-fifo SHARED ${EMODBUS_SERVER_READ_FIFO})
 
-if(DEFINED EMB_BUILD_STATIC_LIBS)
 add_library(emodbus-server-static STATIC ${EMODBUS_SERVER_SRC})
 add_library(emodbus-server-read-bits-static STATIC ${EMODBUS_SERVER_READ_BITS})
 add_library(emodbus-server-write-coil-static STATIC ${EMODBUS_SERVER_WRITE_COIL})
@@ -48,6 +43,3 @@ add_library(emodbus-server-read-write-regs-static STATIC ${EMODBUS_SERVER_READ_W
 add_library(emodbus-server-read-file-static STATIC ${EMODBUS_SERVER_READ_FILE})
 add_library(emodbus-server-write-file-static STATIC ${EMODBUS_SERVER_WRITE_FILE})
 add_library(emodbus-server-read-fifo-static STATIC ${EMODBUS_SERVER_READ_FIFO})
-endif(DEFINED EMB_BUILD_STATIC_LIBS)
-
-endif(DEFINED EMB_BUILD_PARTIAL_LIBRARIES)

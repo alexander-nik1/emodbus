@@ -5,13 +5,9 @@ include_directories(
 
 aux_source_directory(. LIB_EMODBUS_CLIENT_SRC)
 
-add_library(emodbus-client SHARED ${LIB_EMODBUS_CLIENT_SRC})
+add_library(emodbus-full-client SHARED ${LIB_EMODBUS_CLIENT_SRC})
 
-if(DEFINED EMB_BUILD_STATIC_LIBS)
-add_library(emodbus-client-static STATIC ${LIB_EMODBUS_CLIENT_SRC})
-endif()
-
-if(DEFINED EMB_BUILD_PARTIAL_LIBRARIES)
+add_library(emodbus-full-client-static STATIC ${LIB_EMODBUS_CLIENT_SRC})
 
 set(EMODBUS_CLIENT_SRC client.c)
 set(EMODBUS_CLIENT_READ_BITS_SRC read_bits.c)
@@ -39,7 +35,6 @@ add_library(emodbus-client-write-file-record SHARED ${EMODBUS_CLIENT_WRITE_FILE_
 add_library(emodbus-client-read-fifo SHARED ${EMODBUS_CLIENT_READ_FIFO})
 
 
-if(DEFINED EMB_BUILD_STATIC_LIBS)
 add_library(emodbus-client-static STATIC ${EMODBUS_CLIENT_SRC})
 add_library(emodbus-client-read-bits-static STATIC ${EMODBUS_CLIENT_READ_BITS_SRC})
 add_library(emodbus-client-write-coil-static STATIC ${EMODBUS_CLIENT_WRITE_COIL_SRC})
@@ -52,6 +47,3 @@ add_library(emodbus-client-read-write-regs-static STATIC ${EMODBUS_CLIENT_READ_W
 add_library(emodbus-client-read-file-record-static STATIC ${EMODBUS_CLIENT_READ_FILE_RECORD})
 add_library(emodbus-client-write-file-record-static STATIC ${EMODBUS_CLIENT_WRITE_FILE_RECORD})
 add_library(emodbus-client-read-fifo-static STATIC ${EMODBUS_CLIENT_READ_FIFO})
-endif(DEFINED EMB_BUILD_STATIC_LIBS)
-
-endif(DEFINED EMB_BUILD_PARTIAL_LIBRARIES)
