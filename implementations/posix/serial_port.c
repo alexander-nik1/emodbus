@@ -110,7 +110,7 @@ void serial_port_close(struct serial_port_t* _ctx)
 
 #define GSBB_BAUD_CASE(_baud_)	case _baud_: return B##_baud_;
 
-static speed_t posix_serial_port_get_speedt_by_baudrate(unsigned int _baudrate)
+static int posix_serial_port_get_speedt_by_baudrate(unsigned int _baudrate)
 {
     switch(_baudrate) {
 #ifdef B0
@@ -206,7 +206,7 @@ static speed_t posix_serial_port_get_speedt_by_baudrate(unsigned int _baudrate)
 #ifdef B4000000
         GSBB_BAUD_CASE(4000000)
 #endif
-        default: return (speed_t)-1;
+        default: return -1;
     }
 }
 
@@ -216,14 +216,17 @@ int serial_port_set_baudrate(struct serial_port_t *_ctx,
     if(_ctx) {
         struct termios tt;
         int r;
-        speed_t speed;
+        int speed;
 
         if((r = tcgetattr(_ctx->fd, &tt)))
             return r;
 
         speed = posix_serial_port_get_speedt_by_baudrate(_baudrate);
 
-        if((r = cfsetspeed(&tt, speed)))
+        if(speed < 0)
+            return -EINVAL;
+
+        if((r = cfsetspeed(&tt, (speed_t)speed)))
            return r;
 
         //cfsetispeed(&tt, speed);
