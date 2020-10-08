@@ -27,6 +27,9 @@ include_directories(../implementations/include)
 
 #add_executable(emb_srv_test ${SRV_TEST_SRC})
 
+add_library(bit_array STATIC
+    bit_array.c
+)
 
 add_executable(emb_rtu_srv_test rtu_srv_test.c)
 
@@ -77,6 +80,10 @@ add_executable(emb_tcp_server_test tcp_server_test.c)
 target_link_libraries(emb_tcp_server_test
     emb-tcp-server
 )
+
+add_executable(test-bit-arr test-bit-arr.c)
+
+target_link_libraries(test-bit-arr bit_array)
 
 #target_link_libraries(emb_srv_test
 #    emodbus-base
