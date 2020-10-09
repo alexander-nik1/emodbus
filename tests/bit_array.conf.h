@@ -4,6 +4,6 @@
 
 #include <stdint.h>
 
-typedef uint32_t ba_word_t;
+typedef uint8_t ba_word_t;
 
 #endif // BIT_ARRAY_CONF_H

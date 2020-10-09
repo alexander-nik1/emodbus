@@ -2,10 +2,18 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "emodbus/base/add/container_of.h"
 #include "emodbus/base/modbus_errno.h"
 #include "emodbus/server/server.h"
+#include "emodbus/protocols/ascii.h"
 #include "emodbus/protocols/tcp.h"
+#include "emodbus/protocols/rtu.h"
+#include "emodbus/base/modbus_errno.h"
+
 #include "emodbus/impl/posix/tcp-server.h"
+#include "emodbus/impl/posix/serial_port.h"
+
+#include "bit_array.h"
 
 #define ARR_SIZE(_arr_)     (sizeof(_arr_)/sizeof(_arr_[0]))
 
@@ -14,101 +22,160 @@
 
 static uint8_t coils[65536/8];
 
-uint8_t read_bits(struct emb_srv_bits_t* _coils,
-                     uint16_t _offset,
-                     uint16_t _quantity,
-                     uint8_t* _pvalues)
+static uint8_t read_bits(struct emb_srv_bits_t* _coils,
+                         uint16_t _offset,
+                         uint16_t _quantity,
+                         uint8_t* _pvalues)
 {
-    (void)_coils;
-    printf("Read coils: _offset:0x%04X, _quantity:0x%04X\n", _offset, _quantity);
-    //memcpy(_pvalues, bits + _offset, _quantity);
-
-
-
-    return 0;
+    int r;
+    r = bit_arr_get_bits(coils, sizeof(coils), _pvalues, _coils->start + _offset, _quantity);
+    return r == 0 ? 0 : MBE_ILLEGAL_DATA_ADDR;
 }
 
-uint8_t write_bits(struct emb_srv_bits_t* _coils,
-                      uint16_t _offset,
-                      uint16_t _quantity,
-                      const uint8_t* _pvalues)
+static uint8_t write_bits(struct emb_srv_bits_t* _coils,
+                          uint16_t _offset,
+                          uint16_t _quantity,
+                          const uint8_t* _pvalues)
 {
-    (void)_coils;
-    //memcpy(holdings1_regs + _offset, _pvalues, _quantity);
-    printf("Write coils: _offset:0x%04X, _quantity:0x%04X\n", _offset, _quantity);
-    return 0;
+    int r;
+    r = bit_arr_set_bits(coils, sizeof(coils), _pvalues, _coils->start + _offset, _quantity);
+    return r == 0 ? 0 : MBE_ILLEGAL_DATA_ADDR;
 }
 
-static struct emb_srv_bits_t coils1 =
+static struct emb_srv_bits_t crs[4] =
 {
-    .start = 0,
-    .size = sizeof(coils)*8,
-    .read_bits = read_bits,
-    .write_bits = write_bits
+    {
+        .start = 0x0000,
+        .size = 0x7FED,
+        .read_bits = read_bits,
+        .write_bits = write_bits
+    },
+    {
+        .start = 0x7FED,
+        .size = 0x0077,
+        .read_bits = read_bits,
+        .write_bits = write_bits
+    },
+    {
+        .start = 0x8065,
+        .size = 0x0001,
+        .read_bits = read_bits,
+        .write_bits = write_bits
+    },
+    {
+        .start = 0xE800,
+        .size = 0x1800,
+        .read_bits = read_bits,
+        .write_bits = write_bits
+    }
 };
 
 // =============================================================================================
 // Input/Holding registers
 
-static uint16_t holdings1_regs[65536];
+static uint16_t regs[65536];
 
-uint8_t holdings1_read_regs(struct emb_srv_regs_t* _rr,
-                            uint16_t _offset,
-                            uint16_t _quantity,
-                            uint16_t* _pvalues)
+static uint8_t holdings1_read_regs(struct emb_srv_regs_t* _rr,
+                                   uint16_t _offset,
+                                   uint16_t _quantity,
+                                   uint16_t* _pvalues)
 {
-    (void)_rr;
-    memcpy(_pvalues, holdings1_regs + _offset, _quantity);
+    memcpy(_pvalues, regs + _rr->start + _offset, _quantity * sizeof(uint16_t));
     return 0;
 }
 
-uint8_t holdings1_write_regs(struct emb_srv_regs_t* _rr,
-                      uint16_t _offset,
-                      uint16_t _quantity,
-                      const uint16_t* _pvalues)
+static uint8_t holdings1_write_regs(struct emb_srv_regs_t* _rr,
+                                    uint16_t _offset,
+                                    uint16_t _quantity,
+                                    const uint16_t* _pvalues)
 {
-    (void)_rr;
-    memcpy(holdings1_regs + _offset, _pvalues, _quantity);
+    memcpy(regs + _rr->start + _offset, _pvalues, _quantity * sizeof(uint16_t));
     return 0;
 }
 
-static struct emb_srv_regs_t holdings1 =
+static struct emb_srv_regs_t rrs[4] =
 {
-    .start = 0,
-    .size = sizeof(holdings1_regs)/sizeof(uint16_t),
-    .read_regs = holdings1_read_regs,
-    .write_regs = holdings1_write_regs
+    {
+        .start = 0x0000,
+        .size = 0x7FED,
+        .read_regs = holdings1_read_regs,
+        .write_regs = holdings1_write_regs
+    },
+    {
+        .start = 0x7FED,
+        .size = 0x0077,
+        .read_regs = holdings1_read_regs,
+        .write_regs = holdings1_write_regs
+    },
+    {
+        .start = 0x8065,
+        .size = 0x0001,
+        .read_regs = holdings1_read_regs,
+        .write_regs = holdings1_write_regs
+    },
+    {
+        .start = 0xE800,
+        .size = 0x1800,
+        .read_regs = holdings1_read_regs,
+        .write_regs = holdings1_write_regs
+    }
 };
 
 // =============================================================================================
 // Server part
 
+static int is_addr_belongs_to_cr(const struct emb_srv_bits_t* _rr, uint16_t _addr)
+{
+    if(_rr)
+        return (_rr->start <= _addr) && (_addr < (_rr->start + _rr->size));
+    return -EINVAL;
+}
+
+static int is_addr_belongs_to_rr(const struct emb_srv_regs_t* _rr, uint16_t _addr)
+{
+    if(_rr)
+        return (_rr->start <= _addr) && (_addr < (_rr->start + _rr->size));
+    return -EINVAL;
+}
+
 static struct emb_srv_bits_t* get_coils(struct emb_server_t* _srv, uint16_t _begin)
 {
     (void)_srv;
-    (void)_begin;
-    return &coils1;
+    size_t i;
+    for(i=0; i<ARR_SIZE(rrs); ++i)
+        if(is_addr_belongs_to_cr(&crs[i], _begin))
+            return &crs[i];
+    return NULL;
 }
 
 static struct emb_srv_bits_t* get_discrete_inputs(struct emb_server_t* _srv, uint16_t _begin)
 {
     (void)_srv;
-    (void)_begin;
-    return &coils1;
+    size_t i;
+    for(i=0; i<ARR_SIZE(rrs); ++i)
+        if(is_addr_belongs_to_cr(&crs[i], _begin))
+            return &crs[i];
+    return NULL;
 }
 
 static struct emb_srv_regs_t* get_holding_regs(struct emb_server_t* _srv, uint16_t _begin)
 {
     (void)_srv;
-    (void)_begin;
-    return &holdings1;
+    size_t i;
+    for(i=0; i<ARR_SIZE(rrs); ++i)
+        if(is_addr_belongs_to_rr(&rrs[i], _begin))
+            return &rrs[i];
+    return NULL;
 }
 
 static struct emb_srv_regs_t* get_input_regs(struct emb_server_t* _srv, uint16_t _begin)
 {
     (void)_srv;
-    (void)_begin;
-    return &holdings1;
+    size_t i;
+    for(i=0; i<ARR_SIZE(rrs); ++i)
+        if(is_addr_belongs_to_rr(&rrs[i], _begin))
+            return &rrs[i];
+    return NULL;
 }
 
 static struct emb_srv_file_t* get_file(struct emb_server_t* _srv, uint16_t _fileno/*, uint16_t _begin*/)
@@ -125,6 +192,35 @@ static uint8_t read_fifo(struct emb_server_t* _srv, uint16_t _address,
     (void)_address;
     (void)_fifo_buf;
     (void)_fifo_count;
+
+    size_t i;
+
+    const struct emb_srv_regs_t* reg_range = NULL;
+
+    for(i=0; i<ARR_SIZE(rrs); ++i)
+        if(is_addr_belongs_to_rr(&rrs[i], _address))
+            reg_range = &rrs[i];
+
+    // just for testing the exception reaction
+    if(0xABC0 <= _address && _address <= 0xABCF)
+        return MBE_ILLEGAL_DATA_ADDR;
+
+    if(!reg_range) {
+        *_fifo_count = 0;
+        return 0;
+    }
+
+    _address -= reg_range->start;
+
+    size_t sz = reg_range->size - _address;
+
+    if(sz > EMB_SRV_READ_FIFO_MAX_REGS)
+        sz = EMB_SRV_READ_FIFO_MAX_REGS;
+
+    memcpy(_fifo_buf, regs + reg_range->start + _address, sz * 2);
+
+    *_fifo_count = (uint8_t)sz;
+
     return 0;
 }
 
@@ -181,26 +277,26 @@ static struct emb_server_t server =
 // =============================================================================================
 // Super server part
 
-struct emb_server_t* get_server(struct emb_super_server_t* _ssrv, uint8_t _address)
+static struct emb_server_t* get_server(struct emb_super_server_t* _ssrv, uint8_t _address)
 {
     (void)_ssrv;
     return _address == 1 ? &server : NULL;
 }
 
-void on_event(struct emb_super_server_t* _ssrv, enum emb_super_server_event_t _event, uint8_t _data)
+static void on_event(struct emb_super_server_t* _ssrv, enum emb_super_server_event_t _event, uint8_t _data)
 {
     (void)_ssrv;
     (void)_event;
     (void)_data;
-    printf("super server on_event: ");
-    switch(_event) {
-    case embsev_on_receive_pkt: printf("Packet was received"); break;
-    case embsev_no_srv: printf("Server was not found for request's id"); break;
-    case embsev_mb_exception: printf("Some exception was sent as response to incorrect request"); break;
-    case embsev_resp_sent: printf("Response was sent"); break;
-    case embsev_transport_error: printf("There was an error in a transport level"); break;
-    }
-    printf("\n");
+//    printf("super server on_event: ");
+//    switch(_event) {
+//    case embsev_on_receive_pkt: printf("Packet was received"); break;
+//    case embsev_no_srv: printf("Server was not found for request's id"); break;
+//    case embsev_mb_exception: printf("Some exception was sent as response to incorrect request"); break;
+//    case embsev_resp_sent: printf("Response was sent"); break;
+//    case embsev_transport_error: printf("There was an error in a transport level"); break;
+//    }
+//    printf("\n");
 }
 
 static struct emb_super_server_t emb_super_server =
@@ -234,21 +330,23 @@ static emb_adu_t tx_adu = {
 int main()
 {
     int tmp;
+
     tcp_server_t tcp_server;
 
-    memset(holdings1_regs, 0, sizeof(holdings1_regs));
+    memset(regs, 0, sizeof(regs));
 
     memset(buf, 0, sizeof(buf));
 
     emb_super_server_init(&emb_super_server);
 
-    if(tcp_server_init(&tcp_server, htonl(INADDR_ANY), 2020)) {
+    if(tcp_server_init(&tcp_server, htonl(INADDR_ANY), 8502)) {
         fprintf(stderr, "Error with tcp_server_init() : %m\n");
     }
 
     for (;;) {
         int client_id;
 
+        // Receive
         tmp = tcp_server_receive(&tcp_server, &client_id, buf, sizeof(buf), 1000);
         if(tmp == -ETIMEDOUT) {
             continue;
@@ -261,24 +359,28 @@ int main()
             continue;
         }
 
+        // Decode request
         tmp = emb_tcp_decode_packet(buf, (unsigned int)tmp, &rx_adu);
         if(tmp != 0) {
             fprintf(stderr, "Error with emb_tcp_decode_packet(): %d\n", tmp);
             continue;
         }
 
+        // Process request
         tmp = emb_super_server_process_req(&emb_super_server, &rx_adu, &tx_adu);
         if(tmp < 0) {
             fprintf(stderr, "Error with emb_super_server_process_req() :%d\n", tmp);
             continue;
         }
 
+        // Encode answer
         tmp = emb_tcp_encode_packet(&tx_adu, buf, sizeof(buf));
         if(tmp < 0) {
             fprintf(stderr, "Error with emb_tcp_encode_packet() :%d\n", tmp);
             continue;
         }
 
+        // Send answer
         tcp_server_send(&tcp_server, client_id, buf, (unsigned int)tmp);
         if(tmp < 0) {
             fprintf(stderr, "Error with serial_port_send(): %d\n", tmp);
