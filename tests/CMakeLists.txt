@@ -48,7 +48,6 @@ target_link_libraries(emb_tcp_srv_test
     emodbus-full-server
     emodbus-tcp
     emb-tcp-server
-    event_core
     bit_array
 )
 
