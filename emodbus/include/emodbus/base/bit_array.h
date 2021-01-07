@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-typedef uint16_t emb_ba_word_t;
+typedef uint8_t emb_ba_word_t;
 
 enum { EMB_BA_N_WORD_BYTES = sizeof(emb_ba_word_t) };
 

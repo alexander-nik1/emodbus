@@ -24,13 +24,13 @@ namespace emb {
 
 regs_t& regs_t::operator << (const int& _v)
 {
-    push_back(_v);
+    push_back(uint16_t(_v));
     return *this;
 }
 
 regs_t& regs_t::operator << (const float& _v)
 {
-    const uint16_t* p = (uint16_t*)&_v;
+    const uint16_t* p = (const uint16_t*)&_v;
     push_back(p[0]);
     push_back(p[1]);
     return *this;
@@ -60,7 +60,7 @@ pdu_t::pdu_t()
 {
     emb_pdu_t::max_size = 0;
     emb_pdu_t::data_size = 0;
-    emb_pdu_t::data = NULL;
+    emb_pdu_t::data = nullptr;
 }
 
 pdu_t::pdu_t(unsigned int _sz)

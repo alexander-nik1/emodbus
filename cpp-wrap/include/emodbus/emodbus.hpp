@@ -14,6 +14,7 @@
 #include <emodbus/server/bits.h>
 #include <emodbus/server/regs.h>
 #include <emodbus/server/file.h>
+#include <stdint.h>
 
 namespace emb {
 
@@ -73,7 +74,7 @@ public:
     operator emb_const_pdu_t* () const;
 
 private:
-    std::vector<char> buffer;
+    std::vector<uint8_t> buffer;
 };
 
 namespace client {

@@ -2,7 +2,7 @@
 #ifndef EMB_POSIX_IMPL_PDU_H
 #define EMB_POSIX_IMPL_PDU_H
 
-#include <emodbus/base/modbus_pdu.h>
+#include <emodbus/base/modbus_xdu.h>
 
 /**
  * @brief emb_posix_alloc_pdu_data

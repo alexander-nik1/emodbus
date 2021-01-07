@@ -11,6 +11,7 @@ endif()
 include_directories(
     ./emodbus/include
 	./implementations/include
+	./cpp-wrap/include
 )
 
 #set(HEADERS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -56,21 +57,27 @@ add_library(emodbus SHARED
 	emodbus/server/write_multi_regs.c
 	emodbus/server/write_single_reg.c
 
-	#implementations/posix/ascii-tty-client.c
+	implementations/posix/ascii-tty-client.c
 #	implementations/posix/client.c
 #	implementations/posix/client.cpp
-	#implementations/posix/dumper.c
+	implementations/posix/dumper.c
 #	implementations/posix/mb-rtu-via-serial.c
 #	implementations/posix/mb-rtu-via-tcp-client.c
 #	implementations/posix/mb-tcp-via-tcp-client.c
 #	implementations/posix/mb-tcp-via-tcp-server.c
-	#implementations/posix/pdu.c
-	#implementations/posix/serial_port.c
+	implementations/posix/pdu.c
+	implementations/posix/serial_port.c
 #	implementations/posix/tcp-client-rtu.cpp
-	#implementations/posix/tcp-client.c
+#	implementations/posix/tcp-client.c
 #	implementations/posix/tcp-server-event.c
-	#implementations/posix/tcp-server.c
+	implementations/posix/tcp-server.c
 )
+
+#add_library(emodbuscpp
+#	cpp-wrap/emodbus.cpp
+#)
+
+#target_link_libraries(emodbuscpp emodbus)
 
 #add_subdirectory(emodbus)
 

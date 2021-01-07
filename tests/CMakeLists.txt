@@ -1,9 +1,4 @@
 
-include_directories(
-    ${CMAKE_SOURCE_DIR}/emodbus/include
-    ${CMAKE_SOURCE_DIR}/implementations/include
-)
-
 SET(SYNC_CLI_TEST_SRC
     sync_client_test.cpp
     timespec_operations.h
@@ -31,13 +26,11 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXSTANDARD}")
 #	emodbus
 #)
 
+add_executable(emb_tcp_srv_test tcp_srv_test.c)
 
-#add_executable(emb_tcp_srv_test tcp_srv_test.c)
-
-#target_link_libraries(emb_tcp_srv_test
-#	emodbus
-#)
-
+target_link_libraries(emb_tcp_srv_test
+	emodbus
+)
 
 #add_executable(emb_ascii_srv_test ascii_srv_test.c)
 
@@ -45,19 +38,17 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXSTANDARD}")
 #	emodbus
 #)
 
-
 #add_executable(emb_rtu_cli_test rtu_cli_test.c)
 
 #target_link_libraries(emb_rtu_cli_test
 #	emodbus
 #)
 
+add_executable(emb_tcp_server_echo tcp_server_test.c)
 
-#add_executable(emb_tcp_server_test tcp_server_test.c)
-
-#target_link_libraries(emb_tcp_server_test
-#	emodbus
-#)
+target_link_libraries(emb_tcp_server_echo
+	emodbus
+)
 
 add_executable(test-bit-arr test-bit-arr.c)
 
