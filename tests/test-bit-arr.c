@@ -6,18 +6,18 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "bit_array.h"
+#include <emodbus/base/bit_array.h>
 
-static ba_word_t buffer[4] = { 0x11, 0x22, 0x33, 0x77 };
+static emb_ba_word_t buffer[4] = { 0x11, 0x22, 0x33, 0x77 };
 enum { BUF_SIZE = sizeof(buffer)/sizeof(buffer[0]) };
 
-void print_buffer(const ba_word_t* _buffer, size_t _n_bits)
+void print_buffer(const emb_ba_word_t* _buffer, size_t _n_bits)
 {
     size_t i;
     fputc(' ', stdout);
     for (i=0; i<_n_bits; ++i) {
-        const ba_word_t w = _buffer[i/BA_N_WORD_BITS];
-        const char bit = !!(w & (1 << (i % BA_N_WORD_BITS)));
+        const emb_ba_word_t w = _buffer[i/EMB_BA_N_WORD_BITS];
+        const char bit = !!(w & (1 << (i % EMB_BA_N_WORD_BITS)));
 //        if(!(i % N_W_BITS))
 //            fputc(' ', stdout);
         fputc(bit ? '1' : '0', stdout);
@@ -27,7 +27,7 @@ void print_buffer(const ba_word_t* _buffer, size_t _n_bits)
 
 
 
-void randomize_bits(ba_word_t* _buf, size_t _sz)
+void randomize_bits(emb_ba_word_t* _buf, size_t _sz)
 {
     while((_sz--))
         *_buf++ = rand()*rand();
@@ -54,11 +54,11 @@ int main(void)
     int errors = 0;
 
     for(i=0; i<10000000; ++i) {
-        ba_word_t ww[4];
-        ba_word_t rw[4];
+        emb_ba_word_t ww[4];
+        emb_ba_word_t rw[4];
 
         size_t s = ((size_t)rand() % 20) + 1;
-        size_t o = ((size_t)rand() % (BUF_SIZE*BA_N_WORD_BITS - s));
+        size_t o = ((size_t)rand() % (BUF_SIZE*EMB_BA_N_WORD_BITS - s));
 
         randomize_bits(buffer, BUF_SIZE);
 
@@ -66,16 +66,16 @@ int main(void)
 
         memset(rw, 0, sizeof(rw));
 
-        bit_arr_set_bits(buffer, BUF_SIZE, ww, o, s);
+        emb_bit_arr_set_bits(buffer, BUF_SIZE, ww, o, s);
 
-        bit_arr_get_bits(buffer, BUF_SIZE, rw, o, s);
+        emb_bit_arr_get_bits(buffer, BUF_SIZE, rw, o, s);
 
-        int res = bit_arr_cmp(ww, rw, s);
+        int res = emb_bit_arr_cmp(ww, rw, s);
         errors += res;
         if(res) {
-            print_buffer(buffer, BUF_SIZE*BA_N_WORD_BITS);
-            print_buffer(ww, BUF_SIZE*BA_N_WORD_BITS);
-            print_buffer(rw, BUF_SIZE*BA_N_WORD_BITS);
+            print_buffer(buffer, BUF_SIZE*EMB_BA_N_WORD_BITS);
+            print_buffer(ww, BUF_SIZE*EMB_BA_N_WORD_BITS);
+            print_buffer(rw, BUF_SIZE*EMB_BA_N_WORD_BITS);
         }
     }
 

@@ -21,69 +21,47 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXSTANDARD}")
 #add_subdirectory(posix_serial_rtu)
 #add_subdirectory(rtu)
 
-include_directories(../implementations/include)
-
 #add_executable(emb_sync_client_test ${SYNC_CLI_TEST_SRC})
 
 #add_executable(emb_srv_test ${SRV_TEST_SRC})
 
-add_library(bit_array STATIC
-    bit_array.c
-)
+#add_executable(emb_rtu_srv_test rtu_srv_test.c)
 
-add_executable(emb_rtu_srv_test rtu_srv_test.c)
-
-target_link_libraries(emb_rtu_srv_test
-    emodbus-base
-    emodbus-full-server
-    emodbus-rtu
-    emb-serail-port
-)
+#target_link_libraries(emb_rtu_srv_test
+#	emodbus
+#)
 
 
-add_executable(emb_tcp_srv_test tcp_srv_test.c)
+#add_executable(emb_tcp_srv_test tcp_srv_test.c)
 
-target_link_libraries(emb_tcp_srv_test
-    emodbus-base
-    emodbus-full-server
-    emodbus-tcp
-    emb-tcp-server
-    bit_array
-)
+#target_link_libraries(emb_tcp_srv_test
+#	emodbus
+#)
 
 
-add_executable(emb_ascii_srv_test ascii_srv_test.c)
+#add_executable(emb_ascii_srv_test ascii_srv_test.c)
 
-target_link_libraries(emb_ascii_srv_test
-    emodbus-base
-    emodbus-full-server
-    emodbus-ascii
-    emb-serail-port
-)
+#target_link_libraries(emb_ascii_srv_test
+#	emodbus
+#)
 
 
-add_executable(emb_rtu_cli_test rtu_cli_test.c)
+#add_executable(emb_rtu_cli_test rtu_cli_test.c)
 
-target_link_libraries(emb_rtu_cli_test
-    emodbus-base
-    emodbus-full-client
-    emodbus-rtu
-    emodbus-tcp
-    emodbus-ascii
-    emb-serail-port
-    emb-tcp-server
-)
+#target_link_libraries(emb_rtu_cli_test
+#	emodbus
+#)
 
 
-add_executable(emb_tcp_server_test tcp_server_test.c)
+#add_executable(emb_tcp_server_test tcp_server_test.c)
 
-target_link_libraries(emb_tcp_server_test
-    emb-tcp-server
-)
+#target_link_libraries(emb_tcp_server_test
+#	emodbus
+#)
 
 add_executable(test-bit-arr test-bit-arr.c)
 
-target_link_libraries(test-bit-arr bit_array)
+target_link_libraries(test-bit-arr emodbus)
 
 #target_link_libraries(emb_srv_test
 #    emodbus-base

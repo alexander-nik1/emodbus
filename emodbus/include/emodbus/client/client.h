@@ -49,6 +49,28 @@ int emb_sync_client_do_request(emb_sync_client_t* _cli, const emb_adu_t* _req_ad
 /**
  * @brief emb_sync_client_read_regs
  *
+ * Synchronous reading bits (discrete inputs or coils)
+ *
+ * @param [in] _cli Client context
+ * @param [in] _server_id Server id
+ * @param [in] _rb_type What to read: EMB_RB_COILS or EMB_RB_DISCRETE_INPUTS
+ * @param [in] _start_address Begin address of reading
+ * @param [in] _quantity Number of bits to read
+ * @param [out] _result Place to store readed bits
+ * @return if there is no errors, it will return zero, otherwize
+ * it will return a error code. You can see it by emb_strerror() function.
+ */
+int emb_sync_client_read_bits(emb_sync_client_t* _cli,
+							  uint8_t _server_id,
+							  enum EMB_RB_TYPE _rb_type,
+							  uint16_t _start_address,
+							  uint32_t _quantity,
+							  uint8_t* _result);
+
+
+/**
+ * @brief emb_sync_client_read_regs
+ *
  * Synchronous reading registers
  *
  * @param [in] _cli Client context

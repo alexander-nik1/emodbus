@@ -43,6 +43,60 @@ int emb_sync_client_do_request(emb_sync_client_t* _cli, const emb_adu_t* _req_ad
     return emb_check_pdu_for_exception(&_ans_adu->pdu);
 }
 
+static int __emb_sync_client_read_bits(emb_sync_client_t* _cli,
+                                       enum EMB_RB_TYPE _rb_type,
+                                       uint16_t _start_address,
+                                       uint16_t _quantity,
+                                       uint8_t* _result,
+                                       uint32_t _bit_offset)
+{
+//    int res;
+
+//    res = emb_read_bits_make_req(&_cli->req_adu->pdu, _rb_type, _start_address, _quantity);
+//    if(res != modbus_success)
+//        return res;
+
+//    res = emb_sync_client_do_request(_cli, _cli->req_adu, _cli->ans_adu);
+//    if(res != modbus_success)
+//        return res;
+
+//    int regsn = emb_read_bits_get_ans_bits_n(MB_CONST_PDU(&_cli->ans_adu->pdu));
+//    if(regsn < 0)
+//        return res;
+//    else if(regsn != _quantity)
+//        return -modbus_wrong_resp_quantity;
+
+//    return emb_read_regs_get_ans_regs(MB_CONST_PDU(&_cli->ans_adu->pdu), 0, (uint16_t)regsn, _result);
+    return 0;
+}
+
+int emb_sync_client_read_bits(emb_sync_client_t* _cli,
+                              uint8_t _server_id,
+                              enum EMB_RB_TYPE _rb_type,
+                              uint16_t _start_address,
+                              uint32_t _quantity,
+                              uint8_t* _result)
+{
+    uint32_t counter = 0;
+
+    if(!(_cli && _cli->req_adu && _cli->ans_adu && _quantity && _result)) {
+        return -modbus_invalid_argument;
+    }
+
+    _cli->req_adu->server_id = _server_id;
+
+    while(counter < _quantity) {
+        uint32_t q = _quantity - counter;
+        if(q > EMB_READ_BITS_MAX_QUANTITY)
+            q = EMB_READ_BITS_MAX_QUANTITY;
+        int res = __emb_sync_client_read_bits(_cli, _rb_type, _start_address + (uint16_t)counter, (uint16_t)q, _result, counter);
+        if(res != modbus_success)
+            return res;
+        counter += q;
+    }
+    return modbus_success;
+}
+
 static int __emb_sync_client_read_regs(emb_sync_client_t* _cli,
                                        enum EMB_RR_TYPE _rr_type,
                                        uint16_t _start_address,

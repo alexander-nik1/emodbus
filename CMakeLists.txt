@@ -10,7 +10,7 @@ endif()
 
 include_directories(
     ./emodbus/include
-    ./cpp-wrap/include
+	./implementations/include
 )
 
 #set(HEADERS_PATH ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -19,11 +19,64 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 # Disable a warnings around 'offsetof' in C++
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof")
 
-add_subdirectory(emodbus)
+add_library(emodbus SHARED
+	emodbus/base/common.c
+	emodbus/base/modbus_errno.c
+	emodbus/base/bit_array.c
+
+	emodbus/protocols/ascii.c
+	emodbus/protocols/rtu.c
+	emodbus/protocols/add/crc.c
+	emodbus/protocols/tcp.c
+
+	emodbus/client/client.c
+	emodbus/client/read_bits.c
+	emodbus/client/read_fifo.c
+	emodbus/client/read_file_record.c
+	emodbus/client/read_regs.c
+	emodbus/client/read_write_regs.c
+	emodbus/client/write_coil.c
+	emodbus/client/write_coils.c
+	emodbus/client/write_file_record.c
+	emodbus/client/write_mask_reg.c
+	emodbus/client/write_multi_regs.c
+	emodbus/client/write_single_reg.c
+
+	emodbus/server/server.c
+	emodbus/server/exception.c
+	emodbus/server/read_bits.c
+	emodbus/server/read_fifo.c
+	emodbus/server/read_file.c
+	emodbus/server/read_regs.c
+	emodbus/server/read_write_regs.c
+	emodbus/server/write_coil.c
+	emodbus/server/write_coils.c
+	emodbus/server/write_file.c
+	emodbus/server/write_mask_reg.c
+	emodbus/server/write_multi_regs.c
+	emodbus/server/write_single_reg.c
+
+	#implementations/posix/ascii-tty-client.c
+#	implementations/posix/client.c
+#	implementations/posix/client.cpp
+	#implementations/posix/dumper.c
+#	implementations/posix/mb-rtu-via-serial.c
+#	implementations/posix/mb-rtu-via-tcp-client.c
+#	implementations/posix/mb-tcp-via-tcp-client.c
+#	implementations/posix/mb-tcp-via-tcp-server.c
+	#implementations/posix/pdu.c
+	#implementations/posix/serial_port.c
+#	implementations/posix/tcp-client-rtu.cpp
+	#implementations/posix/tcp-client.c
+#	implementations/posix/tcp-server-event.c
+	#implementations/posix/tcp-server.c
+)
+
+#add_subdirectory(emodbus)
 
 #add_subdirectory(cpp-wrap)
 
-add_subdirectory(implementations)
+#add_subdirectory(implementations)
 
 if(NOT DEFINED EMB_WITHOUT_TESTS)
 add_subdirectory(tests)
