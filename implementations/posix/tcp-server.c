@@ -149,23 +149,6 @@ int tcp_server_receive(tcp_server_t* _srv, int *_client_id,
                         if(_client_id)
                             *_client_id = i;
                         return nbytes;
-#if 0
-                        /* we got some data from a client*/
-                        for(j = 0; j <= _srv->fdmax; j++)
-                        {
-                            /* send to everyone! */
-                            if(FD_ISSET(j, &_srv->master))
-                            {
-                                /* except the listener and ourselves */
-                                if(j != _srv->listener /*&& j != i*/)
-                                {
-                                    DBGOUT("Sending\n");
-                                    if(send(j, _buffer, (size_t)nbytes, 0) == -1)
-                                        perror("send() error lol!");
-                                }
-                            }
-                        }
-#endif
                     }
                 }
             }

@@ -17,12 +17,15 @@
 extern "C" {
 #endif
 
+/**
+ * Modbus-TCP header structure
+ */
 typedef struct __attribute__ ((packed))
 {
-    uint16_t transact_id;
-    uint16_t proto_id;
-    uint16_t length;
-    uint8_t unit_id;
+	uint16_t transact_id;	///< Transaction ID, unique number for each transaction (big-endian)
+	uint16_t proto_id;		///< Protocol ID, must be 0
+	uint16_t length;		///< Packet length, excluding transact_id,proto_id,length (big-endian)
+	uint8_t unit_id;		///< Modbus server ID
 } emb_tcp_header_t;
 
 enum { emb_tcp_header_size = sizeof(emb_tcp_header_t) };

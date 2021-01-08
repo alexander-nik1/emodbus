@@ -54,6 +54,10 @@ add_executable(test-bit-arr test-bit-arr.c)
 
 target_link_libraries(test-bit-arr emodbus)
 
+add_executable(client-test client_test.c)
+
+target_link_libraries(client-test emodbus)
+
 #target_link_libraries(emb_srv_test
 #    emodbus-base
 #    emodbus-server

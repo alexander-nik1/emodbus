@@ -1,70 +1,49 @@
 
-#ifndef TCP_CLIENT_H
-#define TCP_CLIENT_H
+#ifndef EMB_TCP_CLIENT_H
+#define EMB_TCP_CLIENT_H
 
-#include <event2/event.h>
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef enum
+{
+	emb_tcs_connecting,
+	emb_tcs_connected,
+	emb_tcs_disconnected
+} emb_tcp_client_state_t;
 
-// A default pause between tries of reconnection.
-// A value in seconds.
-enum { TCP_CLIENT_DEFAULT_RECONNECT_DLY = 10 };
+#define EMB_TCP_CLI_NO_DELAY_CONNECT	(1 << 0)
 
-enum tcp_client_events_t {
-    tcp_cli_data_received,
-    tcp_cli_data_sent,
-    tcp_cli_connected,
-    tcp_cli_disconnected,
-    tcp_cli_bad_try_of_reconnection
-};
+typedef struct
+{
+    unsigned int receive_timeout_ms;
+	unsigned int connect_timeout_ms;
+    unsigned int first_reconnect_delay_ms;
+    unsigned int next_reconnects_delay_ms;
+    struct sockaddr_in serveraddr;
+    int fd;
+	unsigned int flags;
+	char is_first_reconnect;
 
-enum tcp_client_state_t {
-    tcp_client_default,
-    tcp_client_disconnected,
-    tcp_client_connected
-};
+	emb_tcp_client_state_t state;
+	struct timeval connection_start_time;
 
-struct tcp_client_t;
+	unsigned long long rx_bytes;
+	unsigned long long tx_bytes;
+	unsigned int connection_attempts;
 
-typedef void (*tcp_cient_notifier_t)(struct tcp_client_t* _ctx,
-                                     enum tcp_client_events_t _event);
+} emb_tcp_client_t;
 
-struct tcp_client_t* tcp_client_new(struct event_base* _base,
-                                    tcp_cient_notifier_t _event_notifier);
+int emb_tcp_client_set_connection_options(emb_tcp_client_t* _cli, const char* _ip, uint16_t _port);
 
-void tcp_client_free(struct tcp_client_t* _ctx);
+int emb_tcp_client_init(emb_tcp_client_t* _cli);
 
-int tcp_client_start_connection(struct tcp_client_t* _ctx,
-                                const char* _ip_address,
-                                unsigned short _port);
+int emb_tcp_client_deinit(emb_tcp_client_t* _cli);
 
-void tcp_client_stop_connection(struct tcp_client_t* _ctx);
+int emb_tcp_client_send(emb_tcp_client_t* _cli, const void* _buf, unsigned int _length);
 
-int tcp_client_read(struct tcp_client_t* _ctx,
-                    void* _p_buffer,
-                    size_t _buff_size);
+int emb_tcp_client_recv(emb_tcp_client_t* _cli, void* _buf, unsigned int _length);
 
-int tcp_client_write(struct tcp_client_t* _ctx,
-                     const void* _p_data,
-                     size_t _data_size);
-
-void tcp_client_enable_write_event(struct tcp_client_t* _ctx);
-
-struct event_base* tcp_client_get_base(const struct tcp_client_t* _ctx);
-
-int tcp_client_get_fd(const struct tcp_client_t* _ctx);
-
-void tcp_client_set_reconnection_delay(struct tcp_client_t* _ctx,
-                                       unsigned int _sec);
-
-void tcp_client_set_user_data(struct tcp_client_t* _ctx, void* _user_data);
-
-void* tcp_client_get_user_data(struct tcp_client_t* _ctx);
-
-#ifdef __cplusplus
-};
-#endif
-
-#endif // TCP_CLIENT_H
+#endif // EMB_TCP_CLIENT_H

@@ -4,6 +4,7 @@
 
 #include "emodbus/base/add/container_of.h"
 #include "emodbus/base/modbus_errno.h"
+#include "emodbus/base/bit_array.h"
 #include "emodbus/server/server.h"
 #include "emodbus/protocols/ascii.h"
 #include "emodbus/protocols/tcp.h"
@@ -13,14 +14,12 @@
 #include "emodbus/impl/posix/tcp-server.h"
 #include "emodbus/impl/posix/serial_port.h"
 
-#include "bit_array.h"
-
 #define ARR_SIZE(_arr_)     (sizeof(_arr_)/sizeof(_arr_[0]))
 
 // =============================================================================================
 // Coils/Discrete inputs
 
-static uint8_t coils[65536/8];
+static emb_ba_word_t coils[65536 / EMB_BA_N_WORD_BITS];
 
 static uint8_t read_bits(struct emb_srv_bits_t* _coils,
                          uint16_t _offset,
@@ -28,7 +27,7 @@ static uint8_t read_bits(struct emb_srv_bits_t* _coils,
                          uint8_t* _pvalues)
 {
     int r;
-    r = bit_arr_get_bits(coils, sizeof(coils), _pvalues, _coils->start + _offset, _quantity);
+    r = emb_bit_arr_get_bits(coils, sizeof(coils), _pvalues, _coils->start + _offset, _quantity);
     return r == 0 ? 0 : MBE_ILLEGAL_DATA_ADDR;
 }
 
@@ -38,7 +37,7 @@ static uint8_t write_bits(struct emb_srv_bits_t* _coils,
                           const uint8_t* _pvalues)
 {
     int r;
-    r = bit_arr_set_bits(coils, sizeof(coils), _pvalues, _coils->start + _offset, _quantity);
+    r = emb_bit_arr_set_bits(coils, sizeof(coils), _pvalues, _coils->start + _offset, _quantity);
     return r == 0 ? 0 : MBE_ILLEGAL_DATA_ADDR;
 }
 
@@ -342,6 +341,8 @@ int main()
     if(tcp_server_init(&tcp_server, htonl(INADDR_ANY), 8502)) {
         fprintf(stderr, "Error with tcp_server_init() : %m\n");
     }
+
+    printf("Server start, listening at %s:%d\n", inet_ntoa(tcp_server.serveraddr.sin_addr), htons(tcp_server.serveraddr.sin_port));
 
     for (;;) {
         int client_id;

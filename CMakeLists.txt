@@ -68,7 +68,7 @@ add_library(emodbus SHARED
 	implementations/posix/pdu.c
 	implementations/posix/serial_port.c
 #	implementations/posix/tcp-client-rtu.cpp
-#	implementations/posix/tcp-client.c
+	implementations/posix/tcp-client.c
 #	implementations/posix/tcp-server-event.c
 	implementations/posix/tcp-server.c
 )

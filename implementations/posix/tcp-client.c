@@ -1,290 +1,300 @@
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/socket.h>
-#include <sys/fcntl.h>
-#include <netdb.h>
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
 #include <emodbus/impl/posix/tcp-client.h>
+#include <stdio.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <sys/time.h>
 
-struct tcp_client_t {
-    int sock_fd;
-    struct event_base* base;
-    struct sockaddr_in sin;
-    struct event* sock_event_read;
-    struct event* sock_event_write;
-    struct event* timer_event;
-    struct timeval reconnect_timeout;
-    tcp_cient_notifier_t event_notifier;
-    enum tcp_client_state_t state;
-    void* user_data;
-};
+#define DBG(...)    fputs(__FUNCTION__, stdout), printf("(): " __VA_ARGS__)
+#define ERR(...)    fputs(__FUNCTION__, stderr), fprintf(stderr, "(): " __VA_ARGS__)
 
-#define tcp_client_dbg(...)
-#define tcp_client_err(...)
+static const char* str_state(emb_tcp_client_state_t _state)
+{
+    static const char* str_states[] = {
+        "connecting",
+        "connected",
+        "disconnected"
+    };
 
-//#define tcp_client_dbg(...)     fprintf(stdout, __VA_ARGS__); fflush(stdout);
-//#define tcp_client_err(...)     fprintf(stderr, __VA_ARGS__); fflush(stderr);
+    static const char* str_unknown = "?unknown?";
 
-static void sock_fd_read_cb(evutil_socket_t _fd, short _event, void * _arg);
-static void sock_fd_write_cb(evutil_socket_t _fd, short _event, void * _arg);
-
-static void do_unconnect(struct tcp_client_t* _ctx);
-
-static int do_connect(struct tcp_client_t* _ctx) {
-    do {
-
-        if ((_ctx->sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-        {
-            tcp_client_err("%s: couldn't get socket: %s\n", __PRETTY_FUNCTION__, strerror(errno));
-            return -1;
-        }
-        tcp_client_dbg("New fd = %d\n", _ctx->sock_fd);
-
-        if (connect(_ctx->sock_fd, (struct sockaddr *)&(_ctx->sin), sizeof(_ctx->sin)) == -1) {
-            tcp_client_err("%s: couldn't connect: %s\n", __PRETTY_FUNCTION__, strerror(errno));
-            break;
-        }
-
-        _ctx->sock_event_write = event_new(_ctx->base, _ctx->sock_fd, EV_WRITE, sock_fd_write_cb, _ctx);
-        if(!_ctx->sock_event_write) {
-            tcp_client_err("Error with event_new() call: %m\n");
-            break;
-        }
-
-        _ctx->sock_event_read = event_new(_ctx->base, _ctx->sock_fd, EV_READ | EV_PERSIST, sock_fd_read_cb, _ctx);
-        if(!_ctx->sock_event_read) {
-            tcp_client_err("Error with event_new() call: %m\n");
-            break;
-        }
-
-        if(event_add(_ctx->sock_event_read, NULL)) {
-            tcp_client_err("Error with event_add() call: %m\n");
-            break;
-        }
-
-        if(event_add(_ctx->sock_event_write, NULL)) {
-            tcp_client_err("Error with event_add() call: %m\n");
-            break;
-        }
-
-        if(_ctx->state != tcp_client_connected) {
-            _ctx->state = tcp_client_connected;
-            if(_ctx->event_notifier)
-                _ctx->event_notifier(_ctx, tcp_cli_connected);
-        }
-
-        return 0;
-    }
-    while(0);
-
-    do_unconnect(_ctx);
-
-    if(_ctx->event_notifier)
-        _ctx->event_notifier(_ctx, tcp_cli_bad_try_of_reconnection);
-
-    return -1;
+    if(_state <= emb_tcs_disconnected)
+        return str_states[_state];
+    else
+        return str_unknown;
 }
 
-static void do_unconnect(struct tcp_client_t* _ctx) {
-    if(_ctx->sock_event_read) {
-        event_del(_ctx->sock_event_read);
-        event_free(_ctx->sock_event_read);
-        _ctx->sock_event_read = NULL;
-    }
-
-    if(_ctx->sock_event_write) {
-        event_del(_ctx->sock_event_write);
-        event_free(_ctx->sock_event_write);
-        _ctx->sock_event_write = NULL;
-    }
-
-    if(_ctx->sock_fd > 0) {
-        tcp_client_dbg("closing fd %d\n", _ctx->sock_fd);
-        close(_ctx->sock_fd);
-    }
-
-    if(_ctx->state != tcp_client_disconnected) {
-        _ctx->state = tcp_client_disconnected;
-        if(_ctx->event_notifier)
-            _ctx->event_notifier(_ctx, tcp_cli_disconnected);
+static void emb_tcp_srv_ch_state(emb_tcp_client_t* _cli, emb_tcp_client_state_t _new_state)
+{
+    if(_cli->state != _new_state) {
+        DBG(" %s -> %s\n", str_state(_cli->state), str_state(_new_state));
+        _cli->state = _new_state;
     }
 }
 
-static void reconnect(int fd, short event, void *arg) {
-    struct tcp_client_t* ctx = (struct tcp_client_t*)arg;
-    tcp_client_dbg("reconnection: ...\n");
-    if(do_connect(ctx) == 0) {
-        event_del(ctx->timer_event);
-        tcp_client_dbg("reconnection: ok\n");
-    }
-    else {
-        tcp_client_dbg("reconnection: fail\n");
-    }
+static int emb_tcp_client_is_connected(const emb_tcp_client_t* _cli)
+{
+    return _cli->state == emb_tcs_connected;
 }
 
-static void start_reconnect_timer(struct tcp_client_t* _ctx);
-
-static void first_time_connect(int fd, short event, void *arg) {
-    struct tcp_client_t* ctx = (struct tcp_client_t*)arg;
-    tcp_client_dbg("connection: ...\n");
-    if(do_connect(ctx) == 0) {
-        event_del(ctx->timer_event);
-        tcp_client_dbg("connection: ok\n");
+static int emb_tcp_client_close(emb_tcp_client_t* _cli)
+{
+    DBG("\n");
+    if(emb_tcp_client_is_connected(_cli)) {
+        shutdown(_cli->fd, SHUT_RDWR);
+        close(_cli->fd);
     }
-    else {
-        start_reconnect_timer(ctx);
-        tcp_client_dbg("connection: fail\n");
-    }
-}
-
-static void start_reconnect_timer(struct tcp_client_t* _ctx) {
-    event_assign(_ctx->timer_event, _ctx->base, -1, EV_TIMEOUT | EV_PERSIST, reconnect, _ctx);
-    event_add(_ctx->timer_event, &_ctx->reconnect_timeout);
-    tcp_client_dbg("%s\n", __FUNCTION__);
-}
-
-static void sock_fd_read_cb(evutil_socket_t _fd, short _event, void * _arg) {
-    struct tcp_client_t* ctx = (struct tcp_client_t*)_arg;
-    if(_event & EV_READ) {
-        if(ctx->event_notifier)
-            ctx->event_notifier(ctx, tcp_cli_data_received);
-    }
-}
-
-static void sock_fd_write_cb(evutil_socket_t _fd, short _event, void * _arg) {
-    struct tcp_client_t* ctx = (struct tcp_client_t*)_arg;
-    if(_event & EV_WRITE) {
-        if(ctx->event_notifier)
-            ctx->event_notifier(ctx, tcp_cli_data_sent);
-    }
-}
-
-struct tcp_client_t* tcp_client_new(struct event_base* _base,
-                                    tcp_cient_notifier_t _event_notifier) {
-
-    struct tcp_client_t* res = malloc(sizeof(struct tcp_client_t));
-
-    memset(res, 0, sizeof(struct tcp_client_t));
-    res->base = _base;
-    res->event_notifier = _event_notifier;
-    res->state = tcp_client_default;
-    res->timer_event = event_new(_base, -1, EV_TIMEOUT /*| EV_PERSIST*/, first_time_connect, res);
-    if(!res->timer_event) {
-        tcp_client_err("%s: Error with evtimer_new() call: %m\n", __FUNCTION__);
-        free(res);
-        return NULL;
-    }
-    tcp_client_set_reconnection_delay(res, TCP_CLIENT_DEFAULT_RECONNECT_DLY);
-    return res;
-}
-
-void tcp_client_free(struct tcp_client_t* _ctx) {
-    if(_ctx) {
-        tcp_client_stop_connection(_ctx);
-        if(_ctx->timer_event)
-            event_free(_ctx->timer_event);
-        free(_ctx);
-    }
-}
-
-int tcp_client_start_connection(struct tcp_client_t* _ctx,
-                                const char* _ip_address,
-                                unsigned short _port) {
-
-    struct timeval tv;
-
-    if(!_ctx)
-        return -EINVAL;
-    _ctx->sin.sin_family = AF_INET;
-    inet_aton(_ip_address, &_ctx->sin.sin_addr);
-    _ctx->sin.sin_port = htons(_port);
-    _ctx->state = tcp_client_disconnected;
-
-    tv.tv_sec = 0;
-    tv.tv_usec = 0;
-
-    event_add(_ctx->timer_event, &tv);
-
+    emb_tcp_srv_ch_state(_cli, emb_tcs_disconnected);
+    _cli->fd = -1;
     return 0;
 }
 
-void tcp_client_stop_connection(struct tcp_client_t* _ctx) {
-    if(!_ctx)
-        return;
-    if(_ctx->timer_event)
-        event_del(_ctx->timer_event);
-    do_unconnect(_ctx);
-    _ctx->state = tcp_client_default;
+static void emb_tcp_client_set_blocking(emb_tcp_client_t* _cli, int _enable)
+{
+    long arg;
+    arg = fcntl(_cli->fd, F_GETFL, NULL);
+    if(_enable)
+        arg &= (~O_NONBLOCK);
+    else
+        arg |= O_NONBLOCK;
+
+    fcntl(_cli->fd, F_SETFL, arg);
 }
 
-int tcp_client_read(struct tcp_client_t* _ctx,
-                    void* _p_buffer,
-                    size_t _buff_size) {
-    if(_ctx) {
-        const int r = recv(_ctx->sock_fd, _p_buffer, _buff_size, 0);
-        if(r <= 0) {
-            tcp_client_dbg("disconnection by recv error(%d)\n", r);
-            do_unconnect(_ctx);
-            start_reconnect_timer(_ctx);
+static long get_time_period_ms_from(const struct timeval* _from)
+{
+    struct timeval now;
+    gettimeofday(&now, NULL);
+    return ((now.tv_sec - _from->tv_sec) * 1000 + (now.tv_usec - _from->tv_usec)/1000);
+}
+
+static int emb_tcp_client_try_connect(emb_tcp_client_t* _cli)
+{
+    int ret = 0;
+
+    DBG("%s:%d state:%s, attempts:%d, is_first_reconnect:%d\n",
+        inet_ntoa(_cli->serveraddr.sin_addr),
+        htons(_cli->serveraddr.sin_port),
+        str_state(_cli->state),
+        _cli->connection_attempts,
+        _cli->is_first_reconnect);
+
+    switch(_cli->state) {
+    case emb_tcs_disconnected:
+        // Connection begining:
+
+        // Provide delays between re-connections
+        if(_cli->is_first_reconnect) {
+            if(get_time_period_ms_from(&_cli->connection_start_time) < _cli->first_reconnect_delay_ms)
+                return -ETIMEDOUT;
+        }
+        else {
+            if(get_time_period_ms_from(&_cli->connection_start_time) < _cli->next_reconnects_delay_ms)
+                return -ETIMEDOUT;
+        }
+
+        _cli->is_first_reconnect = 0;
+
+        emb_tcp_client_close(_cli);
+        _cli->connection_attempts++;
+
+        _cli->fd = socket(AF_INET, SOCK_STREAM, 0);
+        if(_cli->fd < 0) {
+            ERR("Error with socket(): %m\n");
+            emb_tcp_srv_ch_state(_cli, emb_tcs_disconnected);
+            return -1;
+        }
+
+        emb_tcp_client_set_blocking(_cli, 0);
+
+        gettimeofday(&_cli->connection_start_time, NULL);
+
+        ret = connect(_cli->fd, (struct sockaddr*)&_cli->serveraddr, sizeof(_cli->serveraddr));
+        if(ret == 0) {
+            emb_tcp_srv_ch_state(_cli, emb_tcs_connected);
+            _cli->is_first_reconnect = 1;
             return 0;
         }
-        return r;
+
+        if(ret < 0) {
+            if(errno == EINPROGRESS) {
+                emb_tcp_srv_ch_state(_cli, emb_tcs_connecting);
+                ret = -EINPROGRESS;
+            }
+        }
+        break;
+
+    case emb_tcs_connecting: {
+
+            fd_set wr_fds;
+            int sel_res;
+            struct timeval tv;
+            struct timeval now;
+
+            tv.tv_sec = 0;
+            tv.tv_usec = 1;
+
+            FD_ZERO(&wr_fds);
+
+            FD_SET(_cli->fd, &wr_fds);
+
+            sel_res = select(_cli->fd + 1, NULL, &wr_fds, NULL, &tv);
+            if(sel_res == 0) {
+                if(get_time_period_ms_from(&_cli->connection_start_time) >= _cli->connect_timeout_ms) {
+                    DBG("Timeout for connection\n");
+                    emb_tcp_client_close(_cli);
+                    return -ETIMEDOUT;
+                }
+            }
+            else if(sel_res < 0) {
+                ERR("select() error: %m\n");
+                emb_tcp_client_close(_cli);
+                return sel_res;
+            }
+            else {
+                int so_error = -1;
+                socklen_t len = sizeof(so_error);
+                if(getsockopt(_cli->fd, SOL_SOCKET, SO_ERROR, (void*)&so_error, &len) != 0) {
+                    ERR("Error with getsockopt(): %m\n");
+                    emb_tcp_client_close(_cli);
+                    return -errno;
+                }
+                if(so_error) {
+                    ERR("Error while connection(): %d\n", so_error);
+                    emb_tcp_client_close(_cli);
+                    return -so_error;
+                }
+                else {    // Successful connection
+                    emb_tcp_srv_ch_state(_cli, emb_tcs_connected);
+                    emb_tcp_client_set_blocking(_cli, 1);
+                    _cli->is_first_reconnect = 1;
+                    return 0;
+                }
+            }
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    return ret;
+}
+
+int emb_tcp_client_set_connection_options(emb_tcp_client_t* _cli, const char* _ip, uint16_t _port)
+{
+    if(_cli && _ip) {
+        int ret;
+        _cli->serveraddr.sin_family = AF_INET;
+        _cli->serveraddr.sin_port = htons(_port);
+
+        ret = inet_pton(AF_INET, _ip, &_cli->serveraddr.sin_addr);
+        if(ret != 1) {
+            if(ret == -1) {
+                ERR("Error with inet_pton(): %m\n");
+            }
+            ERR("Fail with convert IP address: '%s' to binary net address: %m\n", _ip);
+            return ret;
+        }
+        return 0;
     }
     else
         return -EINVAL;
 }
 
-int tcp_client_write(struct tcp_client_t* _ctx,
-                     const void* _p_data,
-                     size_t _data_size) {
-    if(_ctx) {
-        const int r = send(_ctx->sock_fd, _p_data, _data_size, MSG_NOSIGNAL);
-        if(r < 0) {
-            tcp_client_dbg("disconnection by send error(%d)\n", r);
-            do_unconnect(_ctx);
-            start_reconnect_timer(_ctx);
-            return 0;
+int emb_tcp_client_init(emb_tcp_client_t* _cli)
+{
+    if(_cli) {
+        _cli->state = emb_tcs_disconnected;
+        _cli->fd = -1;
+        _cli->rx_bytes = 0ULL;
+        _cli->tx_bytes = 0ULL;
+        _cli->connection_attempts = 0;
+        _cli->is_first_reconnect = 1;
+        _cli->connection_start_time.tv_sec = 0;
+        _cli->connection_start_time.tv_usec = 0;
+        return 0;
+    }
+    return -EINVAL;
+}
+
+int emb_tcp_client_deinit(emb_tcp_client_t* _cli)
+{
+    if(_cli) {
+        return emb_tcp_client_close(_cli);
+    }
+    return -EINVAL;
+}
+
+int emb_tcp_client_send(emb_tcp_client_t* _cli, const void* _buf, unsigned int _length)
+{
+    if(_cli && _buf && _length) {
+        int res;
+
+        if(!emb_tcp_client_is_connected(_cli))
+            emb_tcp_client_try_connect(_cli);
+
+        if(!emb_tcp_client_is_connected(_cli))
+            return -EBADFD;
+
+        res = (int)send(_cli->fd, _buf, _length, 0);
+        if(res < 0) {
+            emb_tcp_client_close(_cli);
+            return -EBADFD;
         }
-        return r;
+        else {
+            _cli->tx_bytes += (unsigned long long)res;
+            return res;
+        }
     }
     else
         return -EINVAL;
 }
 
-void tcp_client_enable_write_event(struct tcp_client_t* _ctx) {
-    if(_ctx && _ctx->sock_event_write)
-        if(event_add(_ctx->sock_event_write, NULL))
-            tcp_client_err("Error with event_add() call: %m\n");
+int emb_tcp_client_recv(emb_tcp_client_t* _cli, void* _buf, unsigned int _length)
+{
+    if(_cli && _buf && _length) {
+
+        int sel_res;
+        fd_set read_fds;
+        struct timeval tv;
+
+        tv.tv_sec = 0;
+        tv.tv_usec = _cli->receive_timeout_ms * 1000;
+
+        if(!emb_tcp_client_is_connected(_cli))
+            emb_tcp_client_try_connect(_cli);
+
+        if(!emb_tcp_client_is_connected(_cli))
+            return -EBADFD;
+
+        FD_ZERO(&read_fds);
+
+        FD_SET(_cli->fd, &read_fds);
+
+        sel_res = select(_cli->fd+1, &read_fds, NULL, NULL, &tv);
+        if(sel_res == 0) {
+            DBG("select() timeout\n");
+            return -ETIMEDOUT;
+        }
+        else if(sel_res < 0) {
+            ERR("select() error: %m\n");
+            return sel_res;
+        }
+        else {
+            int nbytes;
+            if((nbytes = (int)recv(_cli->fd, _buf, _length, 0)) <= 0) {
+                if(nbytes == 0)
+                    DBG("Connection closed\n");
+                else
+                    ERR("Error with recv()\n");
+
+                emb_tcp_client_close(_cli);
+                return -EBADFD;
+            }
+            _cli->rx_bytes += (unsigned long long)nbytes;
+            return nbytes;
+        }
+    }
+    return -EINVAL;
 }
-
-struct event_base* tcp_client_get_base(const struct tcp_client_t *_ctx) {
-    return _ctx ? _ctx->base : NULL;
-}
-
-int tcp_client_get_fd(const struct tcp_client_t* _ctx) {
-    return _ctx ? _ctx->sock_fd : -1;
-}
-
-void tcp_client_set_reconnection_delay(struct tcp_client_t *_ctx,
-                                       unsigned int _sec) {
-
-    _ctx->reconnect_timeout.tv_sec = _sec;
-    _ctx->reconnect_timeout.tv_usec = 0;
-}
-
-void tcp_client_set_user_data(struct tcp_client_t* _ctx, void* _user_data) {
-    _ctx->user_data = _user_data;
-}
-
-void* tcp_client_get_user_data(struct tcp_client_t* _ctx) {
-    return _ctx->user_data;
-}
-
