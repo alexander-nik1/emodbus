@@ -44,6 +44,7 @@ static int emb_tcp_client_close(emb_tcp_client_t* _cli)
         shutdown(_cli->fd, SHUT_RDWR);
         close(_cli->fd);
     }
+    gettimeofday(&_cli->disconnect_time, NULL);
     emb_tcp_srv_ch_state(_cli, emb_tcs_disconnected);
     _cli->fd = -1;
     return 0;
@@ -57,7 +58,6 @@ static void emb_tcp_client_set_blocking(emb_tcp_client_t* _cli, int _enable)
         arg &= (~O_NONBLOCK);
     else
         arg |= O_NONBLOCK;
-
     fcntl(_cli->fd, F_SETFL, arg);
 }
 
@@ -68,16 +68,115 @@ static long get_time_period_ms_from(const struct timeval* _from)
     return ((now.tv_sec - _from->tv_sec) * 1000 + (now.tv_usec - _from->tv_usec)/1000);
 }
 
+#define get_time_period_s_from(_from_) (get_time_period_ms_from(_from_) / 1000)
+
+static void timeval_set_ms(struct timeval* _tv, long _ms)
+{
+    _tv->tv_sec = _ms / 1000;
+    _tv->tv_usec = (_ms % 1000) * 1000;
+}
+
+static int emb_tcp_client_start_connect(emb_tcp_client_t* _cli)
+{
+    int ret = 0;
+
+    _cli->fd = socket(AF_INET, SOCK_STREAM, 0);
+    if(_cli->fd < 0) {
+        ERR("Error with socket(): %m\n");
+        gettimeofday(&_cli->disconnect_time, NULL);
+        emb_tcp_srv_ch_state(_cli, emb_tcs_disconnected);
+        return -1;
+    }
+
+    emb_tcp_client_set_blocking(_cli, 0);
+
+    ret = connect(_cli->fd, (struct sockaddr*)&_cli->serveraddr, sizeof(_cli->serveraddr));
+    if(ret == 0) {
+        gettimeofday(&_cli->connect_time, NULL);
+        emb_tcp_srv_ch_state(_cli, emb_tcs_connected);
+        emb_tcp_client_set_blocking(_cli, 1);
+        _cli->is_first_reconnect = 1;
+        return 0;
+    }
+
+    if(ret < 0) {
+        if(errno == EINPROGRESS) {
+            emb_tcp_srv_ch_state(_cli, emb_tcs_connecting);
+            ret = -EINPROGRESS;
+        }
+    }
+
+    return ret;
+}
+
+static int emb_tcp_client_wait4connect(emb_tcp_client_t* _cli)
+{
+    fd_set wr_fds;
+    int sel_res;
+    struct timeval tv;
+
+    if(_cli->flags & EMB_TCP_CLI_NO_DELAY_WHILE_CONNECT)
+        timeval_set_ms(&tv, 0);
+    else
+        timeval_set_ms(&tv, _cli->connect_timeout_ms);
+
+    FD_ZERO(&wr_fds);
+
+    FD_SET(_cli->fd, &wr_fds);
+
+    sel_res = select(_cli->fd + 1, NULL, &wr_fds, NULL, &tv);
+    if(sel_res == 0) {
+        if(_cli->flags & EMB_TCP_CLI_NO_DELAY_WHILE_CONNECT) {
+            if(get_time_period_ms_from(&_cli->connection_start_time) >= _cli->connect_timeout_ms) {
+                DBG("Timeout for connection\n");
+                emb_tcp_client_close(_cli);
+                return -ETIMEDOUT;
+            }
+        }
+        DBG("Timeout for connection\n");
+        emb_tcp_client_close(_cli);
+        return -ETIMEDOUT;
+    }
+    else if(sel_res < 0) {
+        ERR("select() error: %m\n");
+        emb_tcp_client_close(_cli);
+        return sel_res;
+    }
+    else {
+        int so_error = -1;
+        socklen_t len = sizeof(so_error);
+        if(getsockopt(_cli->fd, SOL_SOCKET, SO_ERROR, (void*)&so_error, &len) != 0) {
+            ERR("Error with getsockopt(): %m\n");
+            emb_tcp_client_close(_cli);
+            return -errno;
+        }
+        if(so_error) {
+            ERR("Error while connection(): %d\n", so_error);
+            emb_tcp_client_close(_cli);
+            return -so_error;
+        }
+        else {    // Successful connection
+            gettimeofday(&_cli->connect_time, NULL);
+            emb_tcp_srv_ch_state(_cli, emb_tcs_connected);
+            emb_tcp_client_set_blocking(_cli, 1);
+            _cli->is_first_reconnect = 1;
+            return 0;
+        }
+    }
+}
+
 static int emb_tcp_client_try_connect(emb_tcp_client_t* _cli)
 {
     int ret = 0;
 
-    DBG("%s:%d state:%s, attempts:%d, is_first_reconnect:%d\n",
+    printf("%s:%d state:%s, attempts:%d, is_first_reconnect:%d\n",
         inet_ntoa(_cli->serveraddr.sin_addr),
         htons(_cli->serveraddr.sin_port),
         str_state(_cli->state),
         _cli->connection_attempts,
         _cli->is_first_reconnect);
+
+
 
     switch(_cli->state) {
     case emb_tcs_disconnected:
@@ -85,94 +184,31 @@ static int emb_tcp_client_try_connect(emb_tcp_client_t* _cli)
 
         // Provide delays between re-connections
         if(_cli->is_first_reconnect) {
-            if(get_time_period_ms_from(&_cli->connection_start_time) < _cli->first_reconnect_delay_ms)
+            if(get_time_period_ms_from(&_cli->disconnect_time) < _cli->first_reconnect_delay_ms)
                 return -ETIMEDOUT;
         }
         else {
-            if(get_time_period_ms_from(&_cli->connection_start_time) < _cli->next_reconnects_delay_ms)
+            if(get_time_period_ms_from(&_cli->disconnect_time) < _cli->next_reconnects_delay_ms)
                 return -ETIMEDOUT;
         }
+
+        printf("====================> starting connection %s\n",
+               _cli->is_first_reconnect ? "FIRST" : "SECOND");
 
         _cli->is_first_reconnect = 0;
 
         emb_tcp_client_close(_cli);
         _cli->connection_attempts++;
 
-        _cli->fd = socket(AF_INET, SOCK_STREAM, 0);
-        if(_cli->fd < 0) {
-            ERR("Error with socket(): %m\n");
-            emb_tcp_srv_ch_state(_cli, emb_tcs_disconnected);
-            return -1;
-        }
-
-        emb_tcp_client_set_blocking(_cli, 0);
-
         gettimeofday(&_cli->connection_start_time, NULL);
 
-        ret = connect(_cli->fd, (struct sockaddr*)&_cli->serveraddr, sizeof(_cli->serveraddr));
-        if(ret == 0) {
-            emb_tcp_srv_ch_state(_cli, emb_tcs_connected);
-            _cli->is_first_reconnect = 1;
-            return 0;
-        }
+        ret = emb_tcp_client_start_connect(_cli);
 
-        if(ret < 0) {
-            if(errno == EINPROGRESS) {
-                emb_tcp_srv_ch_state(_cli, emb_tcs_connecting);
-                ret = -EINPROGRESS;
-            }
-        }
-        break;
+        if(_cli->flags & EMB_TCP_CLI_NO_DELAY_WHILE_CONNECT)
+            break;
 
-    case emb_tcs_connecting: {
-
-            fd_set wr_fds;
-            int sel_res;
-            struct timeval tv;
-            struct timeval now;
-
-            tv.tv_sec = 0;
-            tv.tv_usec = 1;
-
-            FD_ZERO(&wr_fds);
-
-            FD_SET(_cli->fd, &wr_fds);
-
-            sel_res = select(_cli->fd + 1, NULL, &wr_fds, NULL, &tv);
-            if(sel_res == 0) {
-                if(get_time_period_ms_from(&_cli->connection_start_time) >= _cli->connect_timeout_ms) {
-                    DBG("Timeout for connection\n");
-                    emb_tcp_client_close(_cli);
-                    return -ETIMEDOUT;
-                }
-            }
-            else if(sel_res < 0) {
-                ERR("select() error: %m\n");
-                emb_tcp_client_close(_cli);
-                return sel_res;
-            }
-            else {
-                int so_error = -1;
-                socklen_t len = sizeof(so_error);
-                if(getsockopt(_cli->fd, SOL_SOCKET, SO_ERROR, (void*)&so_error, &len) != 0) {
-                    ERR("Error with getsockopt(): %m\n");
-                    emb_tcp_client_close(_cli);
-                    return -errno;
-                }
-                if(so_error) {
-                    ERR("Error while connection(): %d\n", so_error);
-                    emb_tcp_client_close(_cli);
-                    return -so_error;
-                }
-                else {    // Successful connection
-                    emb_tcp_srv_ch_state(_cli, emb_tcs_connected);
-                    emb_tcp_client_set_blocking(_cli, 1);
-                    _cli->is_first_reconnect = 1;
-                    return 0;
-                }
-            }
-        }
-        break;
+    case emb_tcs_connecting:
+        return emb_tcp_client_wait4connect(_cli);
 
     default:
         break;
@@ -213,6 +249,8 @@ int emb_tcp_client_init(emb_tcp_client_t* _cli)
         _cli->is_first_reconnect = 1;
         _cli->connection_start_time.tv_sec = 0;
         _cli->connection_start_time.tv_usec = 0;
+        _cli->disconnect_time.tv_sec = 0;
+        _cli->disconnect_time.tv_usec = 0;
         return 0;
     }
     return -EINVAL;
@@ -242,10 +280,16 @@ int emb_tcp_client_send(emb_tcp_client_t* _cli, const void* _buf, unsigned int _
             emb_tcp_client_close(_cli);
             return -EBADFD;
         }
-        else {
-            _cli->tx_bytes += (unsigned long long)res;
-            return res;
+
+        if((_cli->flags & EMB_TCP_CLI_FORCE_RECONN_AT_SEND) && _cli->force_reconnect_delay_s) {
+            if(get_time_period_s_from(&_cli->connect_time) > _cli->force_reconnect_delay_s) {
+                DBG("Force reconnection\n");
+                emb_tcp_client_close(_cli);
+            }
         }
+
+        _cli->tx_bytes += (unsigned long long)res;
+        return res;
     }
     else
         return -EINVAL;
@@ -259,8 +303,7 @@ int emb_tcp_client_recv(emb_tcp_client_t* _cli, void* _buf, unsigned int _length
         fd_set read_fds;
         struct timeval tv;
 
-        tv.tv_sec = 0;
-        tv.tv_usec = _cli->receive_timeout_ms * 1000;
+        timeval_set_ms(&tv, _cli->receive_timeout_ms);
 
         if(!emb_tcp_client_is_connected(_cli))
             emb_tcp_client_try_connect(_cli);
@@ -279,6 +322,7 @@ int emb_tcp_client_recv(emb_tcp_client_t* _cli, void* _buf, unsigned int _length
         }
         else if(sel_res < 0) {
             ERR("select() error: %m\n");
+            emb_tcp_client_close(_cli);
             return sel_res;
         }
         else {
@@ -292,6 +336,14 @@ int emb_tcp_client_recv(emb_tcp_client_t* _cli, void* _buf, unsigned int _length
                 emb_tcp_client_close(_cli);
                 return -EBADFD;
             }
+
+            if((_cli->flags & EMB_TCP_CLI_FORCE_RECONN_AT_RECV) && _cli->force_reconnect_delay_s) {
+                if(get_time_period_s_from(&_cli->connect_time) > _cli->force_reconnect_delay_s) {
+                    DBG("Force reconnection\n");
+                    emb_tcp_client_close(_cli);
+                }
+            }
+
             _cli->rx_bytes += (unsigned long long)nbytes;
             return nbytes;
         }

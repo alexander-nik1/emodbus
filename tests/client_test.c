@@ -9,13 +9,14 @@
 #include <emodbus/impl/posix/tcp-client.h>
 #include <emodbus/base/modbus_errno.h>
 
-
 static emb_tcp_client_t tcp_client =
 {
     .receive_timeout_ms = 100,
-    .connect_timeout_ms = 500,
-    .first_reconnect_delay_ms = 3000,
-    .next_reconnects_delay_ms = 10000
+    .connect_timeout_ms = 3000,
+    .first_reconnect_delay_ms = 0,
+    .next_reconnects_delay_ms = 10000,
+    .force_reconnect_delay_s = 10,
+    .flags = EMB_TCP_CLI_FORCE_RECONN_AT_RECV //EMB_TCP_CLI_NO_DELAY_WHILE_CONNECT
 };
 
 static uint8_t buf[256+16];
@@ -47,13 +48,13 @@ static int client_send_adu(emb_sync_client_t* _cli, const emb_adu_t* _adu)
 
     r = emb_tcp_encode_packet(_adu, buf, sizeof(buf));
     if(r < 0) {
-        fprintf(stderr, "Error with emb_tcp_encode_packet() :%d\n", r);
+//        fprintf(stderr, "Error with emb_tcp_encode_packet() :%d\n", r);
         return r;
     }
 
     r = emb_tcp_client_send(&tcp_client, buf, (unsigned int)r);
     if(r < 0) {
-        fprintf(stderr, "Error with emb_tcp_client_send(): %d\n", r);
+//        fprintf(stderr, "Error with emb_tcp_client_send(): %d\n", r);
         return r;
     }
     return modbus_success;
@@ -66,13 +67,13 @@ static int client_recv_adu(emb_sync_client_t* _cli, emb_adu_t* _adu)
 
     r = emb_tcp_client_recv(&tcp_client, buf, sizeof(buf));
     if(r < 0) {
-        fprintf(stderr, "Error with emb_tcp_client_recv(): %s\n", emb_strerror(-r));
+//        fprintf(stderr, "Error with emb_tcp_client_recv(): %s\n", emb_strerror(-r));
         return r;
     }
 
     r = emb_tcp_decode_packet(buf, (unsigned int)r, _adu);
     if(r != 0) {
-        fprintf(stderr, "Error with emb_tcp_decode_packet(): %d\n", r);
+//        fprintf(stderr, "Error with emb_tcp_decode_packet(): %d\n", r);
     }
     return r;
 }
@@ -97,7 +98,7 @@ int main(int argc, char* argv[])
 
     printf("Client test\n");
 
-    res = emb_tcp_client_set_connection_options(&tcp_client, "192.168.1.201", 8502);
+    res = emb_tcp_client_set_connection_options(&tcp_client, "192.168.1.151", 8502);
     if(res != 0)
         return -1;
 
@@ -108,7 +109,7 @@ int main(int argc, char* argv[])
     for(i=0; i<10000; ++i) {
         res = emb_sync_client_read_regs(&client, 1, EMB_RR_HOLDINGS, 0x0000, 14, regs);
         if(res != modbus_success) {
-            printf("error with emb_sync_client_read_regs: %d (%m)\n", res);
+//            printf("error with emb_sync_client_read_regs: %d (%m)\n", res);
         }
         else {
             printf("%d: ok\n", i);
