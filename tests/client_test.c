@@ -11,12 +11,16 @@
 
 static emb_tcp_client_t tcp_client =
 {
+    .transmit_timeout_ms = 100,
     .receive_timeout_ms = 100,
     .connect_timeout_ms = 3000,
     .first_reconnect_delay_ms = 0,
     .next_reconnects_delay_ms = 10000,
-    .force_reconnect_delay_s = 10,
-    .flags = EMB_TCP_CLI_FORCE_RECONN_AT_RECV //EMB_TCP_CLI_NO_DELAY_WHILE_CONNECT
+    .force_reconnect_delay_s = 0,
+    .rxtx_timeouts_to_reconnect = 10,
+    .flags = EMB_TCP_CLI_FORCE_RECONN_AT_RECV |
+             EMB_TCP_CLI_RECONNECT_AT_TIMEOUTS_COUNTER |
+             EMB_TCP_CLI_NO_DELAY_WHILE_CONNECT
 };
 
 static uint8_t buf[256+16];

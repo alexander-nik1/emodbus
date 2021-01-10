@@ -5,7 +5,7 @@
 #include <fcntl.h>
 #include <sys/time.h>
 
-#define DBG(...)    fputs(__FUNCTION__, stdout), printf("(): " __VA_ARGS__)
+#define DBG(...)    //fputs(__FUNCTION__, stdout), printf("(): " __VA_ARGS__)
 #define ERR(...)    fputs(__FUNCTION__, stderr), fprintf(stderr, "(): " __VA_ARGS__)
 
 static const char* str_state(emb_tcp_client_state_t _state)
@@ -96,6 +96,8 @@ static int emb_tcp_client_start_connect(emb_tcp_client_t* _cli)
         emb_tcp_srv_ch_state(_cli, emb_tcs_connected);
         emb_tcp_client_set_blocking(_cli, 1);
         _cli->is_first_reconnect = 1;
+        _cli->rx_timeouts_counter = 0;
+        _cli->tx_timeouts_counter = 0;
         return 0;
     }
 
@@ -160,6 +162,8 @@ static int emb_tcp_client_wait4connect(emb_tcp_client_t* _cli)
             emb_tcp_srv_ch_state(_cli, emb_tcs_connected);
             emb_tcp_client_set_blocking(_cli, 1);
             _cli->is_first_reconnect = 1;
+            _cli->rx_timeouts_counter = 0;
+            _cli->tx_timeouts_counter = 0;
             return 0;
         }
     }
@@ -169,12 +173,12 @@ static int emb_tcp_client_try_connect(emb_tcp_client_t* _cli)
 {
     int ret = 0;
 
-    printf("%s:%d state:%s, attempts:%d, is_first_reconnect:%d\n",
-        inet_ntoa(_cli->serveraddr.sin_addr),
-        htons(_cli->serveraddr.sin_port),
-        str_state(_cli->state),
-        _cli->connection_attempts,
-        _cli->is_first_reconnect);
+//    printf("%s:%d state:%s, attempts:%d, is_first_reconnect:%d\n",
+//        inet_ntoa(_cli->serveraddr.sin_addr),
+//        htons(_cli->serveraddr.sin_port),
+//        str_state(_cli->state),
+//        _cli->connection_attempts,
+//        _cli->is_first_reconnect);
 
 
 
@@ -192,8 +196,8 @@ static int emb_tcp_client_try_connect(emb_tcp_client_t* _cli)
                 return -ETIMEDOUT;
         }
 
-        printf("====================> starting connection %s\n",
-               _cli->is_first_reconnect ? "FIRST" : "SECOND");
+//        printf("====================> starting connection %s\n",
+//               _cli->is_first_reconnect ? "FIRST" : "SECOND");
 
         _cli->is_first_reconnect = 0;
 
@@ -245,6 +249,8 @@ int emb_tcp_client_init(emb_tcp_client_t* _cli)
         _cli->fd = -1;
         _cli->rx_bytes = 0ULL;
         _cli->tx_bytes = 0ULL;
+        _cli->rx_timeouts_counter = 0;
+        _cli->tx_timeouts_counter = 0;
         _cli->connection_attempts = 0;
         _cli->is_first_reconnect = 1;
         _cli->connection_start_time.tv_sec = 0;
@@ -264,10 +270,31 @@ int emb_tcp_client_deinit(emb_tcp_client_t* _cli)
     return -EINVAL;
 }
 
+static void emb_tcp_cli_check4rxtx_timeouts(emb_tcp_client_t* _cli)
+{
+    if(_cli->flags & EMB_TCP_CLI_RECONNECT_AT_TIMEOUTS_COUNTER) {
+        if(_cli->rx_timeouts_counter >= _cli->rxtx_timeouts_to_reconnect) {
+            DBG("Reached maximum number of receive timeouts (%d), force reconnection\n", _cli->rxtx_timeouts_to_reconnect);
+            _cli->rx_timeouts_counter = 0;
+            emb_tcp_client_close(_cli);
+        }
+        if(_cli->tx_timeouts_counter >= _cli->rxtx_timeouts_to_reconnect) {
+            DBG("Reached maximum number of transmit timeouts (%d), force reconnection\n", _cli->rxtx_timeouts_to_reconnect);
+            _cli->tx_timeouts_counter = 0;
+            emb_tcp_client_close(_cli);
+        }
+    }
+}
+
 int emb_tcp_client_send(emb_tcp_client_t* _cli, const void* _buf, unsigned int _length)
 {
     if(_cli && _buf && _length) {
-        int res;
+
+        int sel_res;
+        fd_set write_fds;
+        struct timeval tv;
+
+        timeval_set_ms(&tv, _cli->transmit_timeout_ms);
 
         if(!emb_tcp_client_is_connected(_cli))
             emb_tcp_client_try_connect(_cli);
@@ -275,24 +302,49 @@ int emb_tcp_client_send(emb_tcp_client_t* _cli, const void* _buf, unsigned int _
         if(!emb_tcp_client_is_connected(_cli))
             return -EBADFD;
 
-        res = (int)send(_cli->fd, _buf, _length, 0);
-        if(res < 0) {
+        FD_ZERO(&write_fds);
+
+        FD_SET(_cli->fd, &write_fds);
+
+        sel_res = select(_cli->fd+1, NULL, &write_fds, NULL, &tv);
+        if(sel_res == 0) {
+            DBG("select() timeout\n");
+            _cli->tx_timeouts_counter++;
+            emb_tcp_cli_check4rxtx_timeouts(_cli);
+            return -ETIMEDOUT;
+        }
+        else if(sel_res < 0) {
+            ERR("select() error: %m\n");
             emb_tcp_client_close(_cli);
-            return -EBADFD;
+            return sel_res;
         }
+        else {
+            int nbytes;
+            if((nbytes = (int)send(_cli->fd, _buf, _length, 0)) <= 0) {
+                if(nbytes == 0)
+                    DBG("Connection closed\n");
+                else
+                    ERR("Error with send()\n");
 
-        if((_cli->flags & EMB_TCP_CLI_FORCE_RECONN_AT_SEND) && _cli->force_reconnect_delay_s) {
-            if(get_time_period_s_from(&_cli->connect_time) > _cli->force_reconnect_delay_s) {
-                DBG("Force reconnection\n");
                 emb_tcp_client_close(_cli);
+                return -EBADFD;
             }
-        }
 
-        _cli->tx_bytes += (unsigned long long)res;
-        return res;
+            if((_cli->flags & EMB_TCP_CLI_FORCE_RECONN_AT_SEND) && _cli->force_reconnect_delay_s) {
+                if(get_time_period_s_from(&_cli->connect_time) > _cli->force_reconnect_delay_s) {
+                    DBG("Force reconnection\n");
+                    emb_tcp_client_close(_cli);
+                }
+            }
+
+            if(_cli->tx_timeouts_counter > 0)
+                _cli->tx_timeouts_counter--;
+
+            _cli->tx_bytes += (unsigned long long)nbytes;
+            return nbytes;
+        }
     }
-    else
-        return -EINVAL;
+    return -EINVAL;
 }
 
 int emb_tcp_client_recv(emb_tcp_client_t* _cli, void* _buf, unsigned int _length)
@@ -318,6 +370,8 @@ int emb_tcp_client_recv(emb_tcp_client_t* _cli, void* _buf, unsigned int _length
         sel_res = select(_cli->fd+1, &read_fds, NULL, NULL, &tv);
         if(sel_res == 0) {
             DBG("select() timeout\n");
+            _cli->rx_timeouts_counter++;
+            emb_tcp_cli_check4rxtx_timeouts(_cli);
             return -ETIMEDOUT;
         }
         else if(sel_res < 0) {
@@ -343,6 +397,9 @@ int emb_tcp_client_recv(emb_tcp_client_t* _cli, void* _buf, unsigned int _length
                     emb_tcp_client_close(_cli);
                 }
             }
+
+            if(_cli->rx_timeouts_counter > 0)
+                _cli->rx_timeouts_counter--;
 
             _cli->rx_bytes += (unsigned long long)nbytes;
             return nbytes;

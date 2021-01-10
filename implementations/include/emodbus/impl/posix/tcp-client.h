@@ -45,7 +45,8 @@ typedef enum
 {
 	EMB_TCP_CLI_NO_DELAY_WHILE_CONNECT = (1 << 0),	///< Set this flag will not add additional delays to await connection.
 	EMB_TCP_CLI_FORCE_RECONN_AT_SEND =   (1 << 1),	///< Allow forced reconnection after successful send operation
-	EMB_TCP_CLI_FORCE_RECONN_AT_RECV =   (1 << 2)	///< Allow forced reconnection after successful receive operation
+	EMB_TCP_CLI_FORCE_RECONN_AT_RECV =   (1 << 2),	///< Allow forced reconnection after successful receive operation
+	EMB_TCP_CLI_RECONNECT_AT_TIMEOUTS_COUNTER = (1 << 3) ///< Reconnect when a timeouts counter is reached defined value
 } emb_tcp_cli_flags_t;
 
 /*! \brief TCP Client context
@@ -53,27 +54,30 @@ typedef enum
  */
 typedef struct
 {
-	unsigned int receive_timeout_ms;		///< Receive timeout, must be set by user
-	unsigned int connect_timeout_ms;		///< Connection timeout, must be set by user
-	unsigned int first_reconnect_delay_ms;	///< Delay between disconnect and connection attempt, must be set by user
-	unsigned int next_reconnects_delay_ms;	///< Delay between connection attempts, must be set by user
-	unsigned int force_reconnect_delay_s;	///< The time after which there will be a forced reconnection.
-											///< The countdown starts from the moment of successful connection. Must be set by user
+	unsigned int transmit_timeout_ms;			///< Transmit timeout, must be set by user
+	unsigned int receive_timeout_ms;			///< Receive timeout, must be set by user
+	unsigned int connect_timeout_ms;			///< Connection timeout, must be set by user
+	unsigned int first_reconnect_delay_ms;		///< Delay between disconnect and connection attempt, must be set by user
+	unsigned int next_reconnects_delay_ms;		///< Delay between connection attempts, must be set by user
+	unsigned int force_reconnect_delay_s;		///< The time after which there will be a forced reconnection.
+												///< The countdown starts from the moment of successful connection. Must be set by user
+	unsigned int rxtx_timeouts_to_reconnect;	///< The maximum of timeout errors, by reaching which, a reconnect will be triggered.
 
-	struct sockaddr_in serveraddr;			///< Internal variable (used for passing connection options)
-	int fd;									///< Internal variable (socket descriptor)
-	unsigned int flags;						///< Flags \see emb_tcp_cli_flags_t, must be set by user
-	char is_first_reconnect;				///< Internal variable (a flag for first try of connect)
+	struct sockaddr_in serveraddr;				///< Internal variable (used for passing connection options)
+	int fd;										///< Internal variable (socket descriptor)
+	unsigned int flags;							///< Flags \see emb_tcp_cli_flags_t, must be set by user
+	char is_first_reconnect;					///< Internal variable (a flag for first try of connect)
 
-	emb_tcp_client_state_t state;			///< Internal variable (state of client, \see emb_tcp_client_state_t)
-	struct timeval connection_start_time;	///< Internal variable (time, when connection started)
-	struct timeval connect_time;			///< Internal variable (time, when connection estabilished)
-	struct timeval disconnect_time;			///< Internal variable (disconnection time)
+	emb_tcp_client_state_t state;				///< Internal variable (state of client, \see emb_tcp_client_state_t)
+	struct timeval connection_start_time;		///< Internal variable (time, when connection started)
+	struct timeval connect_time;				///< Internal variable (time, when connection estabilished)
+	struct timeval disconnect_time;				///< Internal variable (disconnection time)
 
-    // statistic
-	unsigned long long rx_bytes;			///< Statistic, received bytes
-	unsigned long long tx_bytes;			///< Statistic, transmitted bytes
-	unsigned int connection_attempts;		///< Statistic, number of connection attempts
+	unsigned long long rx_bytes;				///< Statistic, received bytes
+	unsigned long long tx_bytes;				///< Statistic, transmitted bytes
+	unsigned int connection_attempts;			///< Statistic, number of connection attempts
+	unsigned int rx_timeouts_counter;			///< Counter of timeouts for receiving, increases when timeout occurs, decreases, when is ok
+	unsigned int tx_timeouts_counter;			///< Counter of timeouts for receiving, increases when timeout occurs, decreases, when is ok
 } emb_tcp_client_t;
 
 /**
