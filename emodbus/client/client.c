@@ -77,7 +77,7 @@ static int __emb_sync_client_read_bits(emb_sync_client_t* _cli,
 //        return -modbus_wrong_resp_quantity;
 
 //    return emb_read_regs_get_ans_regs(MB_CONST_PDU(&_cli->ans_adu->pdu), 0, (uint16_t)regsn, _result);
-    return 0;
+//    return 0;
 }
 
 int emb_sync_client_read_bits(emb_sync_client_t* _cli,

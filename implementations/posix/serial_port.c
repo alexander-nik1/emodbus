@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-void serial_port_init(struct serial_port_t* _ctx)
+void emb_serial_port_init(struct emb_serial_port_t* _ctx)
 {
     if(_ctx) {
         _ctx->fd = -1;
@@ -22,7 +22,7 @@ void serial_port_init(struct serial_port_t* _ctx)
     }
 }
 
-int serial_port_open(struct serial_port_t* _ctx)
+int emb_serial_port_open(struct emb_serial_port_t* _ctx)
 {
     struct termios options;
 
@@ -87,7 +87,7 @@ int serial_port_open(struct serial_port_t* _ctx)
 
         tcsetattr(_ctx->fd, TCSANOW, &options);
 
-        if(serial_port_set_baudrate(_ctx, _ctx->baudrate)) {
+        if(emb_serial_port_set_baudrate(_ctx, _ctx->baudrate)) {
             fprintf(stderr, "%s: Error with serial_port_set_baudrate() call: %m\n", __FUNCTION__);
             break;
         }
@@ -95,12 +95,12 @@ int serial_port_open(struct serial_port_t* _ctx)
 
     } while(0);
 
-    serial_port_close(_ctx);
+    emb_serial_port_close(_ctx);
 
     return -1;
 }
 
-void serial_port_close(struct serial_port_t* _ctx)
+void emb_serial_port_close(struct emb_serial_port_t* _ctx)
 {
     if(_ctx && _ctx->fd >= 0) {
         close(_ctx->fd);
@@ -210,7 +210,7 @@ static int posix_serial_port_get_speedt_by_baudrate(unsigned int _baudrate)
     }
 }
 
-int serial_port_set_baudrate(struct serial_port_t *_ctx,
+int emb_serial_port_set_baudrate(struct emb_serial_port_t *_ctx,
                              unsigned int _baudrate)
 {
     if(_ctx) {
@@ -245,7 +245,7 @@ int serial_port_set_baudrate(struct serial_port_t *_ctx,
 
 #define DBG(...) // printf(__VA_ARGS__)
 
-int serial_port_receive(struct serial_port_t* _ctx, void* _p_buffer, unsigned int _max_size)
+int emb_serial_port_receive(struct emb_serial_port_t* _ctx, void* _p_buffer, unsigned int _max_size)
 {
     if(_ctx && _ctx->fd >= 0 && _p_buffer && _max_size) {
 
@@ -335,7 +335,7 @@ int serial_port_receive(struct serial_port_t* _ctx, void* _p_buffer, unsigned in
     return -EINVAL;
 }
 
-int serial_port_send(struct serial_port_t* _ctx, const void* _p_data, unsigned int _size)
+int emb_serial_port_send(struct emb_serial_port_t* _ctx, const void* _p_data, unsigned int _size)
 {
     if(_ctx && _ctx->fd >= 0 && _p_data && _size) {
         struct timeval tv;

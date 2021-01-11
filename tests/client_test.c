@@ -11,12 +11,12 @@
 
 static emb_tcp_client_t tcp_client =
 {
-    .transmit_timeout_ms = 100,
-    .receive_timeout_ms = 100,
+    .transmit_timeout_ms = 10,
+    .receive_timeout_ms =  10,
     .connect_timeout_ms = 3000,
     .first_reconnect_delay_ms = 0,
-    .next_reconnects_delay_ms = 10000,
-    .force_reconnect_delay_s = 0,
+    .next_reconnects_delay_ms = 1000,
+    .force_reconnect_delay_s = 10,
     .rxtx_timeouts_to_reconnect = 10,
     .flags = EMB_TCP_CLI_FORCE_RECONN_AT_RECV |
              EMB_TCP_CLI_RECONNECT_AT_TIMEOUTS_COUNTER |
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 
     printf("Client test\n");
 
-    res = emb_tcp_client_set_connection_options(&tcp_client, "192.168.1.151", 8502);
+    res = emb_tcp_client_set_connection_options(&tcp_client, "192.168.50.151", 8502);
     if(res != 0)
         return -1;
 
@@ -111,14 +111,18 @@ int main(int argc, char* argv[])
         return -1;
 
     for(i=0; i<10000; ++i) {
-        res = emb_sync_client_read_regs(&client, 1, EMB_RR_HOLDINGS, 0x0000, 14, regs);
-        if(res != modbus_success) {
-//            printf("error with emb_sync_client_read_regs: %d (%m)\n", res);
-        }
-        else {
-            printf("%d: ok\n", i);
-        }
-        usleep(1000*1000);
+        res = emb_sync_client_read_regs(&client, 1, EMB_RR_HOLDINGS, 0x0000, sizeof(regs), regs);
+        fputs("\r", stdout);
+        printf("%d: reconnects:%d state:%s good:%d bad:%d %s",
+               i,
+               tcp_client.connection_attempts,
+               tcp_client.state == emb_tcs_connected ? "connected" : "disconnected",
+               client.good_transactions,
+               client.bad_transactions,
+               i == modbus_success ? "ok" : emb_strerror(-res));
+        fputs("                             \n", stdout);
+        fflush(stdout);
+        usleep(1000*1);
     }
 
     emb_tcp_client_deinit(&tcp_client);
