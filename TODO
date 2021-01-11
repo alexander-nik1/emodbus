@@ -4,9 +4,6 @@ to give user ability to specialize the sources of the emodbus ? (This file will
 be provided by user, and it should be placed in user-sources tree, not in the 
 emodbus sources)
 
-Add a flag, called 'enabled' for the server. To give a "disabled" mode for the server,
-when it will drop all incoming requests.
-
 For the server, add ability to discard from sending the response to the client,
 when user wants it. This can be done by returning the 0xFF error, when the function is called.
 
@@ -18,17 +15,6 @@ Apply previously collected limitations (limits.h) in all places, where it used.
 
 Make accessible the 0xFFFF file's register.
 
-Think about: what kinds of DEB packages we are need ?
-
-I need try to use this library somewhere like: AVR or ARM.
-
-Make forst time reconnection timeout is 0, for TCP-client.
-
-Suppose: we have a server, that works via modbus-tcp transport.
-And each new client need to pass an authentication. In this case, user take care of saving a client-id, and authentication info.
-What user need to do, for know about which of clients make a current request.
-Can we add a possibility to get client-ID from emb_server_t ?
-
 A server must return a MBE_SLAVE_BUSY(0x06) error, when it busy by another request.
 A client, when got a MBE_SLAVE_BUSY error must perfom one from two deals:
 1) Send this error to the high level.
@@ -36,45 +22,30 @@ A client, when got a MBE_SLAVE_BUSY error must perfom one from two deals:
 And if all retries got the same error, then send it to the high level.
 All this behaviour must be set by some options, that client should get from high level.
 
-Remake an implementations to clear C instead C++.
-
 License this library. Read about here: http://www.gnu.org/licenses/gpl-howto.ru.html.
 This library need a LGPL v2 license.
 
-Add a tests for the File-Records, 0x02 and 0x04 functions.
-
-Добавить очередь в client_t. И если он будет работать в асинхронном режиме,
-то использовать эту очередь.
-
-Think about function-names, register, coils, and so on.
-
-Make a cilend and server function 0x17. (Read/Write multiple registers)
-
-Разработать прокси для сервера, как в rmodbus.
-Заметки по прокси:
-Для чтения чего-либо из сервера транзакция должна быть синхронной, потому, что:
-функция чтения должна вернуть какое-то значение. А для функций записи надо сделать
-так, чтобы синхронность можно было отключить. Если клиент асинхронный (с очередью или без), 
-то придётся блокировать поток до тех пор, пока не придёт ответ.
-Для прокси-регистров и прокси-катушек и прочих прокси написать итераторы по регистрам, катушкам и пр.
-
 Сделать широковещательные запросы в клиенте.
 Сделать обработку широковещательных запросов на сервере.
-
-Для функций Read/Write File Record необходимо
-сделать ограничение на file-number от 0x0001 до 0xFFFF. Но, пока
-в наших модулях используется это пооле именно со значением 0x0000, этого делать
-нельзя. Короче: сделать, но пока закомментить.
-
-Переименовать функции, структуры и т.п. так, чтобы они начинались с префикса emb_ (emodbus)
-
-Постараться сделать так, чтобы стек был как можно меньше. Т.к. флешки у контроллеров
-значительно больше, чем оперативки.
-
-Может быть убрать приёмный буфер из нижнего уровня клиента, а пользоваться только тем, который 
-приходит из запроса на транзакцию ?
 
 Когда буду писать TCP, то посмотреть, как это уже сделано тут:
 https://github.com/rscada/libmodbus
 
 Сделать нормальный bit_vector для coils.
+
+Сделать прием ASCII для emb_serial_port.
+
+Сделать универсальный тестовый сервер для RTU,ASCII,TCP.
+
+Сделать для клиента синхронные функции для coils и discrete inputs.
+
+Сделать рандомно-тестирующего клиента для holding-registers и input registers.
+
+Сделать для клиента синхронные функции для files и read-fifo.
+
+Дополнить рандомно-тестирующего клиента для files и read-fifo.
+
+Переделать C++ обёртку для клиента.
+Переделать C++ обёртку для сервера.
+
+Сделать функционал сброса для emb_serial_port.
