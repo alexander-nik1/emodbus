@@ -30,17 +30,27 @@ int emb_sync_client_do_request(emb_sync_client_t* _cli, const emb_adu_t* _req_ad
     }
 
     r = _cli->send_adu(_cli, _req_adu);
-    if(r != modbus_success)
+    if(r != modbus_success) {
+        _cli->bad_transactions++;
         return r;
+    }
 
     r = _cli->recv_adu(_cli, _ans_adu);
-    if(r != modbus_success)
+    if(r != modbus_success) {
+        _cli->bad_transactions++;
         return r;
+    }
 
     if(_req_adu->server_id != _ans_adu->server_id)
         return -modbus_resp_wrong_address;
 
-    return emb_check_pdu_for_exception(&_ans_adu->pdu);
+    r = emb_check_pdu_for_exception(&_ans_adu->pdu);
+    if(r != 0)
+        _cli->bad_transactions++;
+    else
+        _cli->good_transactions++;
+
+    return r;
 }
 
 static int __emb_sync_client_read_bits(emb_sync_client_t* _cli,

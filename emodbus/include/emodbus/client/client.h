@@ -31,6 +31,8 @@ typedef struct __emb_sync_client_t
     emb_adu_t* ans_adu;
     int (*send_adu)(struct __emb_sync_client_t* _cli, const emb_adu_t* _adu);
     int (*recv_adu)(struct __emb_sync_client_t* _cli, emb_adu_t* _adu);
+	unsigned int good_transactions;
+	unsigned int bad_transactions;
 } emb_sync_client_t;
 
 /**
