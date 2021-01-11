@@ -55,9 +55,6 @@ static void _bin2ascii(uint8_t _bin, uint8_t* _ascii)
     _ascii[1] = digits[_bin & 0xF];
 }
 
-enum { CR = 0x0D };
-enum { LF = 0x0A };
-
 int emb_ascii_encode_packet(const emb_adu_t* _adu,
                             uint8_t* _packet,
                             unsigned int _max_pkt_size)
@@ -86,8 +83,8 @@ int emb_ascii_encode_packet(const emb_adu_t* _adu,
         _bin2ascii(_calc_crc(_packet + 1, 2 + 2 + _adu->pdu.data_size * 2, NULL), iterator);
         iterator += 2;
 
-        *iterator++ = CR;
-        *iterator++ = LF;
+        *iterator++ = EMB_ASCII_CR;
+        *iterator++ = EMB_ASCII_LF;
 
         return pkt_size;
     }
@@ -119,7 +116,7 @@ int emb_ascii_decode_packet(const uint8_t* _packet,
     if(_packet[0] != ':')
         return -modbus_invalid_packet_format;
 
-    if(!(_packet[_pkt_size-2] == CR && _packet[_pkt_size-1] == LF))
+    if(!(_packet[_pkt_size-2] == EMB_ASCII_CR && _packet[_pkt_size-1] == EMB_ASCII_LF))
         return -modbus_invalid_packet_format;
 
     _result->server_id = _ascii2bin(_packet + 1, &errors);

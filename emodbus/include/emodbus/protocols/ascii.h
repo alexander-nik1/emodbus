@@ -16,6 +16,9 @@
 extern "C" {
 #endif
 
+enum { EMB_ASCII_CR = 0x0D };
+enum { EMB_ASCII_LF = 0x0A };
+
 /**
  * @brief ASCII Encode packet
  *

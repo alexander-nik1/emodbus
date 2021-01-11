@@ -32,11 +32,11 @@ target_link_libraries(emb_tcp_srv_test
 	emodbus
 )
 
-#add_executable(emb_ascii_srv_test ascii_srv_test.c)
+add_executable(emb_ascii_srv_test ascii_srv_test.c)
 
-#target_link_libraries(emb_ascii_srv_test
-#	emodbus
-#)
+target_link_libraries(emb_ascii_srv_test
+	emodbus
+)
 
 #add_executable(emb_rtu_cli_test rtu_cli_test.c)
 

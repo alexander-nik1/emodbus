@@ -185,12 +185,12 @@ static struct emb_super_server_t emb_super_server =
 // =============================================================================================
 // RTU part
 
-static struct serial_port_t serial_port =
+static struct emb_serial_port_t serial_port =
 {
     .tty_name = "/dev/ttyUSB1",
     .baudrate = 115200,
-    .timeout_ms = 1000,
-    .override_final_delay_ms = 20
+    .timeout_ms = 100,
+    .final_delay_ms = 100
 };
 
 void print_adu(FILE* _f, const emb_adu_t* _adu)
@@ -230,8 +230,8 @@ int main()
 
     emb_super_server_init(&emb_super_server);
 
-    serial_port_init(&serial_port);
-    if(serial_port_open(&serial_port) != 0) {
+    emb_serial_port_init(&serial_port);
+    if(emb_serial_port_open(&serial_port) != 0) {
         fprintf(stderr, "Error: serial_port_open() : %m\n");
         return -1;
     }
@@ -241,7 +241,7 @@ int main()
         memset(rx_buf, 0, sizeof(rx_buf));
 
         int tmp;
-        tmp = serial_port_receive(&serial_port, buf, sizeof(buf));
+        tmp = emb_serial_port_receive(&serial_port, buf, sizeof(buf));
         if(tmp < 0) {
             if(tmp != -modbus_timeout)
                 fprintf(stderr, "Error with serial_port_receive(): %s\n", emb_strerror(-tmp));
@@ -271,7 +271,7 @@ int main()
         else if(tmp > 0) {
 //            printf("<< ");
 //            print_adu(stdout, &tx_adu);
-            tmp = serial_port_send(&serial_port, buf, (unsigned int)tmp);
+            tmp = emb_serial_port_send(&serial_port, buf, (unsigned int)tmp);
             if(tmp < 0) {
                 fprintf(stderr, "Error with serial_port_send(): %d\n", tmp);
             }

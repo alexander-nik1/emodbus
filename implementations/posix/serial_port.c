@@ -2,6 +2,7 @@
 #include <emodbus/base/modbus_errno.h>
 #include <emodbus/base/add/container_of.h>
 #include <emodbus/impl/posix/serial_port.h>
+#include <emodbus/protocols/ascii.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -245,7 +246,7 @@ int emb_serial_port_set_baudrate(struct emb_serial_port_t *_ctx,
 
 #define DBG(...) // printf(__VA_ARGS__)
 
-int emb_serial_port_receive(struct emb_serial_port_t* _ctx, void* _p_buffer, unsigned int _max_size)
+int emb_serial_port_receive_rtu(struct emb_serial_port_t* _ctx, void* _p_buffer, unsigned int _max_size)
 {
     if(_ctx && _ctx->fd >= 0 && _p_buffer && _max_size) {
 
@@ -300,8 +301,8 @@ int emb_serial_port_receive(struct emb_serial_port_t* _ctx, void* _p_buffer, uns
             FD_SET(_ctx->fd, &rfds);
 
             tv.tv_sec = 0;
-            if(_ctx->override_final_delay_ms)
-                tv.tv_usec = (long)_ctx->override_final_delay_ms * 1000;
+            if(_ctx->final_delay_ms)
+                tv.tv_usec = (long)_ctx->final_delay_ms * 1000;
             else
                 tv.tv_usec = 1000000 * 35 / _ctx->baudrate;
 
@@ -325,6 +326,95 @@ int emb_serial_port_receive(struct emb_serial_port_t* _ctx, void* _p_buffer, uns
                 _ctx->rx_bytes_counter += (unsigned int)counter;
                 _ctx->rx_packets ++;
                 return counter;
+            }
+            else { // error
+                fprintf(stderr, "%s: select() returns error: %m\n", __FUNCTION__);
+                return -errno;
+            }
+        }
+    }
+    return -EINVAL;
+}
+
+int emb_serial_port_receive_ascii(struct emb_serial_port_t* _ctx, void* _p_buffer, unsigned int _max_size)
+{
+    if(_ctx && _ctx->fd >= 0 && _p_buffer && _max_size) {
+
+        struct timeval tv;
+        int ret;
+        int counter = 0;
+        uint8_t* rx_buf = (uint8_t*)_p_buffer;
+
+        fd_set rfds;
+
+        // ***************************************
+        // Waiting for the first symbol
+
+        FD_ZERO(&rfds);
+
+        FD_SET(_ctx->fd, &rfds);
+
+        tv.tv_sec = 0;
+        tv.tv_usec = (__suseconds_t)_ctx->timeout_ms * 1000;
+
+        ret = select(_ctx->fd+1, &rfds, NULL, NULL, tv.tv_usec >= 0 ? &tv : NULL);
+        if(ret > 0) {   // one or more events is happen
+            DBG("Read event (first symbol)\n");
+
+            ret = (int)read(_ctx->fd,
+                            rx_buf + counter,
+                            _max_size - (unsigned int)counter);
+            if(ret <= 0) {
+                return ret;
+            }
+            else {
+                counter += (unsigned int)ret;
+            }
+        }
+        else if(!ret) { // timeout
+            DBG("RECEIVE Timeout event\n");
+            return -modbus_timeout;
+        }
+        else { // error
+            fprintf(stderr, "%s: select() returns error: %m\n", __FUNCTION__);
+            return -errno;
+        }
+
+        // ***************************************
+        // Waiting for the next symbols, until a CR+LF, or timeout is happens
+
+        while(1) {
+            FD_ZERO(&rfds);
+
+            FD_SET(_ctx->fd, &rfds);
+
+            tv.tv_sec = 0;
+            tv.tv_usec = (long)_ctx->final_delay_ms * 1000;
+
+            ret = select(_ctx->fd+1, &rfds, NULL, NULL, &tv);
+            if(ret > 0) { // we have the some data to read
+                DBG("Read event\n");
+
+                ret = (int)read(_ctx->fd,
+                                rx_buf + counter,
+                                _max_size - (unsigned int)counter);
+
+                if(ret <= 0) {
+                    return ret;
+                }
+                else {
+                    counter += (unsigned int)ret;
+                    if(rx_buf[counter-2] == EMB_ASCII_CR && rx_buf[counter-1] == EMB_ASCII_LF) {
+                        DBG("CR+LF found (end of packet)\n");
+                        _ctx->rx_bytes_counter += (unsigned int)counter;
+                        _ctx->rx_packets ++;
+                        return counter;
+                    }
+                }
+            }
+            else if(!ret) {
+                DBG("RECEIVE Timeout event\n");
+                return -modbus_timeout;
             }
             else { // error
                 fprintf(stderr, "%s: select() returns error: %m\n", __FUNCTION__);
