@@ -77,7 +77,7 @@ typedef struct
 	unsigned long long tx_bytes;				///< Statistic, transmitted bytes
 	unsigned int connection_attempts;			///< Statistic, number of connection attempts
 	unsigned int rx_timeouts_counter;			///< Counter of timeouts for receiving, increases when timeout occurs, decreases, when is ok
-	unsigned int tx_timeouts_counter;			///< Counter of timeouts for receiving, increases when timeout occurs, decreases, when is ok
+	unsigned int tx_timeouts_counter;			///< Counter of timeouts for transmitting, increases when timeout occurs, decreases, when is ok
 } emb_tcp_client_t;
 
 /**
