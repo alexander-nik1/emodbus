@@ -8,7 +8,10 @@ set( EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin )
 set( LIBRARY_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/lib )
 endif()
 
+link_directories(${EMB_LINK_DIRECTORIES})
+
 include_directories(
+	${EMB_INCLUDE_DIRECTORIES}
     ./emodbus/include
 	./implementations/include
 	./cpp-wrap/include
