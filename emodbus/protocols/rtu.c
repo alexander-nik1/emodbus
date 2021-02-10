@@ -46,7 +46,6 @@ int emb_rtu_encode_packet(const emb_adu_t* _adu,
         return (int)sz + 2;
     }
     else {
-        printf("_adu->pdu->data_size = %d, _pkt_size = %d\n", _adu->pdu.data_size, _pkt_size);
         return -modbus_buffer_overflow;
     }
 }
