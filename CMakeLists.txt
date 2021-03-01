@@ -1,7 +1,7 @@
 
-project(emodbus)
-
 cmake_minimum_required(VERSION 2.8)
+
+project(emodbus)
 
 if(NOT DEFINED EMB_USE_SYSTEM_BIN_AND_LIB_PATH)
 set( EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin )
@@ -23,7 +23,14 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
 # Disable a warnings around 'offsetof' in C++
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof")
 
-add_library(emodbus SHARED
+
+if(DEFINED EMB_BUILD_STATIC_LIBRARY)
+	set(EMB_LIBRARY_TYPE STATIC)
+else()
+	set(EMB_LIBRARY_TYPE SHARED)
+endif()
+
+add_library(emodbus ${EMB_LIBRARY_TYPE}
 	emodbus/base/common.c
 	emodbus/base/modbus_errno.c
 	emodbus/base/bit_array.c
