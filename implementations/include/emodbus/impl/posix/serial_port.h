@@ -6,6 +6,7 @@ struct emb_serial_port_t
 {
     const char* tty_name;
     unsigned baudrate;
+	unsigned long timeout_ms;
 	unsigned long final_delay_ms;
 
     int fd;
@@ -24,10 +25,10 @@ void emb_serial_port_close(struct emb_serial_port_t* _ctx);
 int emb_serial_port_set_baudrate(struct emb_serial_port_t* _ctx,
 								 unsigned int _baudrate);
 
-int emb_serial_port_receive_rtu(struct emb_serial_port_t* _ctx, void* _p_buffer, unsigned int _max_size, unsigned int _timeout_ms);
+int emb_serial_port_receive_rtu(struct emb_serial_port_t* _ctx, void* _p_buffer, unsigned int _max_size);
 
-int emb_serial_port_receive_ascii(struct emb_serial_port_t* _ctx, void* _p_buffer, unsigned int _max_size, unsigned int _timeout_ms);
+int emb_serial_port_receive_ascii(struct emb_serial_port_t* _ctx, void* _p_buffer, unsigned int _max_size);
 
-int emb_serial_port_send(struct emb_serial_port_t* _ctx, const void* _p_data, unsigned int _size, unsigned int _timeout_ms);
+int emb_serial_port_send(struct emb_serial_port_t* _ctx, const void* _p_data, unsigned int _size);
 
 #endif // EMB_EXAMPLE_RTU_VIA_TTY_H
