@@ -246,7 +246,7 @@ int emb_serial_port_set_baudrate(struct emb_serial_port_t *_ctx,
 
 #define DBG(...) // printf(__VA_ARGS__)
 
-int emb_serial_port_receive_rtu(struct emb_serial_port_t* _ctx, void* _p_buffer, unsigned int _max_size)
+int emb_serial_port_receive_rtu(struct emb_serial_port_t* _ctx, void* _p_buffer, unsigned int _max_size, unsigned int _timeout_ms)
 {
     if(_ctx && _ctx->fd >= 0 && _p_buffer && _max_size) {
 
@@ -267,7 +267,7 @@ int emb_serial_port_receive_rtu(struct emb_serial_port_t* _ctx, void* _p_buffer,
         FD_SET(_ctx->fd, &rfds);
 
         tv.tv_sec = 0;
-        tv.tv_usec = (__suseconds_t)_ctx->timeout_ms * 1000;
+        tv.tv_usec = (__suseconds_t)_timeout_ms * 1000;
 
         ret = select(_ctx->fd+1, &rfds, NULL, NULL, tv.tv_usec >= 0 ? &tv : NULL);
         if(ret > 0) {   // one or more events is happen
@@ -336,7 +336,7 @@ int emb_serial_port_receive_rtu(struct emb_serial_port_t* _ctx, void* _p_buffer,
     return -EINVAL;
 }
 
-int emb_serial_port_receive_ascii(struct emb_serial_port_t* _ctx, void* _p_buffer, unsigned int _max_size)
+int emb_serial_port_receive_ascii(struct emb_serial_port_t* _ctx, void* _p_buffer, unsigned int _max_size, unsigned int _timeout_ms)
 {
     if(_ctx && _ctx->fd >= 0 && _p_buffer && _max_size) {
 
@@ -355,7 +355,7 @@ int emb_serial_port_receive_ascii(struct emb_serial_port_t* _ctx, void* _p_buffe
         FD_SET(_ctx->fd, &rfds);
 
         tv.tv_sec = 0;
-        tv.tv_usec = (__suseconds_t)_ctx->timeout_ms * 1000;
+        tv.tv_usec = (__suseconds_t)_timeout_ms * 1000;
 
         ret = select(_ctx->fd+1, &rfds, NULL, NULL, tv.tv_usec >= 0 ? &tv : NULL);
         if(ret > 0) {   // one or more events is happen
@@ -425,7 +425,7 @@ int emb_serial_port_receive_ascii(struct emb_serial_port_t* _ctx, void* _p_buffe
     return -EINVAL;
 }
 
-int emb_serial_port_send(struct emb_serial_port_t* _ctx, const void* _p_data, unsigned int _size)
+int emb_serial_port_send(struct emb_serial_port_t* _ctx, const void* _p_data, unsigned int _size, unsigned int _timeout_ms)
 {
     if(_ctx && _ctx->fd >= 0 && _p_data && _size) {
         struct timeval tv;
@@ -438,7 +438,7 @@ int emb_serial_port_send(struct emb_serial_port_t* _ctx, const void* _p_data, un
         FD_SET(_ctx->fd, &wfds);
 
         tv.tv_sec = 0;
-        tv.tv_usec = (__suseconds_t)_ctx->timeout_ms * 1000;
+        tv.tv_usec = (__suseconds_t)_timeout_ms * 1000;
 
         ret = select(_ctx->fd+1, NULL, &wfds, NULL, tv.tv_usec >= 0 ? &tv : NULL);
         if(ret > 0) {   // we are wrote something
