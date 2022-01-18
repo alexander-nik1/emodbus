@@ -105,7 +105,7 @@ int emb_ascii_decode_packet(const uint8_t* _packet,
     if(!_result || !_packet || _pkt_size == 0)
         return -modbus_invalid_argument;
 
-    data_size = (uint8_t)(_pkt_size - 1 - 2 - 2 - 2 - 2) / 2;
+    data_size = (uint8_t)((_pkt_size - 1 - 2 - 2 - 2 - 2) / 2);
 
     if(data_size > _result->pdu.max_size)
         return -modbus_buffer_overflow;
