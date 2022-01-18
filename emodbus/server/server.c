@@ -81,3 +81,13 @@ void emb_super_server_init(struct emb_super_server_t* _ssrv)
         _ssrv->tx_pdu = NULL;
     }
 }
+
+int emb_is_addr_belongs_to_bits(uint16_t _addr, const struct emb_srv_bits_t* _bits)
+{
+    return ((_bits->start <= _addr) && (_addr < _bits->start + _bits->size));
+}
+
+int emb_is_addr_belongs_to_holdings(uint16_t _addr, const struct emb_srv_regs_t* _holdings)
+{
+    return ((_holdings->start <= _addr) && (_addr < _holdings->start + _holdings->size));
+}

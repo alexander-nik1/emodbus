@@ -375,6 +375,23 @@ enum { EMB_SRV_READ_FIFO_MAX_REGS = 31 };
 uint8_t emb_srv_read_fifo(struct emb_super_server_t* _ssrv,
                           struct emb_server_t* _srv);
 
+//**********************************************************************
+// Others
+
+/**
+ * @brief Determines, whether a given address belongs to a bits range
+ *
+ * @return 1 -> belongs, otherwise 0
+ */
+int emb_is_addr_belongs_to_bits(uint16_t _addr, const struct emb_srv_bits_t* _bits);
+
+/**
+ * @brief Determines, whether a given address belongs to a registers range
+ *
+ * @return 1 -> belongs, otherwise 0
+ */
+int emb_is_addr_belongs_to_holdings(uint16_t _addr, const struct emb_srv_regs_t* _holdings);
+
 #ifdef __cplusplus
 }   // extern "C"
 #endif

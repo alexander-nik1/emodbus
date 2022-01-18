@@ -24,6 +24,8 @@
 #define NULL ((void*)0)
 #endif
 
+#define EMB_ARR_SIZE(_arr_)     (sizeof((_arr_))/sizeof((_arr_)[0]))
+
 #include "modbus_xdu.h"
 #include <stdint.h>
 #include <stdio.h>
