@@ -36,6 +36,15 @@ typedef struct __emb_sync_client_t
 } emb_sync_client_t;
 
 /**
+ * @brief Initialize
+ *
+ * Initialize client by this call, before using
+ *
+ * @param [in] _cli pointer to client
+ */
+void emb_sync_client_init(emb_sync_client_t* _cli);
+
+/**
  * @brief Do sync request
  *
  * This function performs a ONE request.

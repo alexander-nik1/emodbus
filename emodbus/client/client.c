@@ -22,6 +22,14 @@
  *
  */
 
+void emb_sync_client_init(emb_sync_client_t* _cli)
+{
+    if (_cli) {
+        _cli->bad_transactions = 0;
+        _cli->good_transactions = 0;
+    }
+}
+
 int emb_sync_client_do_request(emb_sync_client_t* _cli, const emb_adu_t* _req_adu, emb_adu_t* _ans_adu)
 {
     int r;
