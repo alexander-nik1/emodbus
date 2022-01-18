@@ -1,14 +1,14 @@
 
+
 #include <stdio.h>
 #include <string.h>
 
+#include "emodbus/base/common.h"
 #include "emodbus/base/modbus_errno.h"
 #include "emodbus/server/server.h"
 #include "emodbus/protocols/ascii.h"
 #include "emodbus/impl/posix/serial_port.h"
 #include "emodbus/base/bit_array.h"
-
-#define ARR_SIZE(_arr_)     (sizeof(_arr_)/sizeof(_arr_[0]))
 
 // =============================================================================================
 // Coils
@@ -162,7 +162,7 @@ static const emb_srv_function_t functions[] =
 static emb_srv_function_t get_function(struct emb_server_t* _srv, uint8_t _func)
 {
     (void)_srv;
-    if(_func < ARR_SIZE(functions))
+    if(_func < EMB_ARR_SIZE(functions))
         return functions[_func];
     else
         return NULL;
@@ -214,10 +214,13 @@ static struct emb_super_server_t emb_super_server =
 // =============================================================================================
 // RTU part
 
+#define TTY_NAME "/dev/ttyUSB1"
+#define TTY_BAUD 115200
+
 static emb_serial_port_t serial_port =
 {
-    .tty_name = "/dev/ttyUSB1",
-    .baudrate = 115200,
+    .tty_name = TTY_NAME,
+    .baudrate = TTY_BAUD,
     .timeout_ms = 100,
     .final_delay_ms = 100
 };
@@ -253,11 +256,14 @@ int main()
         }
     };
 
+    memset(coils1_data, 0, sizeof(coils1_data));
     memset(holdings1_regs, 0, sizeof(holdings1_regs));
 
     memset(buf, 0, sizeof(buf));
 
     emb_super_server_init(&emb_super_server);
+
+    printf("Connecting to '%s' baud: %d\n", TTY_NAME, TTY_BAUD);
 
     emb_serial_port_init(&serial_port);
     if(emb_serial_port_open(&serial_port) != 0) {
@@ -307,3 +313,4 @@ int main()
         }
     }
 }
+

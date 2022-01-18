@@ -100,7 +100,7 @@ add_subdirectory(tests)
 endif()
 
 if(NOT DEFINED EMB_WITHOUT_EXAMPLES)
-#add_subdirectory(examples)
+add_subdirectory(examples)
 endif()
 
 FILE(GLOB_RECURSE LibFiles "*.hpp" "*.h" README TODO)
