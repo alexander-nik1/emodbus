@@ -153,6 +153,10 @@ int emb_sync_client_read_regs(emb_sync_client_t* _cli,
         return -modbus_invalid_argument;
     }
 
+    if((uint32_t)_start_address + _quantity > 65536) {
+        return -modbus_invalid_argument;
+    }
+
     _cli->req_adu->server_id = _server_id;
 
     while(counter < _quantity) {
