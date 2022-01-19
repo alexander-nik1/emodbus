@@ -6,8 +6,8 @@
 #include "emodbus/base/common.h"
 #include "emodbus/base/modbus_errno.h"
 #include "emodbus/server/server.h"
-#include "emodbus/protocols/rtu.h"
-#include "emodbus/impl/posix/serial_port.h"
+#include "emodbus/protocols/tcp.h"
+#include "emodbus/impl/posix/tcp-server.h"
 #include "emodbus/base/bit_array.h"
 
 // =============================================================================================
@@ -212,17 +212,15 @@ static struct emb_super_server_t emb_super_server =
 };
 
 // =============================================================================================
-// RTU part
+// TCP server part
 
-#define TTY_NAME "/dev/ttyUSB1"
-#define TTY_BAUD 1500000
+#define TCP_ADDRESS     "127.0.0.1"
+#define TCP_PORT        8502
 
-static emb_serial_port_t serial_port =
+static emb_tcp_server_t tcp_server =
 {
-    .tty_name = TTY_NAME,
-    .baudrate = TTY_BAUD,
-    .timeout_ms = 1000*60,
-    .final_delay_ms = 5
+    .rx_timeout_ms = 1000,
+    .max_connections = 2
 };
 
 void print_adu(FILE* _f, const emb_adu_t* _adu)
@@ -256,6 +254,9 @@ int main()
         }
     };
 
+    int client_id;
+    in_addr_t sa;
+
     memset(coils1_data, 0, sizeof(coils1_data));
     memset(holdings1_regs, 0, sizeof(holdings1_regs));
 
@@ -263,12 +264,12 @@ int main()
 
     emb_super_server_init(&emb_super_server);
 
-    printf("Connecting to '%s' baud: %d\n", TTY_NAME, TTY_BAUD);
+    printf("Starting listen: %s:%d\n", TCP_ADDRESS, TCP_PORT);
 
-    emb_serial_port_init(&serial_port);
-    if(emb_serial_port_open(&serial_port) != 0) {
-        fprintf(stderr, "Error: serial_port_open() : %m\n");
-        return -1;
+    inet_pton(AF_INET, TCP_ADDRESS, &sa);
+
+    if(emb_tcp_server_init(&tcp_server, sa, TCP_PORT)) {
+        fprintf(stderr, "Error with tcp_server_init() : %m\n");
     }
 
     while(1) {
@@ -276,16 +277,16 @@ int main()
         memset(rx_buf, 0, sizeof(rx_buf));
 
         int tmp;
-        tmp = emb_serial_port_receive_rtu(&serial_port, buf, sizeof(buf));
-        if(tmp < 0) {
-            if(tmp != -modbus_timeout)
-                fprintf(stderr, "Error with serial_port_receive(): %s\n", emb_strerror(-tmp));
+        tmp = emb_tcp_server_receive(&tcp_server, &client_id, buf, sizeof(buf));
+        if(tmp <= 0) {
+            if(tmp != 0 && tmp != -modbus_timeout)
+                fprintf(stderr, "Error with tcp_server_receive(): %s\n", emb_strerror(-tmp));
             continue;
         }
 
-        tmp = emb_rtu_decode_packet(buf, (unsigned int)tmp, &rx_adu);
+        tmp = emb_tcp_decode_packet(buf, (unsigned int)tmp, &rx_adu);
         if(tmp != 0) {
-            fprintf(stderr, "Error with emb_rtu_decode_packet(): %s\n", emb_strerror(-tmp));
+            fprintf(stderr, "Error with emb_tcp_decode_packet(): %s\n", emb_strerror(-tmp));
             continue;
         }
 
@@ -298,17 +299,17 @@ int main()
             continue;
         }
 
-        tmp = emb_rtu_encode_packet(&tx_adu, buf, sizeof(buf));
+        tmp = emb_tcp_encode_packet(&tx_adu, buf, sizeof(buf));
         if(tmp < 0) {
-            fprintf(stderr, "Error with emb_rtu_encode_packet() :%d\n", tmp);
+            fprintf(stderr, "Error with emb_tcp_encode_packet() :%d\n", tmp);
             continue;
         }
         else if(tmp > 0) {
             printf("<< ");
             print_adu(stdout, &tx_adu);
-            tmp = emb_serial_port_send(&serial_port, buf, (unsigned int)tmp);
+            tmp = emb_tcp_server_send(&tcp_server, client_id, buf, (unsigned int)tmp);
             if(tmp < 0) {
-                fprintf(stderr, "Error with serial_port_send(): %d\n", tmp);
+                fprintf(stderr, "Error with tcp_server_send(): %d\n", tmp);
             }
         }
     }
