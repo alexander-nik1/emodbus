@@ -342,7 +342,7 @@ int emb_serial_port_receive_ascii(emb_serial_port_t* _ctx, void* _p_buffer, unsi
 
         struct timeval tv;
         int ret;
-        int counter = 0;
+        unsigned int counter = 0;
         uint8_t* rx_buf = (uint8_t*)_p_buffer;
 
         fd_set rfds;
@@ -361,14 +361,23 @@ int emb_serial_port_receive_ascii(emb_serial_port_t* _ctx, void* _p_buffer, unsi
         if(ret > 0) {   // one or more events is happen
             DBG("Read event (first symbol)\n");
 
+            if (counter >= _max_size)
+                return -modbus_buffer_overflow;
+
             ret = (int)read(_ctx->fd,
                             rx_buf + counter,
-                            _max_size - (unsigned int)counter);
+                            _max_size - counter);
             if(ret <= 0) {
                 return ret;
             }
             else {
                 counter += (unsigned int)ret;
+                if(rx_buf[counter-2] == EMB_ASCII_CR && rx_buf[counter-1] == EMB_ASCII_LF) {
+                    DBG("CR+LF found (end of packet)\n");
+                    _ctx->rx_bytes_counter += counter;
+                    _ctx->rx_packets ++;
+                    return (int)counter;
+                }
             }
         }
         else if(!ret) { // timeout
@@ -395,9 +404,12 @@ int emb_serial_port_receive_ascii(emb_serial_port_t* _ctx, void* _p_buffer, unsi
             if(ret > 0) { // we have the some data to read
                 DBG("Read event\n");
 
+                if (counter >= _max_size)
+                    return -modbus_buffer_overflow;
+
                 ret = (int)read(_ctx->fd,
                                 rx_buf + counter,
-                                _max_size - (unsigned int)counter);
+                                _max_size - counter);
 
                 if(ret <= 0) {
                     return ret;
@@ -406,9 +418,9 @@ int emb_serial_port_receive_ascii(emb_serial_port_t* _ctx, void* _p_buffer, unsi
                     counter += (unsigned int)ret;
                     if(rx_buf[counter-2] == EMB_ASCII_CR && rx_buf[counter-1] == EMB_ASCII_LF) {
                         DBG("CR+LF found (end of packet)\n");
-                        _ctx->rx_bytes_counter += (unsigned int)counter;
+                        _ctx->rx_bytes_counter += counter;
                         _ctx->rx_packets ++;
-                        return counter;
+                        return (int)counter;
                     }
                 }
             }
