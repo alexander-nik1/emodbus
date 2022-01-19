@@ -215,21 +215,21 @@ static struct emb_super_server_t emb_super_server =
 // RTU part
 
 #define TTY_NAME "/dev/ttyUSB1"
-#define TTY_BAUD 115200
+#define TTY_BAUD 1500000
 
 static emb_serial_port_t serial_port =
 {
     .tty_name = TTY_NAME,
     .baudrate = TTY_BAUD,
-    .timeout_ms = 100,
-    .final_delay_ms = 100
+    .timeout_ms = 1000*60,
+    .final_delay_ms = 5
 };
 
 void print_adu(FILE* _f, const emb_adu_t* _adu)
 {
     uint8_t i;
     fprintf(_f, "srv:0x%02X f:0x%02X data:", _adu->server_id, _adu->pdu.function);
-    for(i=0; i<_adu->pdu.data_size; ++i) {
+    for (i=0; i<_adu->pdu.data_size; ++i) {
         fprintf(_f, "%02X ", ((uint8_t*)_adu->pdu.data)[i]);
     }
     fprintf(_f, "\n");
@@ -285,7 +285,7 @@ int main()
 
         tmp = emb_ascii_decode_packet(buf, (unsigned int)tmp, &rx_adu);
         if(tmp != 0) {
-            fprintf(stderr, "Error with emb_rtu_decode_packet(): %d\n", tmp);
+            fprintf(stderr, "Error with emb_rtu_decode_packet(): %s\n", emb_strerror(-tmp));
             continue;
         }
 
@@ -304,8 +304,8 @@ int main()
             continue;
         }
         else if(tmp > 0) {
-            printf("<< ");
-            print_adu(stdout, &tx_adu);
+            //printf("<< ");
+            //print_adu(stdout, &tx_adu);
             tmp = emb_serial_port_send(&serial_port, buf, (unsigned int)tmp);
             if(tmp < 0) {
                 fprintf(stderr, "Error with serial_port_send(): %d\n", tmp);

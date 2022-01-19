@@ -6,28 +6,28 @@
 #include "emodbus/base/common.h"
 #include "emodbus/base/modbus_errno.h"
 #include "emodbus/client/client.h"
-#include "emodbus/protocols/ascii.h"
+#include "emodbus/protocols/rtu.h"
 #include "emodbus/impl/posix/serial_port.h"
 #include "emodbus/base/bit_array.h"
 
 // =============================================================================================
 // Serial port part
 
-#define TTY_NAME "/dev/ttyUSB1"
-#define TTY_BAUD 460800
+#define TTY_NAME "/dev/ttyUSB0"
+#define TTY_BAUD 1500000
 
 static emb_serial_port_t serial_port =
 {
     .tty_name = TTY_NAME,
     .baudrate = TTY_BAUD,
     .timeout_ms = 100,
-    .final_delay_ms = 100
+    .final_delay_ms = 5
 };
 
 // =============================================================================================
 // Client part
 
-static uint8_t buf[256 * 2 + 16];
+static uint8_t buf[256 + 16];
 
 static uint8_t rx_buf[MAX_PDU_DATA_SIZE];
 static uint8_t tx_buf[MAX_PDU_DATA_SIZE];
@@ -65,7 +65,7 @@ static int client_send_adu(emb_sync_client_t* _cli, const emb_adu_t* _adu)
     (void)_cli;
     int r;
 
-    r = emb_ascii_encode_packet(_adu, buf, sizeof(buf));
+    r = emb_rtu_encode_packet(_adu, buf, sizeof(buf));
     if(r < 0) {
         fprintf(stderr, "Error with emb_ascii_encode_packet() :%d\n", r);
         return r;
@@ -84,13 +84,13 @@ static int client_recv_adu(emb_sync_client_t* _cli, emb_adu_t* _adu)
     (void)_cli;
     int r;
 
-    r = emb_serial_port_receive_ascii(&serial_port, buf, sizeof(buf));
+    r = emb_serial_port_receive_rtu(&serial_port, buf, sizeof(buf));
     if(r < 0) {
         fprintf(stderr, "Error with emb_serial_port_receive_ascii(): %s\n", emb_strerror(-r));
         return r;
     }
 
-    r = emb_ascii_decode_packet(buf, (unsigned int)r, _adu);
+    r = emb_rtu_decode_packet(buf, (unsigned int)r, _adu);
     if(r != 0) {
         fprintf(stderr, "Error with emb_ascii_decode_packet(): %d\n", r);
     }
@@ -113,10 +113,10 @@ int main()
         return -1;
     }
 
-    uint16_t regs[125];
+    uint16_t regs[65536];
 
     for(i=0; i<1000; ++i) {
-        res = emb_sync_client_read_regs(&client, 1, EMB_RR_HOLDINGS, 0x000B, EMB_ARR_SIZE(regs), regs);
+        res = emb_sync_client_read_regs(&client, 1, EMB_RR_HOLDINGS, 0x0000, EMB_ARR_SIZE(regs), regs);
         fputs("\r", stdout);
         printf("%d:  good:%d bad:%d %s",
                i,
