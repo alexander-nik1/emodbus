@@ -330,7 +330,9 @@ int main()
 {
     int tmp;
 
-    tcp_server_t tcp_server;
+    emb_tcp_server_t tcp_server;
+
+    tcp_server.rx_timeout_ms = 1000;
 
     memset(regs, 0, sizeof(regs));
 
@@ -338,7 +340,7 @@ int main()
 
     emb_super_server_init(&emb_super_server);
 
-    if(tcp_server_init(&tcp_server, htonl(INADDR_ANY), 8502)) {
+    if(emb_tcp_server_init(&tcp_server, htonl(INADDR_ANY), 8502)) {
         fprintf(stderr, "Error with tcp_server_init() : %m\n");
     }
 
@@ -348,7 +350,7 @@ int main()
         int client_id;
 
         // Receive
-        tmp = tcp_server_receive(&tcp_server, &client_id, buf, sizeof(buf), 1000);
+        tmp = emb_tcp_server_receive(&tcp_server, &client_id, buf, sizeof(buf));
         if(tmp == -ETIMEDOUT) {
             continue;
         }
@@ -382,13 +384,13 @@ int main()
         }
 
         // Send answer
-        tcp_server_send(&tcp_server, client_id, buf, (unsigned int)tmp);
+        emb_tcp_server_send(&tcp_server, client_id, buf, (unsigned int)tmp);
         if(tmp < 0) {
             fprintf(stderr, "Error with serial_port_send(): %d\n", tmp);
         }
     }
 
-    tcp_server_deinit(&tcp_server);
+    emb_tcp_server_deinit(&tcp_server);
 
     return 0;
 }
