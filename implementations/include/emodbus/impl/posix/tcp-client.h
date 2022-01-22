@@ -129,13 +129,13 @@ int emb_tcp_client_send(emb_tcp_client_t* _cli, const void* _buf, unsigned int _
 /**
  * @brief Receive data
  *
- * This function is used to reveive data.
+ * This function is used to receive a ModbusTCP frame
  *
  * @param[in,out] _cli TCP client context
  * @param[out] _buf Pointer to place for received data
  * @param[in] _length Number of bytes to receive
  * @return Number of received bytes, or negative error code, if errors.
  */
-int emb_tcp_client_recv(emb_tcp_client_t* _cli, void* _buf, unsigned int _length);
+int emb_tcp_client_recv_tcp(emb_tcp_client_t* _cli, void* _buf, unsigned int _length);
 
 #endif // EMB_TCP_CLIENT_H

@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <emodbus/base/byte-word.h>
+#include <emodbus/base/modbus_errno.h>
 #include <sys/time.h>
 
 #define DBG(...)    //fputs(__FUNCTION__, stdout), printf("(): " __VA_ARGS__)
@@ -87,6 +89,9 @@ static int emb_tcp_client_start_connect(emb_tcp_client_t* _cli)
         emb_tcp_srv_ch_state(_cli, emb_tcs_disconnected);
         return -1;
     }
+
+    //int value = 1;
+    //setsockopt(_cli->fd, SOL_SOCKET, SO_NOSIGPIPE, &value, sizeof(value));
 
     emb_tcp_client_set_blocking(_cli, 0);
 
@@ -320,11 +325,12 @@ int emb_tcp_client_send(emb_tcp_client_t* _cli, const void* _buf, unsigned int _
         }
         else {
             int nbytes;
-            if((nbytes = (int)send(_cli->fd, _buf, _length, 0)) <= 0) {
+            // MSG_NOSIGNAL will supress a SIG_PIPE generation at "Broke pipe" event
+            if((nbytes = (int)send(_cli->fd, _buf, _length, MSG_NOSIGNAL)) <= 0) {
                 if(nbytes == 0)
                     DBG("Connection closed\n");
                 else
-                    ERR("Error with send()\n");
+                    ERR("Error with send(): %m\n");
 
                 emb_tcp_client_close(_cli);
                 return -EBADFD;
@@ -347,7 +353,15 @@ int emb_tcp_client_send(emb_tcp_client_t* _cli, const void* _buf, unsigned int _
     return -EINVAL;
 }
 
-int emb_tcp_client_recv(emb_tcp_client_t* _cli, void* _buf, unsigned int _length)
+typedef struct __attribute__ ((packed))
+{
+    uint16_t transact_id;	///< Transaction ID, unique number for each transaction (big-endian)
+    uint16_t proto_id;		///< Protocol ID, must be 0
+    uint16_t length;		///< Packet length, excluding transact_id,proto_id,length (big-endian)
+    uint8_t unit_id;		///< Modbus server ID
+} emb_tcp_header_t;
+
+int emb_tcp_client_recv_tcp(emb_tcp_client_t* _cli, void* _buf, unsigned int _length)
 {
     if(_cli && _buf && _length) {
 
@@ -381,7 +395,24 @@ int emb_tcp_client_recv(emb_tcp_client_t* _cli, void* _buf, unsigned int _length
         }
         else {
             int nbytes;
-            if((nbytes = (int)recv(_cli->fd, _buf, _length, 0)) <= 0) {
+
+            if((nbytes = (int)recv(_cli->fd, _buf, sizeof(emb_tcp_header_t), 0)) != sizeof(emb_tcp_header_t)) {
+                if(nbytes == 0)
+                    DBG("Connection closed\n");
+                else
+                    ERR("Error with recv()\n");
+
+                emb_tcp_client_close(_cli);
+                return -EBADFD;
+            }
+
+            const emb_tcp_header_t* hdr = (const emb_tcp_header_t*)_buf;
+            uint16_t pdu_length = SWAP_BYTES(hdr->length) - 1;
+
+            if (_length < (pdu_length + sizeof(emb_tcp_header_t)))
+                return -modbus_buffer_overflow;
+
+            if((nbytes = (int)recv(_cli->fd, (uint8_t*)_buf + sizeof(emb_tcp_header_t), pdu_length, 0)) != pdu_length) {
                 if(nbytes == 0)
                     DBG("Connection closed\n");
                 else
@@ -400,6 +431,8 @@ int emb_tcp_client_recv(emb_tcp_client_t* _cli, void* _buf, unsigned int _length
 
             if(_cli->rx_timeouts_counter > 0)
                 _cli->rx_timeouts_counter--;
+
+            nbytes += sizeof(emb_tcp_header_t);
 
             _cli->rx_bytes += (unsigned long long)nbytes;
             return nbytes;
