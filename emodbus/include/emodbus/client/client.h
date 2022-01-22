@@ -27,12 +27,14 @@ extern "C" {
  */
 typedef struct __emb_sync_client_t
 {
-    emb_adu_t* req_adu;
-    emb_adu_t* ans_adu;
-    int (*send_adu)(struct __emb_sync_client_t* _cli, const emb_adu_t* _adu);
-    int (*recv_adu)(struct __emb_sync_client_t* _cli, emb_adu_t* _adu);
-	unsigned int good_transactions;
-	unsigned int bad_transactions;
+	emb_adu_t* req_adu;		///< A place for a request PDU, must be set by a user
+	emb_adu_t* ans_adu;		///< A place for an answer PDU, must be set by the user
+	int (*send_adu)(struct __emb_sync_client_t* _cli, emb_adu_t* _adu); ///< Function for encode and send an answer DPU, must be set by a user
+	int (*recv_adu)(struct __emb_sync_client_t* _cli, emb_adu_t* _adu); ///< Function for receive and decode a request DPU, must be set by a user
+	unsigned int good_transactions; ///< Counter of a good transactions
+	unsigned int bad_transactions; ///< Counter of a bad transactions
+	unsigned int n_retries;	///< The number of attempts before the request is considered unsuccessful, must be set by a user
+//    uint16_t transaction_id_counter;
 } emb_sync_client_t;
 
 /**
@@ -55,7 +57,7 @@ void emb_sync_client_init(emb_sync_client_t* _cli);
  * @return if there is no errors, it will return zero, otherwize
  * it will return a error code. You can see it by emb_strerror() function.
  */
-int emb_sync_client_do_request(emb_sync_client_t* _cli, const emb_adu_t* _req_adu, emb_adu_t* _ans_adu);
+int emb_sync_client_do_request(emb_sync_client_t* _cli, emb_adu_t *_req_adu, emb_adu_t* _ans_adu);
 
 /**
  * @brief emb_sync_client_read_regs

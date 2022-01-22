@@ -48,7 +48,9 @@ static emb_adu_t ans_adu = {
     }
 };
 
-static int client_send_adu(emb_sync_client_t* _cli, const emb_adu_t* _adu)
+static uint16_t trans_is_counter = 0;
+
+static int client_send_adu(emb_sync_client_t* _cli, emb_adu_t* _adu)
 {
     (void)_cli;
     int r;

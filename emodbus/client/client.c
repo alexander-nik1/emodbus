@@ -27,36 +27,59 @@ void emb_sync_client_init(emb_sync_client_t* _cli)
     if (_cli) {
         _cli->bad_transactions = 0;
         _cli->good_transactions = 0;
+        //_cli->transaction_id_counter = 0;
     }
 }
 
-int emb_sync_client_do_request(emb_sync_client_t* _cli, const emb_adu_t* _req_adu, emb_adu_t* _ans_adu)
+int emb_sync_client_do_request(emb_sync_client_t* _cli, emb_adu_t* _req_adu, emb_adu_t* _ans_adu)
 {
-    int r;
-    if(!(_cli && _cli->recv_adu && _cli->send_adu && _req_adu && _ans_adu)) {
-        return -modbus_invalid_argument;
-    }
+    int r = 0;
+    unsigned int retries = 0;
 
-    r = _cli->send_adu(_cli, _req_adu);
-    if(r != modbus_success) {
-        _cli->bad_transactions++;
-        return r;
-    }
+    //_cli->transaction_id_counter++;
 
-    r = _cli->recv_adu(_cli, _ans_adu);
-    if(r != modbus_success) {
-        _cli->bad_transactions++;
-        return r;
-    }
+    while(_cli->n_retries >= retries) {
 
-    if(_req_adu->server_id != _ans_adu->server_id)
-        return -modbus_resp_wrong_address;
+//        _req_adu->transaction_id = _cli->transaction_id_counter;
 
-    r = emb_check_pdu_for_exception(&_ans_adu->pdu);
-    if(r != 0)
-        _cli->bad_transactions++;
-    else
+        if(!(_cli && _cli->recv_adu && _cli->send_adu && _req_adu && _ans_adu)) {
+            return -modbus_invalid_argument;
+        }
+
+        r = _cli->send_adu(_cli, _req_adu);
+        if(r != modbus_success) {
+            _cli->bad_transactions++;
+            retries++;
+            continue;
+        }
+
+        r = _cli->recv_adu(_cli, _ans_adu);
+        if(r != modbus_success) {
+            _cli->bad_transactions++;
+            retries++;
+            continue;
+        }
+
+        if(_req_adu->server_id != _ans_adu->server_id)
+            return -modbus_resp_wrong_address;
+
+        r = emb_check_pdu_for_exception(&_ans_adu->pdu);
+        if(r != 0) {
+            _cli->bad_transactions++;
+            retries++;
+            continue;
+        }
+
+//        if (_ans_adu->transaction_id != _cli->transaction_id_counter) {
+//            _cli->bad_transactions++;
+//            retries++;
+//            r = -modbus_resp_wrong_transaction_id;
+//            continue;
+//        }
+
         _cli->good_transactions++;
+        break;
+    }
 
     return r;
 }
