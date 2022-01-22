@@ -222,7 +222,7 @@ int emb_tcp_server_receive(emb_tcp_server_t* _srv,
                 // we got one...
                 if(i != _srv->listener) {
                     // handle data from a client
-                    if((nbytes = (int)recv(i, _buffer, _buf_size, 0)) <= 0) {
+                    if((nbytes = (int)recv(i, _buffer, _buf_size, MSG_NOSIGNAL)) <= 0) {
                         // got error or connection closed by client
 
                         _srv->conn_counter--;
@@ -294,7 +294,7 @@ int emb_tcp_server_send(emb_tcp_server_t* _srv,
 {
     if(_srv && _data && _data_length && _client && _client->active) {
         gettimeofday(&_client->last_activity_time, NULL);
-        return (int)send(_client->fd, _data, _data_length, 0);
+        return (int)send(_client->fd, _data, _data_length, MSG_NOSIGNAL);
     }
     else {
         return -modbus_invalid_argument;

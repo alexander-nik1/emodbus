@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <signal.h>
 
 #include "emodbus/base/common.h"
 #include "emodbus/base/modbus_errno.h"
@@ -259,6 +260,8 @@ int main()
 
     emb_tcp_server_client_t* client_id;
     in_addr_t sa;
+
+    signal(SIGPIPE, SIG_IGN);
 
     memset(coils1_data, 0, sizeof(coils1_data));
     memset(holdings1_regs, 0, sizeof(holdings1_regs));
