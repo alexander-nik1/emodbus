@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <arpa/inet.h>
 
 #include "emodbus/base/common.h"
 #include "emodbus/base/modbus_errno.h"
@@ -214,13 +215,15 @@ static struct emb_super_server_t emb_super_server =
 // =============================================================================================
 // TCP server part
 
-#define TCP_ADDRESS     "127.0.0.1"
+#define TCP_ADDRESS     "0.0.0.0"
 #define TCP_PORT        8502
 
 static emb_tcp_server_t tcp_server =
 {
     .rx_timeout_ms = 1000,
-    .max_connections = 2
+    .max_connections = 2,
+    .connection_reset_timeout_ms = 60*1000,
+    .connection_idle_to_reset_ms = 5000
 };
 
 void print_adu(FILE* _f, const emb_adu_t* _adu)
@@ -254,7 +257,7 @@ int main()
         }
     };
 
-    int client_id;
+    emb_tcp_server_client_t* client_id;
     in_addr_t sa;
 
     memset(coils1_data, 0, sizeof(coils1_data));
@@ -272,12 +275,27 @@ int main()
         fprintf(stderr, "Error with tcp_server_init() : %m\n");
     }
 
+    unsigned int i;
+
     while(1) {
         memset(buf, 0, sizeof(buf));
         memset(rx_buf, 0, sizeof(rx_buf));
 
         int tmp;
         tmp = emb_tcp_server_receive(&tcp_server, &client_id, buf, sizeof(buf));
+
+        /*printf("clients: ");
+        for (i=0; i<tcp_server.max_connections; ++i) {
+            if (tcp_server.clients[i].active) {
+                char buf[INET_ADDRSTRLEN];
+                printf("[%s] ", inet_ntop(AF_INET, &tcp_server.clients[i].addr.sin_addr, buf, sizeof(buf)));
+            }
+            else {
+                printf("[ ] ");
+            }
+        }
+        printf("\n");*/
+
         if(tmp <= 0) {
             if(tmp != 0 && tmp != -modbus_timeout)
                 fprintf(stderr, "Error with tcp_server_receive(): %s\n", emb_strerror(-tmp));
@@ -290,8 +308,8 @@ int main()
             continue;
         }
 
-        printf(">> ");
-        print_adu(stdout, &rx_adu);
+        //printf(">> ");
+        //print_adu(stdout, &rx_adu);
 
         tmp = emb_super_server_process_req(&emb_super_server, &rx_adu, &tx_adu);
         if(tmp < 0) {
@@ -305,8 +323,8 @@ int main()
             continue;
         }
         else if(tmp > 0) {
-            printf("<< ");
-            print_adu(stdout, &tx_adu);
+            //printf("<< ");
+            //print_adu(stdout, &tx_adu);
             tmp = emb_tcp_server_send(&tcp_server, client_id, buf, (unsigned int)tmp);
             if(tmp < 0) {
                 fprintf(stderr, "Error with tcp_server_send(): %d\n", tmp);

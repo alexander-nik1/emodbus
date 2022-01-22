@@ -4,6 +4,7 @@
 
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <sys/time.h>
 
 /*!
  * \file
@@ -16,13 +17,28 @@
  *
  */
 
+/**
+ * @brief TCP Server's client context
+ *
+ */
+typedef struct
+{
+    char active;
+    int fd;
+    struct sockaddr_in addr;
+    struct timeval connect_time;
+    struct timeval last_activity_time;
+} emb_tcp_server_client_t;
+
 /*! \brief TCP Server context
  *
  */
 typedef struct
 {
-    int rx_timeout_ms;                  ///< Receive timeout, must be set by user
-    unsigned int max_connections;       ///< Connections limit, must be set by user
+    int rx_timeout_ms;                  ///< Receive timeout, must be set by the user
+    unsigned int max_connections;       ///< Connections limit, must be set by the user
+    int connection_reset_timeout_ms;    ///< The maximum time to live of a connection, after which the connection will be forced to close, must be set by the user.
+    int connection_idle_to_reset_ms;    ///< A time from last activity to forced close, must be set by the user.
 
     // Next fileds is internal variables
     fd_set master;
@@ -31,6 +47,8 @@ typedef struct
     int fdmax;
     int listener;
 	unsigned int conn_counter;
+    emb_tcp_server_client_t* clients;
+
 } emb_tcp_server_t;
 
 /**
@@ -66,13 +84,15 @@ int emb_tcp_server_deinit(emb_tcp_server_t* _srv);
  * Function may return 0, meaning accepting a new connection or closing it.
  *
  * @param[in] _srv          TCP server context
- * @param[out] _client_id   A place to store client's id. (this id must be used in a send function \see emb_tcp_server_send)
+ * @param[out] _client      A place to store client's id. (this id must be used in a send function \see emb_tcp_server_send)
  * @param[out] _buffer      A place to store data in it.
  * @param[in] _buf_size     A size of the data place.
  * @return Positive value, if some data was received. Zero, if there was a connenction or disconnection. Negative, if errors occured.
  */
-int emb_tcp_server_receive(emb_tcp_server_t* _srv, int* _client_id,
-                           uint8_t* _buffer, unsigned int _buf_size);
+int emb_tcp_server_receive(emb_tcp_server_t* _srv,
+                           emb_tcp_server_client_t** _client,
+                           uint8_t* _buffer,
+                           unsigned int _buf_size);
 
 /**
  * @brief Send
@@ -85,7 +105,9 @@ int emb_tcp_server_receive(emb_tcp_server_t* _srv, int* _client_id,
  * @param[in] _data_length  A sizef of the data to send.
  * @return Positive value, if some data was sent. Negative, if errors occured.
  */
-int emb_tcp_server_send(emb_tcp_server_t* _srv, int _client_id,
-                        const uint8_t* _data, unsigned int _data_length);
+int emb_tcp_server_send(emb_tcp_server_t* _srv,
+                        emb_tcp_server_client_t* _client,
+                        const uint8_t* _data,
+                        unsigned int _data_length);
 
 #endif // EMB_TCP_SERVER_H
