@@ -31,13 +31,7 @@ This library need a LGPL v2 license.
 Когда буду писать TCP, то посмотреть, как это уже сделано тут:
 https://github.com/rscada/libmodbus
 
-Сделать нормальный bit_vector для coils.
-
-Сделать прием ASCII для emb_serial_port.
-
 Сделать универсальный тестовый сервер для RTU,ASCII,TCP.
-
-Сделать для клиента синхронные функции для coils и discrete inputs.
 
 Сделать рандомно-тестирующего клиента для holding-registers и input registers.
 
@@ -49,3 +43,5 @@ https://github.com/rscada/libmodbus
 Переделать C++ обёртку для сервера.
 
 Сделать функционал сброса для emb_serial_port.
+
+For tty-implementations, add the reopening a port, when errors occured.
