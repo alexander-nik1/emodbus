@@ -38,6 +38,8 @@ const char* emb_strerror(int _errno) {
             EMB_CASE_ERROR_STRING(modbus_timeout, "Timeout");
             EMB_CASE_ERROR_STRING(modbus_invalid_argument, "Invalid argument");
             EMB_CASE_ERROR_STRING(modbus_invalid_proto_id, "Invalid protocol Id");
+            EMB_CASE_ERROR_STRING(modbus_invalid_packet_format, "Invalid packet format");
+            EMB_CASE_ERROR_STRING(modbus_wrong_resp_quantity, "Wrong quantity in response");
             default: return (const char*)0;
         }
     }
