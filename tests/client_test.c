@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
 
     printf("Client test\n");
 
-    res = emb_tcp_client_set_connection_options(&tcp_client, "192.168.1.221", 8502);
+    res = emb_tcp_client_set_connection_options(&tcp_client, "192.168.1.156", 8502);
     if(res != 0)
         return -1;
 

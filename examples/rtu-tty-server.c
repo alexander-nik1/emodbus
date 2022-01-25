@@ -183,7 +183,7 @@ static struct emb_server_t server =
 // =============================================================================================
 // Super server part
 
-struct emb_server_t* get_server(struct emb_super_server_t* _ssrv, uint8_t _address)
+static struct emb_server_t* get_server(struct emb_super_server_t* _ssrv, uint8_t _address)
 {
     (void)_ssrv;
     return _address == 1 ? &server : NULL;

@@ -6,6 +6,10 @@
 #include <netinet/in.h>
 #include <sys/time.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*!
  * \file
  * \brief Definition of TCP server
@@ -87,7 +91,10 @@ int emb_tcp_server_deinit(emb_tcp_server_t* _srv);
  * @param[out] _client      A place to store client's id. (this id must be used in a send function \see emb_tcp_server_send)
  * @param[out] _buffer      A place to store data in it.
  * @param[in] _buf_size     A size of the data place.
- * @return Positive value, if some data was received. Zero, if there was a connenction or disconnection. Negative, if errors occured.
+ * @return	Positive value, if some data was received.
+ *			A -EAGAIN, if there was a connenction, (probably you need to call it again to read data)
+ *			Zero, if disconnection.
+ *			Negative, if errors occured.
  */
 int emb_tcp_server_receive(emb_tcp_server_t* _srv,
                            emb_tcp_server_client_t** _client,
@@ -109,5 +116,9 @@ int emb_tcp_server_send(emb_tcp_server_t* _srv,
                         emb_tcp_server_client_t* _client,
                         const uint8_t* _data,
                         unsigned int _data_length);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif // EMB_TCP_SERVER_H

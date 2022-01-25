@@ -2,6 +2,10 @@
 #ifndef EMB_SERIAL_PORT_H
 #define EMB_SERIAL_PORT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct
 {
     const char* tty_name;
@@ -30,5 +34,9 @@ int emb_serial_port_receive_rtu(emb_serial_port_t* _ctx, void* _p_buffer, unsign
 int emb_serial_port_receive_ascii(emb_serial_port_t* _ctx, void* _p_buffer, unsigned int _max_size);
 
 int emb_serial_port_send(emb_serial_port_t* _ctx, const void* _p_data, unsigned int _size);
+
+#ifdef __cplusplus
+}   // extern "C"
+#endif
 
 #endif // EMB_EXAMPLE_RTU_VIA_TTY_H

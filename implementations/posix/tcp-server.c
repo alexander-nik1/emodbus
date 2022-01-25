@@ -57,6 +57,8 @@ int emb_tcp_server_init(emb_tcp_server_t* _srv, in_addr_t _addr, uint16_t _port)
 
         _srv->clients = (emb_tcp_server_client_t*)malloc(_srv->max_connections * sizeof(emb_tcp_server_client_t));
 
+        memset(_srv->clients, 0, _srv->max_connections * sizeof(emb_tcp_server_client_t));
+
         DBG("tcp_server_init(): Use '%s:%d', listening\n", inet_ntoa(_srv->serveraddr.sin_addr), _port);
 
         return modbus_success;
@@ -280,7 +282,7 @@ int emb_tcp_server_receive(emb_tcp_server_t* _srv,
                 }
             }
         }
-        return 0;
+        return -EAGAIN;
     }
     else {
         return -modbus_invalid_argument;

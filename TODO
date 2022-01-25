@@ -45,3 +45,5 @@ https://github.com/rscada/libmodbus
 Сделать функционал сброса для emb_serial_port.
 
 For tty-implementations, add the reopening a port, when errors occured.
+
+Rename emb_is_addr_belongs_to_holdings -> emb_is_addr_belongs_to_regs

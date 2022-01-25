@@ -30,7 +30,7 @@ else()
 	set(EMB_LIBRARY_TYPE SHARED)
 endif()
 
-add_library(emodbus ${EMB_LIBRARY_TYPE}
+set(SOURCES
 	emodbus/base/common.c
 	emodbus/base/modbus_errno.c
 	emodbus/base/bit_array.c
@@ -81,6 +81,14 @@ add_library(emodbus ${EMB_LIBRARY_TYPE}
 	implementations/posix/tcp-client.c
 #	implementations/posix/tcp-server-event.c
 	implementations/posix/tcp-server.c
+)
+
+add_library(emodbus ${EMB_LIBRARY_TYPE}
+	${SOURCES}
+)
+
+add_library(emodbus-static STATIC
+	${SOURCES}
 )
 
 #add_library(emodbuscpp
