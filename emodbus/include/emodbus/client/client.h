@@ -120,6 +120,25 @@ int emb_sync_client_write_coil(emb_sync_client_t* _cli,
                                char _value);
 
 /**
+ * @brief emb_sync_client_write_coils
+ *
+ * Synchronous write a single bit (coil)
+ *
+ * @param [in] _cli Client context
+ * @param [in] _server_id Server id
+ * @param [in] _start_address Address of first coil to write
+ * @param [in] _quantity Number of coils to write
+ * @param [in] _value Bit-field to write
+ * @return if there is no errors, it will return zero, otherwize
+ * it will return a error code. You can see it by emb_strerror() function.
+ */
+int emb_sync_client_write_coils(emb_sync_client_t* _cli,
+                                uint8_t _server_id,
+                                uint16_t _start_address,
+                                uint32_t _quantity,
+                                const uint8_t* _values);
+
+/**
  * @brief emb_sync_client_mask_reg
  *
  * Synchronous mask register

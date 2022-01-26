@@ -86,12 +86,34 @@ int emb_read_bits_get_bit(emb_const_pdu_t* _answer,
  *
  * Function returns a eight bits values from answer.
  *
- * @param[in] _ans Answer
+ * @param[in] _answer Answer
  * @param[in] _byte_offset Offset to the byte in the answer.
  * @return An eight bits values. (One byte from answer), or negative code if error
  */
 int emb_read_bits_get_byte(emb_const_pdu_t* _answer,
-                               uint8_t _byte_offset);
+                           uint8_t _byte_offset);
+
+/**
+ * @brief Get bytes count from an answer
+ *
+ * Function returns the count of bytes
+ *
+ * @param[in] _answer Answer
+ * @return Count of bytes, or negative error code
+ */
+int emb_read_bits_get_answ_bytes_count(emb_const_pdu_t* _answer);
+
+/**
+ * @brief Get pointer to bits
+ *
+ * Function returns the pointer to the bits in an answer
+ *
+ * @param[in] _answer Answer
+ * @param[out] _ptr Pointer to bit-field
+ * @return Zero if ok, otherwise negative error code
+ */
+int emb_read_bits_get_answ_data(emb_const_pdu_t* _answer,
+                                const uint8_t** _ptr);
 
 #ifdef __cplusplus
 }   // extern "C"

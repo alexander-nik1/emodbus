@@ -58,6 +58,9 @@ add_executable(client-test client_test.c)
 
 target_link_libraries(client-test emodbus)
 
+add_executable(noise_test noise_test.c)
+target_link_libraries(noise_test emodbus)
+
 #target_link_libraries(emb_srv_test
 #    emodbus-base
 #    emodbus-server

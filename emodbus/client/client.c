@@ -13,6 +13,7 @@
 #include <emodbus/client/write_multi_regs.h>
 #include <emodbus/client/write_single_reg.h>
 #include <emodbus/base/limits.h>
+#include <emodbus/base/bit_array.h>
 #include <string.h>
 #include <errno.h>
 
@@ -91,24 +92,33 @@ static int __emb_sync_client_read_bits(emb_sync_client_t* _cli,
                                        uint8_t* _result,
                                        uint32_t _bit_offset)
 {
-//    int res;
+    int res;
+    int n_bytes;
+    const uint8_t* p_answ_data;
 
-//    res = emb_read_bits_make_req(&_cli->req_adu->pdu, _rb_type, _start_address, _quantity);
-//    if(res != modbus_success)
-//        return res;
+    res = emb_read_bits_make_req(&_cli->req_adu->pdu, _rb_type, _start_address, _quantity);
+    if(res != modbus_success)
+        return res;
 
-//    res = emb_sync_client_do_request(_cli, _cli->req_adu, _cli->ans_adu);
-//    if(res != modbus_success)
-//        return res;
+    res = emb_sync_client_do_request(_cli, _cli->req_adu, _cli->ans_adu);
+    if(res != modbus_success)
+        return res;
 
-//    int regsn = emb_read_bits_get_ans_bits_n(MB_CONST_PDU(&_cli->ans_adu->pdu));
-//    if(regsn < 0)
-//        return res;
-//    else if(regsn != _quantity)
-//        return -modbus_wrong_resp_quantity;
+    n_bytes = emb_read_bits_get_answ_bytes_count(MB_CONST_PDU(&_cli->ans_adu->pdu));
+    if(n_bytes < 0)
+        return res;
 
-//    return emb_read_regs_get_ans_regs(MB_CONST_PDU(&_cli->ans_adu->pdu), 0, (uint16_t)regsn, _result);
-//    return 0;
+    if((n_bytes * 8) < _quantity)
+        return -modbus_wrong_resp_quantity;
+
+    res = emb_read_bits_get_answ_data(MB_CONST_PDU(&_cli->ans_adu->pdu), &p_answ_data);
+    if (res != 0)
+        return res;
+
+    res = emb_bit_arr_set_bits((emb_ba_word_t*)_result, 65536,
+                               (const emb_ba_word_t*)p_answ_data, _bit_offset, _quantity);
+
+    return res;
 }
 
 int emb_sync_client_read_bits(emb_sync_client_t* _cli,
@@ -120,18 +130,20 @@ int emb_sync_client_read_bits(emb_sync_client_t* _cli,
 {
     uint32_t counter = 0;
 
-    if(!(_cli && _cli->req_adu && _cli->ans_adu && _quantity && _result)) {
+    if (!(_cli && _cli->req_adu && _cli->ans_adu && _quantity && _result))
         return -modbus_invalid_argument;
-    }
+
+    if ((uint32_t)_start_address + _quantity > 65536)
+        return -modbus_invalid_argument;
 
     _cli->req_adu->server_id = _server_id;
 
-    while(counter < _quantity) {
+    while (counter < _quantity) {
         uint32_t q = _quantity - counter;
-        if(q > EMB_READ_BITS_MAX_QUANTITY)
+        if (q > EMB_READ_BITS_MAX_QUANTITY)
             q = EMB_READ_BITS_MAX_QUANTITY;
         int res = __emb_sync_client_read_bits(_cli, _rb_type, _start_address + (uint16_t)counter, (uint16_t)q, _result, counter);
-        if(res != modbus_success)
+        if (res != modbus_success)
             return res;
         counter += q;
     }
@@ -172,13 +184,11 @@ int emb_sync_client_read_regs(emb_sync_client_t* _cli,
 {
     uint32_t counter = 0;
 
-    if(!(_cli && _cli->req_adu && _cli->ans_adu && _quantity && _result)) {
+    if(!(_cli && _cli->req_adu && _cli->ans_adu && _quantity && _result))
         return -modbus_invalid_argument;
-    }
 
-    if((uint32_t)_start_address + _quantity > 65536) {
+    if((uint32_t)_start_address + _quantity > 65536)
         return -modbus_invalid_argument;
-    }
 
     _cli->req_adu->server_id = _server_id;
 
@@ -211,6 +221,48 @@ int emb_sync_client_write_coil(emb_sync_client_t* _cli,
         return res;
 
     return emb_sync_client_do_request(_cli, _cli->req_adu, _cli->ans_adu);
+}
+
+static int __emb_sync_client_write_coils(emb_sync_client_t* _cli,
+                                         uint16_t _start_address,
+                                         uint16_t _quantity,
+                                         const uint8_t* _values)
+{
+    int res;
+
+    res = emb_write_coils_make_req(&_cli->req_adu->pdu, _start_address, _quantity, _values);
+    if(res != modbus_success)
+        return res;
+
+    return emb_sync_client_do_request(_cli, _cli->req_adu, _cli->ans_adu);
+}
+
+int emb_sync_client_write_coils(emb_sync_client_t* _cli,
+                                uint8_t _server_id,
+                                uint16_t _start_address,
+                                uint32_t _quantity,
+                                const uint8_t* _values)
+{
+    uint32_t counter = 0;
+
+    if(!(_cli && _cli->req_adu && _cli->ans_adu && _quantity && _values))
+        return -modbus_invalid_argument;
+
+    if((uint32_t)_start_address + _quantity > 65536)
+        return -modbus_invalid_argument;
+
+    _cli->req_adu->server_id = _server_id;
+
+    while(counter < _quantity) {
+        uint32_t q = _quantity - counter;
+        if(q > EMB_WRITE_COILS_MAX_QUANTITY)
+            q = EMB_WRITE_COILS_MAX_QUANTITY;
+        int res = __emb_sync_client_write_coils(_cli, _start_address + (uint16_t)counter, (uint16_t)q, _values + counter / 8);
+        if(res != modbus_success)
+            return res;
+        counter += q;
+    }
+    return modbus_success;
 }
 
 int emb_sync_client_mask_reg(emb_sync_client_t* _cli,
@@ -277,6 +329,9 @@ int emb_sync_client_write_regs(emb_sync_client_t* _cli,
     uint32_t counter = 0;
 
     if(!(_cli && _cli->req_adu && _cli->ans_adu && _quantity && _values))
+        return -modbus_invalid_argument;
+
+    if((uint32_t)_start_address + _quantity > 65536)
         return -modbus_invalid_argument;
 
     _cli->req_adu->server_id = _server_id;

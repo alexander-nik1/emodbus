@@ -41,7 +41,7 @@ int emb_write_coils_calc_answer_data_size();
  * \param[in] _starting_address Starting address of coils.
  * \param[in] _quantity Number of coils, that will be readed from device.
  * \param[in] _pcoils The array of bits. Each byte has an eight values for eight coils.
- * @return Zero if a request is ready, otherwise error code.
+ * @return Zero if the request is ready, otherwise error code.
  */
 int emb_write_coils_make_req(emb_pdu_t* _result_req,
                              uint16_t _starting_address,
@@ -49,18 +49,26 @@ int emb_write_coils_make_req(emb_pdu_t* _result_req,
                              const uint8_t* _pcoils);
 
 /**
+ * @brief Get bit-field (coils)
+ * @param[in] _req Request
+ * @param[out] _ptr A place to sotre a pointer to bit-field
+ * @return Zero if ok, otherwise error code.
+ */
+int emb_write_coils_get_bit_field(emb_pdu_t* _req, uint8_t** _ptr);
+
+/**
  * @brief Get starting address from request
  * @param[in] _req Request, from which reads a starting address
- * @return Starting address
+ * @return Starting address, or negative, if errors occured
  */
-uint16_t emb_write_coils_get_starting_addr(emb_const_pdu_t* _req);
+int emb_write_coils_get_starting_addr(emb_const_pdu_t* _req);
 
 /**
  * @brief Get quantity from request
  * @param[in] _req Request, from which reads a quantity
- * @return Quantity
+ * @return Quantity, or negative, if errors occured
  */
-uint16_t emb_write_coils_get_quantity(emb_const_pdu_t* _req);
+int emb_write_coils_get_quantity(emb_const_pdu_t* _req);
 
 #ifdef __cplusplus
 }   // extern "C"

@@ -311,8 +311,8 @@ int main()
             continue;
         }
 
-        //printf(">> ");
-        //print_adu(stdout, &rx_adu);
+//        printf(">> ");
+//        print_adu(stdout, &rx_adu);
 
         tmp = emb_super_server_process_req(&emb_super_server, &rx_adu, &tx_adu);
         if(tmp < 0) {
@@ -326,8 +326,8 @@ int main()
             continue;
         }
         else if(tmp > 0) {
-            //printf("<< ");
-            //print_adu(stdout, &tx_adu);
+//            printf("<< ");
+//            print_adu(stdout, &tx_adu);
             tmp = emb_tcp_server_send(&tcp_server, client_id, buf, (unsigned int)tmp);
             if(tmp < 0) {
                 fprintf(stderr, "Error with tcp_server_send(): %d\n", tmp);
