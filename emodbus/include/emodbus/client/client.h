@@ -29,7 +29,7 @@ typedef struct __emb_sync_client_t
 {
 	emb_adu_t* req_adu;		///< A place for a request PDU, must be set by a user
 	emb_adu_t* ans_adu;		///< A place for an answer PDU, must be set by the user
-	int (*send_adu)(struct __emb_sync_client_t* _cli, emb_adu_t* _adu); ///< Function for encode and send an answer DPU, must be set by a user
+    int (*send_adu)(struct __emb_sync_client_t* _cli, emb_adu_t* _adu); ///< Function for encode and send an answer DPU, must be set by a user
 	int (*recv_adu)(struct __emb_sync_client_t* _cli, emb_adu_t* _adu); ///< Function for receive and decode a request DPU, must be set by a user
 	unsigned int good_transactions; ///< Counter of a good transactions
 	unsigned int bad_transactions; ///< Counter of a bad transactions
@@ -103,6 +103,23 @@ int emb_sync_client_read_regs(emb_sync_client_t* _cli,
                               uint16_t* _result);
 
 /**
+ * @brief emb_sync_client_write_coil
+ *
+ * Synchronous write a single bit (coil)
+ *
+ * @param [in] _cli Client context
+ * @param [in] _server_id Server id
+ * @param [in] _address Address of coil to write
+ * @param [in] _value Value to write
+ * @return if there is no errors, it will return zero, otherwize
+ * it will return a error code. You can see it by emb_strerror() function.
+ */
+int emb_sync_client_write_coil(emb_sync_client_t* _cli,
+                               uint8_t _server_id,
+                               uint16_t _address,
+                               char _value);
+
+/**
  * @brief emb_sync_client_mask_reg
  *
  * Synchronous mask register
@@ -129,7 +146,7 @@ int emb_sync_client_mask_reg(emb_sync_client_t* _cli,
  * @param [in] _cli Client context
  * @param [in] _server_id Server id
  * @param [in] _address Address of register to write
- * @param [in] _value Value to wrote
+ * @param [in] _value Value to write
  * @return if there is no errors, it will return zero, otherwize
  * it will return a error code. You can see it by emb_strerror() function.
  */

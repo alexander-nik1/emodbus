@@ -49,7 +49,7 @@ static emb_adu_t ans_adu = {
     }
 };
 
-static int client_send_adu(emb_sync_client_t* _cli, const emb_adu_t* _adu);
+static int client_send_adu(emb_sync_client_t* _cli, emb_adu_t* _adu);
 static int client_recv_adu(emb_sync_client_t* _cli, emb_adu_t* _adu);
 
 static emb_sync_client_t client =
@@ -60,7 +60,7 @@ static emb_sync_client_t client =
     .recv_adu = client_recv_adu
 };
 
-static int client_send_adu(emb_sync_client_t* _cli, const emb_adu_t* _adu)
+static int client_send_adu(emb_sync_client_t* _cli, emb_adu_t* _adu)
 {
     (void)_cli;
     int r;

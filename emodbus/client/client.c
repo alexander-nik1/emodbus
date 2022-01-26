@@ -194,6 +194,25 @@ int emb_sync_client_read_regs(emb_sync_client_t* _cli,
     return modbus_success;
 }
 
+int emb_sync_client_write_coil(emb_sync_client_t* _cli,
+                               uint8_t _server_id,
+                               uint16_t _address,
+                               char _value)
+{
+    int res;
+
+    if(!(_cli && _cli->req_adu && _cli->ans_adu))
+        return -modbus_invalid_argument;
+
+    _cli->req_adu->server_id = _server_id;
+
+    res = emb_write_coil_make_req(&_cli->req_adu->pdu, _address, _value);
+    if(res != modbus_success)
+        return res;
+
+    return emb_sync_client_do_request(_cli, _cli->req_adu, _cli->ans_adu);
+}
+
 int emb_sync_client_mask_reg(emb_sync_client_t* _cli,
                              uint8_t _server_id,
                              uint16_t _address,
