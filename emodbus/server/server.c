@@ -87,7 +87,7 @@ int emb_is_addr_belongs_to_bits(uint16_t _addr, const struct emb_srv_bits_t* _bi
     return ((_bits->start <= _addr) && (_addr < _bits->start + _bits->size));
 }
 
-int emb_is_addr_belongs_to_holdings(uint16_t _addr, const struct emb_srv_regs_t* _holdings)
+int emb_is_addr_belongs_to_regs(uint16_t _addr, const struct emb_srv_regs_t* _holdings)
 {
     return ((_holdings->start <= _addr) && (_addr < _holdings->start + _holdings->size));
 }

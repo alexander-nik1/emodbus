@@ -100,7 +100,7 @@ static struct emb_srv_bits_t* get_discrete_inputs(struct emb_server_t* _srv, uin
 static struct emb_srv_regs_t* get_holding_regs(struct emb_server_t* _srv, uint16_t _begin)
 {
     (void)_srv;
-    if(emb_is_addr_belongs_to_holdings(_begin, &holdings1))
+    if(emb_is_addr_belongs_to_regs(_begin, &holdings1))
         return &holdings1;
     return NULL;
 }
@@ -108,7 +108,7 @@ static struct emb_srv_regs_t* get_holding_regs(struct emb_server_t* _srv, uint16
 static struct emb_srv_regs_t* get_input_regs(struct emb_server_t* _srv, uint16_t _begin)
 {
     (void)_srv;
-    if(emb_is_addr_belongs_to_holdings(_begin, &holdings1))
+    if(emb_is_addr_belongs_to_regs(_begin, &holdings1))
         return &holdings1;
     return NULL;
 }
