@@ -24,7 +24,7 @@
 #define GET_LIT_END16(ptr)          (((uint16_t)((uint8_t*)(ptr))[1]) << 8 | ((uint16_t)((uint8_t*)(ptr))[0]))
 
 #define BIG_END_MK16(ptr, word)     ((uint8_t*)(ptr))[0] = (uint8_t)((word) >> 8), ((uint8_t*)(ptr))[1] = (uint8_t)(word);
-#define GET_BIG_END16(ptr)          (uint16_t)(((uint16_t)((uint8_t*)(ptr))[0]) << 8 | ((uint16_t)((uint8_t*)(ptr))[1]))
+#define GET_BIG_END16(ptr)          (uint16_t)(((uint16_t)((const uint8_t*)(ptr))[0]) << 8 | ((uint16_t)((const uint8_t*)(ptr))[1]))
 
 #define SWAP_BYTES(x)               (uint16_t)((((uint16_t)(x)) >> 8) | (((uint16_t)(x)) << 8))
 #define SWAP_WORDS(x)               ((((uint32_t)(x)) >> 16) | (((uint32_t)(x)) << 16))

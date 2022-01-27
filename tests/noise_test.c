@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <string.h>
+#include <time.h>
 
 #include <emodbus/client/client.h>
 #include <emodbus/protocols/tcp.h>
@@ -12,6 +13,7 @@
 #include <emodbus/base/modbus_errno.h>
 #include <emodbus/base/common.h>
 #include <emodbus/base/bit_array.h>
+#include <emodbus/base/limits.h>
 
 static emb_tcp_client_t tcp_client =
 {
@@ -136,6 +138,7 @@ static long get_time_period_ms_from(const struct timeval* _from)
 }
 
 void coils_test();
+void regs_test();
 
 int main(int argc, char* argv[])
 {
@@ -158,6 +161,7 @@ int main(int argc, char* argv[])
         return -1;
 
     coils_test();
+    //regs_test();
 
     emb_tcp_client_deinit(&tcp_client);
 
@@ -172,6 +176,11 @@ void randomize_mem(void* _bytes, size_t _size)
     }
 }
 
+void randomize_regs(uint16_t* _regs, size_t _n_regs)
+{
+    randomize_mem(_regs, _n_regs*sizeof(uint16_t));
+}
+
 int compare_bits(const void* _b1, const void* _b2, size_t _size)
 {
     size_t i;
@@ -179,6 +188,19 @@ int compare_bits(const void* _b1, const void* _b2, size_t _size)
     for(i=0; i<_size; ++i) {
         if(((const uint8_t*)_b1)[i] != ((const uint8_t*)_b2)[i]) {
             printf("bits %d-%d is differ (0x%02X != 0x%02X)!\n", i*8, (i+1)*8, ((const uint8_t*)_b1)[i], ((const uint8_t*)_b2)[i]);
+            errors++;
+        }
+    }
+    return errors;
+}
+
+int compare_registers(const uint16_t* _a, const uint16_t* _b, size_t _n_regs)
+{
+    size_t i;
+    int errors = 0;
+    for(i=0; i<_n_regs; ++i) {
+        if (_a[i] != _b[i]) {
+            //printf("Registers is differ: 0x%04X != 0x%04X, offs: %d\n", _a[i], _b[i], (int)i);
             errors++;
         }
     }
@@ -197,12 +219,12 @@ void coils_test()
     memset(coils1, 0, sizeof(coils1));
     memset(coils2, 0, sizeof(coils2));
 
-    srand(time(0));
+    srand((unsigned int)time(0));
 
-    for (i=0; i<10000; ++i)
+    for (i=0; i<1000; ++i)
     {
         uint16_t start = (uint16_t)rand() % 1000;
-        uint16_t quantity = (uint16_t)rand() % 2000 + 30000;
+        uint16_t quantity = (uint16_t)rand() % 2000 + 60000;
 
         randomize_mem(coils1, sizeof(coils1));
         randomize_mem(coils2, sizeof(coils2));
@@ -219,12 +241,204 @@ void coils_test()
         if (res != 0)
             errors++;
 
+        start = (uint16_t)rand() % 65536;
+        uint8_t val1 = rand() & 1;
+        uint8_t val2 = 0;
+
+
+        res = emb_sync_client_write_coil(&client, 1, start, (char)val1);
+        if(res != modbus_success)
+            printf("Error while emb_sync_client_read_bits():%s\n", emb_strerror(-res));
+
+        res = emb_sync_client_read_bits(&client, 1, EMB_RB_DISCRETE_INPUTS, start, 1, &val2);
+        if(res != modbus_success)
+            printf("Error while emb_sync_client_read_bits():%s\n", emb_strerror(-res));
+
+        if (val1 != val2) {
+             errors++;
+        }
+
         printf("Test# %d Errors: %d\n", i, res);
 
-        //usleep(1000*1);
+        //usleep(1000*100);
     }
 
     printf("All errors: %d\n", errors);
 }
+
+void regs_test()
+{
+    int i;
+    int res;
+    int errors = 0;
+    const int n_tests = 500;
+
+    int read_input_errors = 0;
+    int read_holding_errors = 0;
+    int rdwr_errors = 0;
+
+    uint16_t regs1[65536];
+    uint16_t regs2[65536];
+
+    srand((unsigned int)time(0));
+
+    memset(regs1, 0, sizeof(regs1));
+    memset(regs2, 0, sizeof(regs2));
+
+    randomize_regs(regs1, EMB_ARR_SIZE(regs1));
+
+    res = emb_sync_client_write_regs(&client, 1, 0, EMB_ARR_SIZE(regs1), regs1);
+    if(res != modbus_success)
+        printf("Error while emb_sync_client_write_regs():%s\n", emb_strerror(-res));
+
+    for (i=0; i<n_tests; ++i) {
+
+        do {
+            const uint16_t start = (uint16_t)(rand() % 65536);
+            const uint16_t quantity = (uint16_t)(rand() % (65536-start) + 1);
+
+            res = emb_sync_client_read_regs(&client, 1, EMB_RR_INPUTS, start, quantity, regs2+start);
+            if(res != modbus_success)
+                printf("Error while emb_sync_client_read_regs():%s\n", emb_strerror(-res));
+
+            res = compare_registers(regs1+start, regs2+start, quantity);
+            if (res != 0) {
+                printf("There are errors with emb_sync_client_read_regs()\n");
+                read_input_errors++;
+                errors++;
+            }
+
+        } while(0);
+
+        do {
+            const uint16_t start = (uint16_t)(rand() % 65536);
+            const uint16_t quantity = (uint16_t)(rand() % (65536-start) + 1);
+
+            res = emb_sync_client_read_regs(&client, 1, EMB_RR_HOLDINGS, start, quantity, regs2+start);
+            if(res != modbus_success)
+                printf("Error while emb_sync_client_read_regs():%s\n", emb_strerror(-res));
+
+            res = compare_registers(regs1+start, regs2+start, quantity);
+            if (res != 0) {
+                printf("There are errors with emb_sync_client_read_regs()\n");
+                read_holding_errors++;
+                errors++;
+            }
+
+        } while(0);
+
+        do {
+            const uint16_t start = (uint16_t)(rand() % 65536);
+            const uint16_t quantity = (uint16_t)(rand() % (65536-start) + 1);
+
+            randomize_regs(regs1+start, quantity);
+
+            res = emb_sync_client_write_regs(&client, 1, start, quantity, regs1+start);
+            if(res != modbus_success)
+                printf("Error while emb_sync_client_read_regs():%s\n", emb_strerror(-res));
+
+        } while(0);
+
+        do {
+            const uint16_t start = (uint16_t)(rand() % 65536);
+
+            randomize_regs(regs1+start, 1);
+
+            res = emb_sync_client_write_reg(&client, 1, start, regs1[start]);
+            if(res != modbus_success)
+                printf("Error while emb_sync_client_write_reg():%s\n", emb_strerror(-res));
+
+        } while(0);
+
+        do {
+            const uint16_t start = (uint16_t)(rand() % 65536);
+
+            uint16_t and_mask;
+            uint16_t or_mask;
+            uint16_t tmp;
+
+            randomize_regs(&and_mask, 1);
+            randomize_regs(&or_mask, 1);
+
+            tmp = regs1[start];
+
+            tmp = (tmp & and_mask) | (or_mask & ~and_mask);
+
+            regs1[start] = tmp;
+
+            res = emb_sync_client_mask_reg(&client, 1, start, and_mask, or_mask);
+            if(res != modbus_success)
+                printf("Error while emb_sync_client_write_reg():%s\n", emb_strerror(-res));
+
+        } while(0);
+
+        do {
+            const uint16_t wr_start = (uint16_t)(rand() % 65536);
+            uint16_t wr_quantity = (uint16_t)((rand() % EMB_RDWR_REGS_MIN_WR_QUANTITY) + 1);
+            if ((uint32_t)wr_quantity + (uint32_t)wr_start > 65536)
+                wr_quantity = 65535 - wr_start;
+
+            const uint16_t rd_start = (uint16_t)(rand() % 65536);
+            uint16_t rd_quantity = (uint16_t)((rand() % EMB_RDWR_REGS_MIN_RD_QUANTITY) + 1);
+            if ((uint32_t)rd_quantity + (uint32_t)rd_start > 65536)
+                rd_quantity = 65535 - rd_start;
+
+            randomize_regs(regs1+wr_start, wr_quantity);
+
+            res = emb_sync_client_rdwr_regs(&client, 1, wr_start, wr_quantity, regs1+wr_start,
+                                            rd_start, rd_quantity, regs2+rd_start);
+            if(res != modbus_success)
+                printf("Error while emb_sync_client_rdwr_regs():%s\n", emb_strerror(-res));
+
+            res = compare_registers(regs1+rd_start, regs2+rd_start, rd_quantity);
+            if (res != 0) {
+                printf("There are errors with emb_sync_client_read_regs()\n");
+                rdwr_errors++;
+                errors++;
+            }
+
+        } while(0);
+
+        printf("\r%d%%", i * 101 / n_tests);
+        fflush(stdout);
+    }
+    printf("\n");
+
+    res = emb_sync_client_read_regs(&client, 1, EMB_RR_INPUTS, 0, EMB_ARR_SIZE(regs2), regs2);
+    if(res != modbus_success)
+        printf("Error while emb_sync_client_read_regs():%s\n", emb_strerror(-res));
+
+    res = compare_registers(regs1, regs2, EMB_ARR_SIZE(regs2));
+    if (res != 0) {
+        errors++;
+    }
+
+    printf("Errors: %d\n", errors);
+    printf("Read holding regs errors: %d\n", read_holding_errors);
+    printf("Read input regs errors: %d\n", read_input_errors);
+    printf("Read-write regs errors: %d\n", rdwr_errors);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

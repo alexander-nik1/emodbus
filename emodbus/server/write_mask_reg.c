@@ -50,9 +50,9 @@ uint8_t emb_srv_mask_reg(struct emb_super_server_t* _ssrv,
     if(MASK_REGISTER_ANS_SIZE() > _ssrv->tx_pdu->max_size)
         return MBE_SLAVE_FAILURE;
 
-    ((uint16_t*)tx_data)[0] = SWAP_BYTES(addr);
-    ((uint16_t*)tx_data)[1] = SWAP_BYTES(and_mask);
-    ((uint16_t*)tx_data)[2] = SWAP_BYTES(or_mask);
+    BIG_END_MK16(tx_data, addr);
+    BIG_END_MK16(tx_data+2, and_mask);
+    BIG_END_MK16(tx_data+4, or_mask);
 
     _ssrv->tx_pdu->function = 0x16;
     _ssrv->tx_pdu->data_size = MASK_REGISTER_ANS_SIZE();

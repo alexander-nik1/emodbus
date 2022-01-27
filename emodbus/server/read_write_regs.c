@@ -60,23 +60,22 @@ uint8_t emb_srv_read_write_regs(struct emb_super_server_t* _ssrv,
     rx_data += 9;
     // swap registers for write
     for(i=0; i<wr_quantity; ++i) {
-        uint16_t* p = ((uint16_t*)rx_data) + i;
-        SWAP_BYTES_PTR(p);
+        SWAP_BYTES_PTR(rx_data+i*sizeof(uint16_t));
     }
 
     i = wr_regs->write_regs(wr_regs,
                             wr_start_addr - wr_regs->start,
                             wr_quantity,
-                            (uint16_t*)rx_data);
+                            (uint16_t*)(void*)rx_data);
     if(i)
         return i;
 
-    *tx_data++ = rd_quantity*2; // write bytes_count
+    *tx_data++ = (uint8_t)(rd_quantity*2); // write bytes_count
 
     i = rd_regs->read_regs(rd_regs,
                            rd_start_addr - rd_regs->start,
                            rd_quantity,
-                           (uint16_t*)tx_data);
+                           (uint16_t*)(void*)tx_data);
     if(i)
         return i;
 
@@ -87,7 +86,7 @@ uint8_t emb_srv_read_write_regs(struct emb_super_server_t* _ssrv,
     }
 
     _ssrv->tx_pdu->function = 0x17;
-    _ssrv->tx_pdu->data_size = READ_WRITE_REGS_ANS_SIZE(rd_quantity);
+    _ssrv->tx_pdu->data_size = (uint8_t)READ_WRITE_REGS_ANS_SIZE(rd_quantity);
 
     return 0;
 }

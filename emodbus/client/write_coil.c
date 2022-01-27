@@ -5,6 +5,7 @@
 #include <emodbus/base/common.h>
 #include <emodbus/client/write_coil.h>
 #include <emodbus/base/calc_pdu_size.h>
+#include <emodbus/base/modbus_errno.h>
 
 /*!
  * \file
@@ -28,15 +29,17 @@ int emb_write_coil_make_req(emb_pdu_t *_result_req,
 
     uint16_t value_code;
 
-    if(_result_req->max_size < WRITE_COIL_REQ_SIZE()) {
-        return -ENOMEM;
-    }
+    if (!_result_req)
+        return -modbus_invalid_argument;
 
-    ((uint16_t*)_result_req->data)[0] = SWAP_BYTES(_address);
+    if (_result_req->max_size < WRITE_COIL_REQ_SIZE())
+        return -modbus_buffer_overflow;
+
+    BIG_END_MK16(_result_req->data, _address);
 
     value_code = (_value != 0) ? 0xFF00 : 0x0000;
 
-    ((uint16_t*)_result_req->data)[1] = SWAP_BYTES(value_code);
+    BIG_END_MK16(_result_req->data+2, value_code);
 
     _result_req->data_size = WRITE_COIL_REQ_SIZE();
     _result_req->function = 0x05;
@@ -44,7 +47,9 @@ int emb_write_coil_make_req(emb_pdu_t *_result_req,
     return 0;
 }
 
-uint16_t emb_write_coil_get_addr(emb_const_pdu_t *_req) {
-    const uint16_t t = ((uint16_t*)_req->data)[0];
-    return SWAP_BYTES(t);
+int emb_write_coil_get_addr(emb_const_pdu_t *_req) {
+    if (_req && _req->data_size > 1) {
+        return GET_BIG_END16(_req->data);
+    }
+    return -modbus_invalid_argument;
 }

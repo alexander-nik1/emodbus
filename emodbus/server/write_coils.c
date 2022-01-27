@@ -11,7 +11,6 @@ uint8_t emb_srv_write_coils(struct emb_super_server_t* _ssrv,
 
     uint8_t* rx_data = _ssrv->rx_pdu->data;
     uint8_t* tx_data = _ssrv->tx_pdu->data;
-    uint8_t i;
 
     struct emb_srv_bits_t* coils;
 
@@ -46,8 +45,8 @@ uint8_t emb_srv_write_coils(struct emb_super_server_t* _ssrv,
     if(_ssrv->tx_pdu->max_size < _ssrv->tx_pdu->data_size)
         return MBE_SLAVE_FAILURE;
 
-    ((uint16_t*)(tx_data))[0] = SWAP_BYTES(start_addr);
-    ((uint16_t*)(tx_data))[1] = SWAP_BYTES(quantity);
+    BIG_END_MK16(tx_data, start_addr);
+    BIG_END_MK16(tx_data+2, quantity);
 
     rx_data += 5;
 

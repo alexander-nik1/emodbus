@@ -46,9 +46,9 @@ int emb_write_coil_make_req(emb_pdu_t* _result_req,
 /**
  * @brief Get the address from request
  * @param[in] _req Request, from which reads an address
- * @return The address
+ * @return The address, or negative, if error
  */
-uint16_t emb_write_coil_get_addr(emb_const_pdu_t* _req);
+int emb_write_coil_get_addr(emb_const_pdu_t* _req);
 
 #ifdef __cplusplus
 }   // extern "C"

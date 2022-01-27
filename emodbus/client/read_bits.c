@@ -38,8 +38,8 @@ int emb_read_bits_make_req(emb_pdu_t* _result_req,
         return -modbus_buffer_overflow;
 
     if ( 1 <= _quantity && _quantity <= EMB_READ_BITS_MAX_QUANTITY ) {
-        ((uint16_t*)_result_req->data)[0] = (uint16_t)SWAP_BYTES(_starting_address);
-        ((uint16_t*)_result_req->data)[1] = (uint16_t)SWAP_BYTES(_quantity);
+        BIG_END_MK16(_result_req->data, _starting_address);
+        BIG_END_MK16(_result_req->data+2, _quantity);
         _result_req->data_size = (uint8_t)emb_read_bits_calc_req_data_size();
         switch(_type) {
         case EMB_RB_COILS:
@@ -59,17 +59,15 @@ int emb_read_bits_make_req(emb_pdu_t* _result_req,
 }
 
 int emb_read_bits_get_starting_addr(emb_const_pdu_t *_req) {
-    if (_req) {
-        const uint16_t t = ((const uint16_t*)(_req->data))[0];
-        return SWAP_BYTES(t);
+    if (_req && _req->data_size > 1) {
+        return GET_BIG_END16(_req->data);
     }
     return -modbus_invalid_argument;
 }
 
 int emb_read_bits_get_quantity(emb_const_pdu_t *_req) {
-    if (_req) {
-        const uint16_t t = ((const uint16_t*)(_req->data))[1];
-        return SWAP_BYTES(t);
+    if (_req && _req->data_size > 3) {
+        return GET_BIG_END16(_req->data);
     }
     return -modbus_invalid_argument;
 }

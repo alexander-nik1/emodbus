@@ -42,14 +42,13 @@ uint8_t emb_srv_write_regs(struct emb_super_server_t* _ssrv,
     rx_data += 5;
 
     for(i=0; i<quantity; ++i) {
-        uint16_t* p = ((uint16_t*)rx_data) + i;
-        SWAP_BYTES_PTR(p);
+        SWAP_BYTES_PTR(rx_data+i*sizeof(uint16_t));
     }
 
     i = r->write_regs(r,
                       start_addr - r->start,
                       quantity,
-                      (uint16_t*)rx_data);
+                      (uint16_t*)(void*)rx_data);
     if(i)
         return i;
 

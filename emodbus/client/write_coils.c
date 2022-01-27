@@ -47,8 +47,9 @@ int emb_write_coils_make_req(emb_pdu_t *_result_req,
         return -modbus_buffer_overflow;
 
     if( 1 <= _quantity && _quantity <= EMB_WRITE_COILS_MAX_QUANTITY ) {
-        ((uint16_t*)_result_req->data)[0] = SWAP_BYTES(_starting_address);
-        ((uint16_t*)_result_req->data)[1] = SWAP_BYTES(_quantity);
+
+        BIG_END_MK16(_result_req->data, _starting_address);
+        BIG_END_MK16(_result_req->data+2, _quantity);
         ((uint8_t*)_result_req->data)[4] = coils_byte_count;
         memcpy(((uint8_t*)_result_req->data) + 5, _pcoils, coils_byte_count);
         _result_req->data_size = (uint8_t)byte_count;
@@ -70,16 +71,14 @@ int emb_write_coils_get_bit_field(emb_pdu_t* _req, uint8_t** _ptr)
 
 int emb_write_coils_get_starting_addr(emb_const_pdu_t *_req) {
     if (_req && _req->data_size > 1) {
-        const uint16_t t = ((uint16_t*)_req->data)[0];
-        return SWAP_BYTES(t);
+        return GET_BIG_END16(_req->data);
     }
     return -modbus_invalid_argument;
 }
 
 int emb_write_coils_get_quantity(emb_const_pdu_t *_req) {
     if (_req && _req->data_size > 3) {
-        const uint16_t t = ((uint16_t*)_req->data)[1];
-        return SWAP_BYTES(t);
+        return GET_BIG_END16(_req->data+2);
     }
     return -modbus_invalid_argument;
 }

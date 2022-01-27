@@ -43,7 +43,7 @@ uint8_t emb_srv_read_bits(struct emb_super_server_t* _ssrv,
     if(!coils->read_bits)
         return MBE_ILLEGAL_DATA_ADDR;
 
-    byte_count = quantity >> 3;
+    byte_count = (uint8_t)(quantity >> 3);
 
     if((quantity & 0x07) != 0)
         ++byte_count;
