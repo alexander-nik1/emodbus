@@ -43,26 +43,26 @@ int emb_read_fifo_make_req(emb_pdu_t* _result_req,
                            uint16_t _starting_address);
 
 /**
- * @brief Get byte count from answer
+ * @brief Get byte count from an answer
  *
  * This function can retrun a byte-count field
  * from a given answer.
  *
  * @param[in] _answer The answer
- * @return Byte count
+ * @return Byte count, or negative, if error
  */
-uint16_t emb_read_fifo_byte_count(emb_const_pdu_t* _answer);
+int emb_read_fifo_answ_byte_count(emb_const_pdu_t* _answer);
 
 /**
- * @brief Get regs count from answer
+ * @brief Get regs count from an answer
  *
  * This function can retrun a registers count field
  * from a given answer.
  *
  * @param[in] _answer The answer
- * @return Registers count
+ * @return Registers count, or negative, if error
  */
-uint16_t emb_read_fifo_regs_count(emb_const_pdu_t* _answer);
+int emb_read_fifo_answ_regs_count(emb_const_pdu_t* _answer);
 
 /**
  * @brief Get the data register from answer
@@ -72,9 +72,9 @@ uint16_t emb_read_fifo_regs_count(emb_const_pdu_t* _answer);
  *
  * @param[in] _answer The answer
  * @param[in] _offset The offset to a data within the answer.
- * @return Data register.
+ * @return Data register, or negative, if error
  */
-uint16_t emb_read_fifo_get_data(emb_const_pdu_t* _answer,
+int emb_read_fifo_answ_get_data(emb_const_pdu_t* _answer,
                                 uint16_t _offset);
 
 /**
@@ -85,9 +85,9 @@ uint16_t emb_read_fifo_get_data(emb_const_pdu_t* _answer,
  * @param[in] _answer The answer
  * @param[in] _buf_size The maximum size that to be copied into the _buf.
  * @param[in] _buf The pointer to copy data in.
- * @return Number of registers, that were copied.
+ * @return Number of registers, that were copied, or negative, if error
  */
-uint16_t emb_read_fifo_get_all_data(emb_const_pdu_t* _answer,
+int emb_read_fifo_answ_get_all_data(emb_const_pdu_t* _answer,
                                     uint16_t _buf_size, uint16_t* _buf);
 
 #ifdef __cplusplus

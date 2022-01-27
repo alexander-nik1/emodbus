@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <emodbus/base/byte-word.h>
 #include <emodbus/base/calc_pdu_size.h>
+#include <emodbus/base/modbus_errno.h>
 
 /*!
  * \file
@@ -23,9 +24,11 @@ int emb_read_fifo_calc_answer_data_size() {
 int emb_read_fifo_make_req(emb_pdu_t* _result_req,
                            uint16_t _starting_address) {
 
-    if(_result_req->max_size < READ_FIFO_REQ_SIZE()) {
-        return -ENOMEM;
-    }
+    if (!_result_req)
+        return -modbus_invalid_argument;
+
+    if(_result_req->max_size < READ_FIFO_REQ_SIZE())
+        return -modbus_buffer_overflow;
 
     _result_req->function = 0x18;
     _result_req->data_size = READ_FIFO_REQ_SIZE();
@@ -35,45 +38,54 @@ int emb_read_fifo_make_req(emb_pdu_t* _result_req,
     return 0;
 }
 
-uint16_t emb_read_fifo_byte_count(emb_const_pdu_t* _answer) {
-    if(_answer) {
-        const uint16_t x = ((uint16_t*)_answer->data)[0];
+int emb_read_fifo_answ_byte_count(emb_const_pdu_t* _answer) {
+    if(_answer && _answer->data_size > 1) {
+        const uint16_t x = ((const uint16_t*)_answer->data)[0];
         return SWAP_BYTES(x);
     }
-    return -1;
+    return -modbus_invalid_argument;
 }
 
-uint16_t emb_read_fifo_regs_count(emb_const_pdu_t* _answer) {
+int emb_read_fifo_answ_regs_count(emb_const_pdu_t* _answer) {
     if(_answer) {
-        const uint16_t x = ((uint16_t*)_answer->data)[1];
+        const uint16_t x = ((const uint16_t*)_answer->data)[1];
         return SWAP_BYTES(x);
     }
-    return -1;
+    return -modbus_invalid_argument;
 }
 
-uint16_t emb_read_fifo_get_data(emb_const_pdu_t* _answer,
+int emb_read_fifo_answ_get_data(emb_const_pdu_t* _answer,
                                 uint16_t _offset) {
-    if(_answer && _offset < emb_read_fifo_regs_count(_answer)) {
-        const uint16_t x = ((uint16_t*)_answer->data)[2 + _offset];
+    if(_answer) {
+
+        const int regs_count = emb_read_fifo_answ_regs_count(_answer);
+        if (regs_count < 0)
+            return regs_count;
+        if(_offset < regs_count)
+            return -modbus_invalid_argument;
+
+        const uint16_t x = ((const uint16_t*)_answer->data)[2 + _offset];
         return SWAP_BYTES(x);
     }
-    return -1;
+    return -modbus_invalid_argument;
 }
 
-uint16_t emb_read_fifo_get_all_data(emb_const_pdu_t* _answer,
+int emb_read_fifo_answ_get_all_data(emb_const_pdu_t* _answer,
                                     uint16_t _buf_size, uint16_t* _buf) {
     if(_answer) {
         uint16_t i;
-        const uint16_t regs_count = emb_read_fifo_regs_count(_answer);
+        const int regs_count = emb_read_fifo_answ_regs_count(_answer);
+        if (regs_count < 0)
+            return regs_count;
 
         if(_buf_size > regs_count)
-            _buf_size = regs_count;
+            _buf_size = (uint16_t)regs_count;
 
         for(i=0; i<_buf_size; ++i) {
-            const uint16_t x = ((uint16_t*)_answer->data)[2 + i];
+            const uint16_t x = ((const uint16_t*)_answer->data)[2 + i];
             _buf[i] = SWAP_BYTES(x);
         }
         return _buf_size;
     }
-    return -1;
+    return -modbus_invalid_argument;
 }
