@@ -372,7 +372,7 @@ int emb_serial_port_receive_ascii(emb_serial_port_t* _ctx, void* _p_buffer, unsi
             }
             else {
                 counter += (unsigned int)ret;
-                if(rx_buf[counter-2] == EMB_ASCII_CR && rx_buf[counter-1] == EMB_ASCII_LF) {
+                if(counter >= 4 && rx_buf[counter-2] == EMB_ASCII_CR && rx_buf[counter-1] == EMB_ASCII_LF) {
                     DBG("CR+LF found (end of packet)\n");
                     _ctx->rx_bytes_counter += counter;
                     _ctx->rx_packets ++;
@@ -416,7 +416,7 @@ int emb_serial_port_receive_ascii(emb_serial_port_t* _ctx, void* _p_buffer, unsi
                 }
                 else {
                     counter += (unsigned int)ret;
-                    if(rx_buf[counter-2] == EMB_ASCII_CR && rx_buf[counter-1] == EMB_ASCII_LF) {
+                    if(counter >= 4 && rx_buf[counter-2] == EMB_ASCII_CR && rx_buf[counter-1] == EMB_ASCII_LF) {
                         DBG("CR+LF found (end of packet)\n");
                         _ctx->rx_bytes_counter += counter;
                         _ctx->rx_packets ++;
