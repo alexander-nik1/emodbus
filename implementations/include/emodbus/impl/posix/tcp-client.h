@@ -7,6 +7,10 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*!
  * \file
  * \brief Definition of TCP client
@@ -137,5 +141,9 @@ int emb_tcp_client_send(emb_tcp_client_t* _cli, const void* _buf, unsigned int _
  * @return Number of received bytes, or negative error code, if errors.
  */
 int emb_tcp_client_recv_tcp(emb_tcp_client_t* _cli, void* _buf, unsigned int _length);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif // EMB_TCP_CLIENT_H
