@@ -218,6 +218,27 @@ int emb_sync_client_rdwr_regs(emb_sync_client_t* _cli,
                               uint16_t _rd_quantity,
                               uint16_t* _rd_values);
 
+/**
+ * @brief emb_sync_read_fifo
+ *
+ * Synchronous reading FIFO
+ *
+ * @param [in] _cli Client context
+ * @param [in] _server_id Server id
+ * @param [in] _address FIFO Pointer Address
+ * @param [out] _n_regs Number of registers that have been read
+ * @param [in] _values_size Number of registers that can be written to _values
+ * @param [in] _values Place to store readed registers
+ * @return if there is no errors, it will return zero, otherwize
+ * it will return a error code. You can see it by emb_strerror() function.
+ */
+int emb_sync_read_fifo(emb_sync_client_t* _cli,
+                       uint8_t _server_id,
+                       uint16_t _address,
+                       uint16_t* _n_regs,
+                       uint16_t _values_size,
+                       uint16_t* _values);
+
 #ifdef __cplusplus
 }   // extern "C"
 #endif

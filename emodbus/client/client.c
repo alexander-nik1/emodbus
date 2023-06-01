@@ -386,3 +386,33 @@ int emb_sync_client_rdwr_regs(emb_sync_client_t* _cli,
     return emb_rdwr_regs_get_answ_regs(MB_CONST_PDU(&_cli->ans_adu->pdu),
                                        0, (uint16_t)res, _rd_values);
 }
+
+int emb_sync_read_fifo(emb_sync_client_t* _cli,
+                       uint8_t _server_id,
+                       uint16_t _address,
+                       uint16_t* _n_regs,
+                       uint16_t _values_size,
+                       uint16_t* _values)
+{
+    int res;
+
+    if(!(_cli && _cli->ans_adu && _cli->req_adu && _n_regs && _values_size > 0 && _values))
+        return -modbus_invalid_argument;
+
+    _cli->req_adu->server_id = _server_id;
+
+    res = emb_read_fifo_make_req(&_cli->req_adu->pdu, _address);
+    if(res != modbus_success)
+        return res;
+
+    res = emb_sync_client_do_request(_cli, _cli->req_adu, _cli->ans_adu);
+    if(res != modbus_success)
+        return res;
+
+    res = emb_read_fifo_answ_regs_count(MB_CONST_PDU(&_cli->ans_adu->pdu));
+    if(res < 0)
+        return res;
+    *_n_regs = (uint16_t)res;
+
+    return emb_read_fifo_answ_get_all_data(MB_CONST_PDU(&_cli->ans_adu->pdu), _values_size, _values);
+}
