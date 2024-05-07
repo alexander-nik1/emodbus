@@ -44,8 +44,8 @@ static int emb_tcp_client_close(emb_tcp_client_t* _cli)
     DBG("\n");
     if(emb_tcp_client_is_connected(_cli)) {
         shutdown(_cli->fd, SHUT_RDWR);
-        close(_cli->fd);
     }
+    close(_cli->fd);
     gettimeofday(&_cli->disconnect_time, NULL);
     emb_tcp_srv_ch_state(_cli, emb_tcs_disconnected);
     _cli->fd = -1;
