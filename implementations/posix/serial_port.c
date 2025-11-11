@@ -14,7 +14,10 @@
 
 void emb_serial_port_init(emb_serial_port_t* _ctx)
 {
-    if(_ctx) {
+    if (_ctx) {
+        _ctx->parity = emb_serial_parity_disabled;
+        _ctx->databits = emb_serial_db8;
+        _ctx->stop_bits = emb_serial_sb1;
         _ctx->fd = -1;
         _ctx->rx_bytes_counter = 0UL;
         _ctx->tx_bytes_counter = 0UL;
@@ -116,10 +119,10 @@ int emb_serial_port_open(emb_serial_port_t* _ctx)
         options.c_cflag |= (CLOCAL | CREAD);
         //options.c_cflag &= ~(ICANON | IEXTEN | FLUSHO | PENDIN | TOSTOP);
         //options.c_cflag |= (NOFLSH);
-        options.c_cflag &= ~PARENB;	// Disable parity bit
-        options.c_cflag &= ~CSTOPB;	// 1 stop bit
-        options.c_cflag &= ~CSIZE;	// Маскирование битов размера символов (CS5,CS8...)
-        options.c_cflag |= CS8;		// 8 data bits
+        // options.c_cflag &= ~PARENB;	// Disable parity bit
+        // options.c_cflag &= ~CSTOPB;	// 1 stop bit
+        // options.c_cflag &= ~CSIZE;	// Маскирование битов размера символов (CS5,CS8...)
+        // options.c_cflag |= CS8;		// 8 data bits
 
        if(serial_port_set_termios_params(_ctx,  &options) < 0) {
             fprintf(stderr, "%s: Error with serial_port_set_termios_params() call: %m\n", __FUNCTION__);
