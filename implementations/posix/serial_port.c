@@ -23,6 +23,75 @@ void emb_serial_port_init(emb_serial_port_t* _ctx)
     }
 }
 
+static int set_parity(struct termios *_options, emb_serial_parity_t _parity)
+{
+    switch (_parity) {
+        case emb_serial_parity_disabled:
+            _options->c_cflag &= ~PARENB;  // Отключаем четность
+            break;
+        case emb_serial_parity_odd:
+            _options->c_cflag |= PARENB;   // Включаем четность
+            _options->c_cflag |= PARODD;   // Нечетная четность
+            break;
+        case emb_serial_parity_even:
+            _options->c_cflag |= PARENB;   // Включаем четность
+            _options->c_cflag &= ~PARODD;  // Четная четность
+            break;
+        default:
+            return -1;
+    }
+    return 0;
+}
+
+
+static int set_data_bits(struct termios *_options, emb_serial_databits_t _data_bits)
+{
+    /// Маскирование битов размера символов (CS5,CS8...)
+    _options->c_cflag &= ~CSIZE;
+    switch (_data_bits) {
+        case emb_serial_db5:
+            _options->c_cflag |= CS5;
+            break;
+        case emb_serial_db6:
+            _options->c_cflag |= CS6;
+            break;
+        case emb_serial_db7:
+            _options->c_cflag |= CS7;
+            break;
+        case emb_serial_db8:
+            _options->c_cflag |= CS8;
+            break;
+        default:
+            return -1;
+    }
+    return 0;
+}
+
+
+static int set_stop_bits(struct termios *_options, emb_serial_stopbits_t _stop_bits)
+{
+    if (_stop_bits == emb_serial_sb2) {
+        _options->c_cflag |= CSTOPB;  // Два стоп-бита
+    }
+    else if (_stop_bits == emb_serial_sb1) {
+        _options->c_cflag &= ~CSTOPB; // Один стоп-бит
+    }
+    else {
+        return -1;
+    }
+    return 0;
+}
+
+static int serial_port_set_termios_params(emb_serial_port_t *_ctx, struct termios *_options)
+{
+    if (!_ctx) return -EINVAL;
+    if (set_parity(_options, _ctx->parity) != 0) return -1;
+    if (set_stop_bits(_options, _ctx->stop_bits) != 0) return -1;
+    if (set_data_bits(_options, _ctx->databits) != 0) return -1;
+    return 0;
+}
+
+
 int emb_serial_port_open(emb_serial_port_t* _ctx)
 {
     struct termios options;
@@ -51,6 +120,11 @@ int emb_serial_port_open(emb_serial_port_t* _ctx)
         options.c_cflag &= ~CSTOPB;	// 1 stop bit
         options.c_cflag &= ~CSIZE;	// Маскирование битов размера символов (CS5,CS8...)
         options.c_cflag |= CS8;		// 8 data bits
+
+       if(serial_port_set_termios_params(_ctx,  &options) < 0) {
+            fprintf(stderr, "%s: Error with serial_port_set_termios_params() call: %m\n", __FUNCTION__);
+            break;
+        }
 
     // Disable hardware flow control
 #ifdef CRTSCTS

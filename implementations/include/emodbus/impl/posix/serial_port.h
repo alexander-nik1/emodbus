@@ -6,10 +6,34 @@
 extern "C" {
 #endif
 
+typedef enum
+{
+    emb_serial_parity_disabled,
+    emb_serial_parity_odd,
+    emb_serial_parity_even
+} emb_serial_parity_t;
+
+typedef enum
+{
+    emb_serial_db5,
+    emb_serial_db6,
+    emb_serial_db7,
+    emb_serial_db8
+} emb_serial_databits_t;
+
+typedef enum
+{
+    emb_serial_sb1,
+    emb_serial_sb2
+} emb_serial_stopbits_t;
+
 typedef struct
 {
     const char* tty_name;
     unsigned baudrate;
+    emb_serial_parity_t parity;
+    emb_serial_databits_t databits;
+    emb_serial_stopbits_t stop_bits;
 	unsigned long timeout_ms;
 	unsigned long final_delay_ms;
 
