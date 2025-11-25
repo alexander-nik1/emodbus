@@ -16,6 +16,7 @@
 int emb_tcp_server_init(emb_tcp_server_t* _srv, in_addr_t _addr, uint16_t _port)
 {
     if(_srv) {
+        int i;
         const int yes = 1;
 
         FD_ZERO(&_srv->master);
@@ -59,6 +60,10 @@ int emb_tcp_server_init(emb_tcp_server_t* _srv, in_addr_t _addr, uint16_t _port)
 
         memset(_srv->clients, 0, _srv->max_connections * sizeof(emb_tcp_server_client_t));
 
+        for (i=0; i<_srv->max_connections; ++i) {
+            _srv->clients[i].fd = -1;
+        }
+
         DBG("tcp_server_init(): Use '%s:%d', listening\n", inet_ntoa(_srv->serveraddr.sin_addr), _port);
 
         return modbus_success;
@@ -98,8 +103,13 @@ static emb_tcp_server_client_t* emb_tcp_server_find_client(emb_tcp_server_t* _sr
 
 static void emb_tcp_server_close_client(emb_tcp_server_t* _srv, emb_tcp_server_client_t* _client)
 {
-    _client->active = 0;
-    close(_client->fd);
+    if (_client->active) {
+        _client->active = 0;
+        if (_client->fd >= 0) {
+            close(_client->fd);
+            _client->fd = -1;
+        }
+    }
     FD_CLR(_client->fd, &_srv->master);
 }
 
