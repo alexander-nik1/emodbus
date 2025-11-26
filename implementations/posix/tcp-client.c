@@ -234,6 +234,9 @@ int emb_tcp_client_set_connection_options(emb_tcp_client_t* _cli, const char* _i
         _cli->serveraddr.sin_port = htons(_port);
 
         ret = inet_pton(AF_INET, _ip, &_cli->serveraddr.sin_addr);
+        if (ret == 0) {
+            return -EINVAL;
+        }
         if(ret != 1) {
             if(ret == -1) {
                 ERR("Error with inet_pton(): %m\n");
