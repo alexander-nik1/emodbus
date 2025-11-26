@@ -239,7 +239,7 @@ int emb_tcp_client_set_connection_options(emb_tcp_client_t* _cli, const char* _i
                 ERR("Error with inet_pton(): %m\n");
             }
             ERR("Fail with convert IP address: '%s' to binary net address: %m\n", _ip);
-            return ret;
+            return -errno;
         }
         return 0;
     }
