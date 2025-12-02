@@ -99,6 +99,8 @@ int emb_serial_port_open(emb_serial_port_t* _ctx)
 {
     struct termios options;
 
+    int result = -1;
+
     do {
 
         if(!_ctx)
@@ -107,6 +109,7 @@ int emb_serial_port_open(emb_serial_port_t* _ctx)
         _ctx->fd = open(_ctx->tty_name, O_RDWR | O_NOCTTY | O_NDELAY);
         if(_ctx->fd < 0) {
             fprintf(stderr, "%s: Error while open \"%s\" serial port: %m\n", __FUNCTION__, _ctx->tty_name);
+            result = errno;
             break;
         }
 
@@ -124,7 +127,7 @@ int emb_serial_port_open(emb_serial_port_t* _ctx)
         // options.c_cflag &= ~CSIZE;	// Маскирование битов размера символов (CS5,CS8...)
         // options.c_cflag |= CS8;		// 8 data bits
 
-       if(serial_port_set_termios_params(_ctx,  &options) < 0) {
+        if((result = serial_port_set_termios_params(_ctx,  &options)) < 0) {
             fprintf(stderr, "%s: Error with serial_port_set_termios_params() call: %m\n", __FUNCTION__);
             break;
         }
@@ -165,7 +168,7 @@ int emb_serial_port_open(emb_serial_port_t* _ctx)
 
         tcsetattr(_ctx->fd, TCSANOW, &options);
 
-        if(emb_serial_port_set_baudrate(_ctx, _ctx->baudrate)) {
+        if((result = emb_serial_port_set_baudrate(_ctx, _ctx->baudrate))) {
             fprintf(stderr, "%s: Error with serial_port_set_baudrate() call: %m\n", __FUNCTION__);
             break;
         }
@@ -175,7 +178,7 @@ int emb_serial_port_open(emb_serial_port_t* _ctx)
 
     emb_serial_port_close(_ctx);
 
-    return -1;
+    return result;
 }
 
 void emb_serial_port_close(emb_serial_port_t* _ctx)
