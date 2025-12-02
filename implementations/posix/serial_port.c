@@ -169,7 +169,7 @@ int emb_serial_port_open(emb_serial_port_t* _ctx)
         tcsetattr(_ctx->fd, TCSANOW, &options);
 
         if((result = emb_serial_port_set_baudrate(_ctx, _ctx->baudrate))) {
-            fprintf(stderr, "%s: Error with serial_port_set_baudrate() call: %m\n", __FUNCTION__);
+            fprintf(stderr, "%s: Error with serial_port_set_baudrate() call: %s\n", __FUNCTION__, strerror(-result));
             break;
         }
         return 0;
