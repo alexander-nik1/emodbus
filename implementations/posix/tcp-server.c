@@ -107,10 +107,10 @@ static void emb_tcp_server_close_client(emb_tcp_server_t* _srv, emb_tcp_server_c
         _client->active = 0;
         if (_client->fd >= 0) {
             close(_client->fd);
+            FD_CLR(_client->fd, &_srv->master);
             _client->fd = -1;
         }
     }
-    FD_CLR(_client->fd, &_srv->master);
 }
 
 static void emb_tcp_server_disconnect_client(emb_tcp_server_t* _srv, int _fd)
