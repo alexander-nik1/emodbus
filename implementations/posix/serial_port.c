@@ -15,9 +15,6 @@
 void emb_serial_port_init(emb_serial_port_t* _ctx)
 {
     if (_ctx) {
-        _ctx->parity = emb_serial_parity_disabled;
-        _ctx->databits = emb_serial_db8;
-        _ctx->stop_bits = emb_serial_sb1;
         _ctx->fd = -1;
         _ctx->rx_bytes_counter = 0UL;
         _ctx->tx_bytes_counter = 0UL;
